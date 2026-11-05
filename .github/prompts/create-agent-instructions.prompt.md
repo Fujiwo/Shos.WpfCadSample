@@ -37,6 +37,7 @@ GitHub Copilot と、他のエージェントも参照する**正本**とする�
 2. **フォルダー構成と役割**
    - `Plans\`：計画書
    - `Reviews\`：レビュー結果
+   - `Progress\`：日付入りの Markdown の進捗記録。現状、文書の承認状態、確定方針、未決事項、履歴、次の作業を記す。変更のたびに新規作成せず既存の記録を更新する。承認の根拠にはしない
    - `Source\Shos.WpfCadSample\`：ソリューションと、その配下のアプリケーション／テストプロジェクト
    - `.github\prompts\`：再利用するプロンプト
    - `.github\skills\`：スキル
@@ -51,7 +52,7 @@ GitHub Copilot と、他のエージェントも参照する**正本**とする�
    - 小さな変更は軽く、判断を伴う作業は `references\` の該当ファイルを読んで適用する、というスキル自身の軽重の基準に従う。
    - 適用しない作業（文書の誤字修正、git 操作のみ、環境構築のみ、設定値の変更のみ、CI/ビルド設定のみ、コードの説明のみ）も、スキルの記述に合わせて書く。
 5. **コーディング規約の要点**（`create-wpf-cad.prompt.md` と矛盾させない）
-   - 名前空間はルート直下に型を置かない。`Models` / `ViewModels` / `Views` / `Controllers` ほか。
+   - 名前空間はルート直下に型を置かない。`Models` / `ViewModels` / `Views` / `Controllers` ほか。唯一の例外は WPF アプリケーションクラス `App`（`App.xaml` / `App.xaml.cs`）で、WPF プロジェクトのルート namespace（`Shos.WpfCadSample`）直下に置く。
    - コードビハインドには `InitializeComponent()` 以外のロジックを書かない。
    - `record` / `struct` / `record struct` を適切に使い、新しい C# の文法を利用する。
    - Undo / Redo は `Shos.UndoRedoList` の `UndoRedoObservableCollection<T>` を使う。

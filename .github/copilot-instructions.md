@@ -11,6 +11,7 @@
 - `Plans\`: Markdown implementation plans.
 - `Documents\`: dated Markdown specifications and design documents.
 - `Reviews\`: review reports.
+- `Progress\`: dated Markdown progress record (current status, document approval state, decisions, open items, history, next steps). Update the existing record instead of creating one per change; it is not an approval document.
 - `Source\Shos.WpfCadSample\`: solution and application/test projects.
 - `.github\prompts\`: reusable task prompts.
 - `.github\skills\`: skills available to GitHub Copilot.
@@ -20,6 +21,7 @@
 - When creating a reusable prompt, create a new `.prompt.md` file under `.github\prompts\`. Do not replace or overwrite an existing prompt; choose a distinct name and update relevant references.
 - When conducting a requested review, save the review result as a new Markdown file under `Reviews\`, named `YYYYMMDD-<subject>-review.md`. Do not overwrite an existing review; add a distinguishing suffix if needed.
 - Include the review scope, findings (or explicitly state that no findings were found), and relevant file paths/locations in the report. Link the report when presenting the result.
+- When a CAD document is created, approved, or changed, or when an implementation stage starts or finishes, update the progress record in `Progress\` (for example `Progress\YYYYMMDD-cad-progress.md`). Its approval states mirror each document's status line, which remains authoritative; never mark a document approved there before the user explicitly approves it.
 
 ## Plan before substantial implementation
 
@@ -43,7 +45,7 @@
 
 ## CAD conventions
 
-- Keep types out of the root namespace; use role-based namespaces such as `Models`, `ViewModels`, `Views`, and `Controllers`.
+- Keep types out of the root namespace; use role-based namespaces such as `Models`, `ViewModels`, `Views`, and `Controllers`. The sole exception is the WPF application class `App` (`App.xaml` / `App.xaml.cs`), which lives directly in the WPF project's root namespace (`Shos.WpfCadSample`).
 - Keep XAML code-behind free of application logic other than `InitializeComponent()`.
 - Prefer `record`, `struct`, or `record struct` for suitable value data, and use current C# syntax where it improves clarity.
 - Use `Shos.UndoRedoList`'s `UndoRedoObservableCollection<T>` for Undo/Redo.

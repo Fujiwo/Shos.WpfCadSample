@@ -13,6 +13,7 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 - 承認済み仕様書と設計書を唯一の詳細仕様として扱い、このプロンプトの要件を勝手に変更しない。要件との矛盾や計画外の変更が必要な場合は、影響する文書を更新して再承認を得てから実装する。
 - 最初に `.github\skills\sustainable-code-jp\SKILL.md` と、必要な `references\*.md` を読み、その判断基準（命名、Testable 設計、Think Simple、ガード節など）に従ってコードを書くこと。
 - 要件に書かれていない機能は追加しない（YAGNI）。曖昧な点は、合理的な既定値を選んで `Source\README.md` の「設計判断」節に理由を添えて記録する。ユーザーの確認が必須な場合のみ質問する。
+- 各段階の開始時と完了時に、`Progress\` の進捗記録（例：`Progress\YYYYMMDD-cad-progress.md`）を更新し、実行したビルド・テストのコマンドと結果、未解決の課題を記録する。
 - 次の順に段階的に進め、**各段階の終わりにリポジトリルートから `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` と `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が成功すること**を確認してから次へ進む。各段階の開始時にテスト対象プロジェクトがまだない場合は、まずテスト可能な骨組みを用意する。
   1. 参照資料の調査、ソリューションの骨組み
   2. Models（図形・属性・シリアライズ・ベジェ変換）とそのテスト
@@ -42,7 +43,7 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 
 ### 2.1 namespace とフォルダー構成
 
-- ルート namespace は `Shos.WpfCadSample` とし、**ルート直下には型を置かない**。
+- ルート namespace は `Shos.WpfCadSample` とし、**ルート直下には型を置かない**。ただし、WPF アプリケーションクラス `App`（`App.xaml` / `App.xaml.cs`）だけは例外として、WPF プロジェクトのルート namespace 直下（`Shos.WpfCadSample.App`）に置く。`App.xaml` の `x:Class` はこの名前にする。
 - フォルダー構成と namespace を一致させる。
 - 役割は次のとおり。
 
@@ -196,5 +197,5 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
   - `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が警告・エラーなしで成功する
   - `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` がすべて成功する
   - コードビハインドに `InitializeComponent()` 以外のロジックがない（`MainWindow` を含む）
-  - ルート namespace 直下に型がない
+  - ルート namespace 直下に型がない（例外は WPF アプリケーションクラス `App` のみ）
   - 要件のすべての図形・編集・拡大縮小・クリップボード・保存機能が、実際の起動で動作する
