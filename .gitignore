@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+[Aa]ny[Cc]pu/
+
+# Test and build results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet package artifacts
+*.nupkg
+*.snupkg
