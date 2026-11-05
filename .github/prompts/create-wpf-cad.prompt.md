@@ -5,13 +5,13 @@ agent: agent
 
 # WPF 簡易 CAD アプリケーションの作成
 
-WPF アプリケーションとして、簡易な 2D CAD を `Source` フォルダー配下に作成せよ。
+WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` ソリューション内に作成せよ。アプリケーションとテストの各プロジェクトは `Source\Shos.WpfCadSample\` 配下に配置してこのソリューションに追加し、別のソリューションは作成しない。
 
 ## 0. 作業方針
 
 - 最初に `.github\skills\sustainable-code-jp\SKILL.md` と、必要な `references\*.md` を読み、その判断基準（命名、Testable 設計、Think Simple、ガード節など）に従ってコードを書くこと。
 - 要件に書かれていない機能は追加しない（YAGNI）。曖昧な点は、合理的な既定値を選んで `Source\README.md` の「設計判断」節に理由を添えて記録する。ユーザーの確認が必須な場合のみ質問する。
-- 次の順に段階的に進め、**各段階の終わりに `dotnet build` と `dotnet test` が成功すること**を確認してから次へ進む。
+- 次の順に段階的に進め、**各段階の終わりにリポジトリルートから `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` と `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が成功すること**を確認してから次へ進む。各段階の開始時にテスト対象プロジェクトがまだない場合は、まずテスト可能な骨組みを用意する。
   1. 参照資料の調査、ソリューションの骨組み
   2. Models（図形・属性・シリアライズ・ベジェ変換）とそのテスト
   3. ViewModels / Controllers（図形追加・選択・編集・Undo/Redo）とそのテスト
@@ -175,12 +175,12 @@ WPF アプリケーションとして、簡易な 2D CAD を `Source` フォル�
 
 ## 11. 成果物と完了条件
 
-- ソリューション：`Source\Shos.WpfCadSample.slnx`（または `.sln`）
+- ソリューション：既存の `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx`
   - アプリ本体プロジェクト、テストプロジェクト
 - `Source\README.md`：概要、フォルダー／namespace の構成、操作方法（ショートカット一覧を含む）、設計判断（座標系、EMF の方式、参照した資料と出典）
 - 完了条件（すべて満たすこと。満たした根拠として、実行したコマンドと結果を報告する）
-  - `dotnet build` が警告・エラーなしで成功する
-  - `dotnet test` がすべて成功する
+  - `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が警告・エラーなしで成功する
+  - `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` がすべて成功する
   - コードビハインドに `InitializeComponent()` 以外のロジックがない（`MainWindow` を含む）
   - ルート namespace 直下に型がない
   - 要件のすべての図形・編集・拡大縮小・クリップボード・保存機能が、実際の起動で動作する
