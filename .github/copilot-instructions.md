@@ -10,15 +10,22 @@
 
 - `Plans\`: Markdown implementation plans.
 - `Documents\`: dated Markdown specifications and design documents.
-- `Reviews\`: review results.
+- `Reviews\`: review reports.
 - `Source\Shos.WpfCadSample\`: solution and application/test projects.
 - `.github\prompts\`: reusable task prompts.
 - `.github\skills\`: skills available to GitHub Copilot.
+
+## Prompt and review artifacts
+
+- When creating a reusable prompt, create a new `.prompt.md` file under `.github\prompts\`. Do not replace or overwrite an existing prompt; choose a distinct name and update relevant references.
+- When conducting a requested review, save the review result as a new Markdown file under `Reviews\`, named `YYYYMMDD-<subject>-review.md`. Do not overwrite an existing review; add a distinguishing suffix if needed.
+- Include the review scope, findings (or explicitly state that no findings were found), and relevant file paths/locations in the report. Link the report when presenting the result.
 
 ## Plan before substantial implementation
 
 - Before the initial CAD implementation, use [create-cad-plan.prompt.md](prompts/create-cad-plan.prompt.md) to create and obtain approval for these separate documents in order: a dated Markdown specification in `Documents\` (including features, UI design, and conceptual data structures), a dated Markdown architecture/class design in `Documents\` (including needed UML), then dated Markdown implementation and test plans in `Plans\`.
 - Create and obtain approval for each stage before creating the next. Do not start implementation until the specification, architecture/class design, implementation plan, and test plan are all approved.
+- Create `Documents\` or `Plans\` when needed. Mark each new document `状態：レビュー待ち`; change it to `状態：承認済み` only after the user explicitly approves it. Revert changed approved documents and affected downstream documents to review pending.
 - For other multi-step changes affecting design or scope, create a Markdown plan in `Plans\`.
 - Include the date and topic in each document filename, for example `Documents\YYYYMMDD-cad-specification.md`, `Documents\YYYYMMDD-cad-architecture.md`, and `Plans\YYYYMMDD-cad-implementation-plan.md`.
 - Include the goal, scope and exclusions, requirements, design, ordered steps and completion criteria, test approach, risks, and open questions.
@@ -28,10 +35,11 @@
 
 ## Sustainable coding
 
-- For code design, implementation, changes, tests, refactoring, reviews, bug fixes, and performance work, use the [sustainable-code-jp skill](skills/sustainable-code-jp/SKILL.md).
+- For code design, implementation, changes, tests, refactoring, code reviews, bug fixes, and performance work, use the [sustainable-code-jp skill](skills/sustainable-code-jp/SKILL.md).
+- Use the skill for architecture/design document reviews when they involve design judgments. Do not use it for reviews limited to repository instructions, prompts, or other documentation; those are documentation-only work.
 - Follow the skill's guidance on how much of its references to read for the task.
 - Do not invoke the skill for work it excludes, such as documentation-only edits, Git-only operations, environment setup, configuration-value-only changes, build/CI configuration-only changes, or code explanations.
-- The `.github\skills\` and `.claude\skills\` copies of `sustainable-code-jp` and `genshijin` currently match; keep corresponding files in sync.
+- Before relying on or updating mirrored `sustainable-code-jp` or `genshijin` skills, compare their relative file sets and contents. If they differ, report the discrepancy rather than assuming they match or silently synchronizing them; keep corresponding copies synchronized when an approved change applies to both.
 
 ## CAD conventions
 
