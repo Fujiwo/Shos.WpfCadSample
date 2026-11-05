@@ -47,6 +47,7 @@
 - Keep XAML code-behind free of application logic other than `InitializeComponent()`.
 - Prefer `record`, `struct`, or `record struct` for suitable value data, and use current C# syntax where it improves clarity.
 - Use `Shos.UndoRedoList`'s `UndoRedoObservableCollection<T>` for Undo/Redo.
+- Use Material Design in XAML Toolkit (`MaterialDesignThemes`) for the UI chrome (menus, toolbars, windows, controls). Keep it in `App.xaml` and `Views`; `Models`, `ViewModels`, and `Controllers` must not depend on it, and drawing-area shape colors come from shape attributes, not the theme.
 - Do not add features outside the agreed requirements.
 
 ## Build and test

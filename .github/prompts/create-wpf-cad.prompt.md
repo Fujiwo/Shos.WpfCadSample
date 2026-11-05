@@ -31,6 +31,9 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
     - https://github.com/Fujiwo/Shos.UndoRedoList
     - https://www.nuget.org/packages/Shos.UndoRedoList/
   - `CommunityToolkit.Mvvm`（`ObservableObject`、`RelayCommand` 等。使用は任意）
+  - `MaterialDesignThemes`（Material Design in XAML Toolkit。UI の外観に使う。アプリ本体の WPF プロジェクトだけが参照する。導入時点の最新の安定版（プレリリース／CI 版は除く）を NuGet で確認し、`net10.0-windows` に対応していることを確かめて使う）
+    - https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit
+    - https://www.nuget.org/packages/MaterialDesignThemes/
   - テストプロジェクトでは xUnit
   - 上記以外を追加する場合は、理由を README に記録する。
 - API の使い方は、推測せず、NuGet / GitHub の README とソースで確認すること。
@@ -61,6 +64,15 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 - `MainWindow` の XAML / コードはできるだけシンプルにする。必要に応じて `UserControl` やカスタムコントロールを作って分割する。
 - カスタムコントロールの XAML（ControlTemplate）は、コントロールごとに別ファイルの `ResourceDictionary` とし、`Themes\Generic.xaml` から `MergedDictionaries` で取り込む。
 - View には、バインド対象として適宜 Dependency Property を用意する。
+
+### 2.3 UI スタイル（Material Design）
+
+- UI の外観には Material Design in XAML Toolkit（`MaterialDesignThemes`）を採用する。API の使い方は、推測せず、公式の README とソースで確認する。
+- `App.xaml` で `materialDesign:BundledTheme`（`BaseTheme="Light"`、プライマリー色・セカンダリー色は設計書で決める）と、**Material Design 3**（最新の版）の既定スタイルである `MaterialDesign3.Defaults.xaml` の `ResourceDictionary` を `MergedDictionaries` に取り込む（Material Design 2 の `MaterialDesign2.Defaults.xaml` は使わない）。`MainWindow` と属性ウィンドウの `Window` には `MaterialDesignWindow` スタイルを適用する。導入時に公式の README／Wiki（Getting Started）で、使用する版の手順と資源名を確認する。
+- メニュー、ツールバー、ボタン、テキストボックス、スライダー、コンボボックス、ステータスバー、各ウィンドウの外観は、Material Design のスタイルとアイコン（`PackIcon`）を使う。自作のカスタムコントロールの `ControlTemplate` では、テーマのブラシを `DynamicResource` で参照する。
+- 適用範囲は、アプリケーションのクローム（メニュー、ツールバー、属性ウィンドウなど）に限る。描画領域の図形の色と線種は、ユーザーが設定する図形属性で決まり、テーマの色や外観に左右されない。描画領域の背景は白とする。
+- `Models`、`ViewModels`、`Controllers` は Material Design に依存させない（`MaterialDesignThemes` の型を参照しない）。Material Design の型やスタイルは、`App.xaml` と `Views` の XAML／カスタムコントロールにとどめる。
+- テーマの切り替え（ダークテーマ等）、`DialogHost` や `Snackbar` など、要件にない Material Design 固有の機能は実装しない（YAGNI）。ファイルダイアログとエラー表示のメッセージボックスは標準のものを使う。
 
 ## 3. 描画
 
@@ -179,7 +191,7 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 
 - ソリューション：既存の `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx`
   - アプリ本体プロジェクト、テストプロジェクト
-- `Source\README.md`：概要、フォルダー／namespace の構成、操作方法（ショートカット一覧を含む）、設計判断（座標系、EMF の方式、参照した資料と出典）
+- `Source\README.md`：概要、フォルダー／namespace の構成、操作方法（ショートカット一覧を含む）、設計判断（座標系、EMF の方式、Material Design の版・配色と適用範囲、参照した資料と出典）
 - 完了条件（すべて満たすこと。満たした根拠として、実行したコマンドと結果を報告する）
   - `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が警告・エラーなしで成功する
   - `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` がすべて成功する

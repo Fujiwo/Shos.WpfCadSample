@@ -55,6 +55,7 @@ GitHub Copilot と、他のエージェントも参照する**正本**とする�
    - コードビハインドには `InitializeComponent()` 以外のロジックを書かない。
    - `record` / `struct` / `record struct` を適切に使い、新しい C# の文法を利用する。
    - Undo / Redo は `Shos.UndoRedoList` の `UndoRedoObservableCollection<T>` を使う。
+   - UI の外観には Material Design in XAML Toolkit（`MaterialDesignThemes`）を使う。適用は `App.xaml` と `Views` に限り、`Models` / `ViewModels` / `Controllers` は依存させない。描画領域の図形の色はテーマではなく図形属性で決める。
 6. **ビルド・テスト・検証**：ソリューションにアプリ／テストプロジェクトが追加された後は、リポジトリルートから `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` と `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` を実行する。プロジェクト未追加の間は実行可能と記載せず、未実施の理由を報告する。
 7. **やってはいけないこと**：承認済み計画なしに CAD の初期実装や計画対象の大きな変更を始めない。要件にない機能を追加しない（YAGNI）。秘密情報をコミットしない。
 
