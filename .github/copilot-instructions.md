@@ -9,6 +9,7 @@
 ## Repository layout
 
 - `Plans\`: Markdown implementation plans.
+- `Documents\`: dated Markdown specifications and design documents.
 - `Reviews\`: review results.
 - `Source\Shos.WpfCadSample\`: solution and application/test projects.
 - `.github\prompts\`: reusable task prompts.
@@ -16,11 +17,13 @@
 
 ## Plan before substantial implementation
 
-- Before the initial CAD implementation or a multi-step change affecting design or scope, create a Markdown plan in `Plans\`.
-- Name plans with the date and topic, for example `Plans\YYYYMMDD-topic.md`.
+- Before the initial CAD implementation, use [create-cad-plan.prompt.md](prompts/create-cad-plan.prompt.md) to create and obtain approval for these separate documents in order: a dated Markdown specification in `Documents\` (including features, UI design, and conceptual data structures), a dated Markdown architecture/class design in `Documents\` (including needed UML), then dated Markdown implementation and test plans in `Plans\`.
+- Create and obtain approval for each stage before creating the next. Do not start implementation until the specification, architecture/class design, implementation plan, and test plan are all approved.
+- For other multi-step changes affecting design or scope, create a Markdown plan in `Plans\`.
+- Include the date and topic in each document filename, for example `Documents\YYYYMMDD-cad-specification.md`, `Documents\YYYYMMDD-cad-architecture.md`, and `Plans\YYYYMMDD-cad-implementation-plan.md`.
 - Include the goal, scope and exclusions, requirements, design, ordered steps and completion criteria, test approach, risks, and open questions.
-- Present the plan and wait for user approval before implementing it. Do not change application code for the initial CAD implementation before approval.
-- Before running `create-wpf-cad.prompt.md`, confirm that its corresponding plan is approved; create and get approval for one first if needed.
+- Present plans and wait for user approval before implementing them. Do not change application code for the initial CAD implementation before all CAD documents are approved.
+- Before running `create-wpf-cad.prompt.md`, confirm that the CAD specification, architecture/class design, implementation plan, and test plan are all approved; create and get approval for any missing document first.
 - A simple, bounded maintenance fix does not require a plan or prior approval. If work needs a substantial change from an approved plan, update the plan and get approval before proceeding.
 
 ## Sustainable coding
