@@ -1,6 +1,6 @@
 ﻿# Shos.WpfCadSample
 
-WPF（C# 14 / .NET 10）で作る、MVC + MVVM 構成の簡易 2D CAD のサンプルです。要件は [create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)、詳細な仕様と設計は [Documents](../Documents/) と [Plans](../Plans/) の承認済みの文書を正とします。
+WPF（C# 14 / .NET 10）で作る、MVC + MVVM 構成の簡易 2D CAD のサンプルです。要件は[仕様書](../Documents/20261105-cad-specification.md)（唯一の要件の文書）、設計と計画は [Documents](../Documents/) と [Plans](../Plans/) の承認済みの文書を正とします。
 
 > この README は、実装計画書の段階 I-1 で作った骨子です。操作方法と設計判断は、段階 I-10 で完成させます。
 

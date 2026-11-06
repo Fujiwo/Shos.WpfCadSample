@@ -1,11 +1,10 @@
-状態：承認済み
+状態：レビュー待ち
 
 # 簡易 WPF CAD アーキテクチャー／クラス設計書
 
 - 作成日：2026-11-05
 - 位置づけ：計画の段階2（アーキテクチャー／クラス設計書）。次段階は `Plans\20261105-cad-implementation-plan.md` と `Plans\20261105-cad-test-plan.md`（本書の承認後に作成）。
-- 前提とする文書：[20261105-cad-specification.md](./20261105-cad-specification.md)（2026-11-06 改訂版。2026-11-06 に再承認済み）
-- 根拠となる要件：[create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)
+- 前提とする文書：[20261105-cad-specification.md](./20261105-cad-specification.md)（唯一の要件の文書。本書の「仕様 3.x」は、仕様書 3 章の要件を指す）
 - 設計の指針：[sustainable-code-jp スキル](../.github/skills/sustainable-code-jp/SKILL.md)（責務の分割、Testable、Think Simple、YAGNI）
 - 本書は「どう作るか」（構成、責務、クラス、データフロー、UML）を定める。画面・操作・データの仕様は仕様書が正であり、本書は再定義しない。
 
@@ -24,12 +23,12 @@
 
 | ID | 判断 | 採った案 | 見送った案とトレードオフ |
 |---|---|---|---|
-| DD-1 | プロジェクト構成 | UI に依存しない `Shos.WpfCadSample.Core`（net10.0）、WPF の `Shos.WpfCadSample`（net10.0-windows）、`Shos.WpfCadSample.Tests` の 3 つ | 1 プロジェクトにまとめる案は、WPF の実行ファイルをテストが参照することになり、`Models` / `ViewModels` / `Controllers` が WPF に依存しないという要件（§2.1）を、規約でしか守れない。分割すると、参照関係でその要件を強制でき、UI を起動せずに単体テストできる（Testable）。プロジェクトは 3 つで増やしすぎない |
+| DD-1 | プロジェクト構成 | UI に依存しない `Shos.WpfCadSample.Core`（net10.0）、WPF の `Shos.WpfCadSample`（net10.0-windows）、`Shos.WpfCadSample.Tests` の 3 つ | 1 プロジェクトにまとめる案は、WPF の実行ファイルをテストが参照することになり、`Models` / `ViewModels` / `Controllers` が WPF に依存しないという要件（仕様 3.3）を、規約でしか守れない。分割すると、参照関係でその要件を強制でき、UI を起動せずに単体テストできる（Testable）。プロジェクトは 3 つで増やしすぎない |
 | DD-2 | 図形の表現 | 不変な `record`。変更は新しい図形への置き換え（`Shapes[index] = 新しい図形`）。置き換えは Undo 履歴の 1 操作になる | 図形を可変クラスにする案は、変更ごとに「元の値」を保存する履歴の実装が別途必要になる。不変 record は、ライブラリの置き換え操作の記録だけで Undo / Redo が成立する |
 | DD-3 | ドラッグ中の表示 | `DisabledUndoScope` の中で、ドラッグ中の図形を同じ位置へ置き換えて表示する（記録しない）。マウスを離したとき、元の図形へ戻して（記録しない）から、最終の図形を置き換える（記録する）。`Esc` は元に戻すだけ | 別のプレビュー層に描き、元の図形を隠す案は、描画の仕組みが 2 系統になる。置き換え方式は、描画の仕組みが 1 系統で済み、ドラッグ 1 回が確実に 1 回の Undo 単位になる（AC-08）。属性のスライダー操作にも同じ仕組みを使う |
-| DD-4 | 論理座標とビュー変換 | 図形は論理座標（Y 上向き）で持つ。図形の層全体に 1 つの変換（拡大率・平行移動・Y 反転）を、描画の層（`Canvas`）の `RenderTransform` として適用する。変換は `ViewTransform` に集約する | 図形ごとに画面座標へ変換して描く案は、拡大縮小のたびに全図形を再計算する。層への変換は、線の太さが論理座標で拡大縮小に追従し（要件 §3）、変換が 1 か所に集約される。選択ハンドルは画面上の固定サイズのため、別の層に画面座標で置く |
-| DD-5 | 入力の受け方 | カスタムコントロール `DrawingSurface` が、マウス・ホイールを、WPF に依存しない `PointerEvent` に変換して `ICommand` へ渡す。キーは `InputBindings` に定義する | `*.xaml.cs` に入力処理を書く案は、要件 §2.2 に反する。コントロールのコードは入力の変換だけに限り、解釈は `Controllers` が行う |
-| DD-6 | クリップボードの EMF・画像（U-3 の確定案） | 図形の `Outline`（直線とベジェ曲線だけで表した中間表現）から、GDI+ で EMF（`Metafile`）と画像（PNG を `BitmapSource` へ）を作る。範囲は仕様書 A-10 のとおり（対象図形の外接矩形に線の太さの半分を加える。1 論理単位 = 1 px、96 DPI。EMF は背景透明、画像は背景白）。範囲の長辺が 10,000 論理単位を超える場合は、長辺が 10,000 px になる縮尺で描く（仕様 A-24）。範囲と縮尺は `Models.Geometry` の純粋な `ExportFrame` で求める。EMF は Win32 の `CF_ENHMETAFILE` で渡し、独自形式と画像は WPF の `Clipboard` を使う | WPF の描画（`DrawingVisual`）から EMF を作る標準の方法はない。`Outline` を共通の入力にすると、画面の描画（WPF のジオメトリ）と出力（GDI+）が同じ図形の定義を使い、見た目の食い違いが起きにくい |
+| DD-4 | 論理座標とビュー変換 | 図形は論理座標（Y 上向き）で持つ。図形の層全体に 1 つの変換（拡大率・平行移動・Y 反転）を、描画の層（`Canvas`）の `RenderTransform` として適用する。変換は `ViewTransform` に集約する | 図形ごとに画面座標へ変換して描く案は、拡大縮小のたびに全図形を再計算する。層への変換は、線の太さが論理座標で拡大縮小に追従し（仕様 3.4）、変換が 1 か所に集約される。選択ハンドルは画面上の固定サイズのため、別の層に画面座標で置く |
+| DD-5 | 入力の受け方 | カスタムコントロール `DrawingSurface` が、マウス・ホイールを、WPF に依存しない `PointerEvent` に変換して `ICommand` へ渡す。キーは `InputBindings` に定義する | `*.xaml.cs` に入力処理を書く案は、仕様 3.3 の要件に反する。コントロールのコードは入力の変換だけに限り、解釈は `Controllers` が行う |
+| DD-6 | クリップボードの EMF・画像（U-3 の確定案） | 図形の `Outline`（直線とベジェ曲線だけで表した中間表現）から、GDI+ で EMF（`Metafile`）と画像（PNG を `BitmapSource` へ）を作る。範囲は仕様書 A-10 のとおり（対象図形の外接矩形に線の太さの半分を加える。1 論理単位 = 1 px、96 DPI。EMF は背景透明、画像は背景白）。ピクセル寸法への切り上げ後、各辺 10,000 px 以下、画像換算の画素数 4,000,000 以下とし、EMF も同じ縮尺を使う（仕様 A-24）。範囲と縮尺は `Models.Geometry` の純粋な `ExportFrame` で求める。EMF は Win32 の `CF_ENHMETAFILE` で渡し、独自形式と画像は WPF の `Clipboard` を使う | WPF の描画（`DrawingVisual`）から EMF を作る標準の方法はない。`Outline` を共通の入力にすると、画面の描画（WPF のジオメトリ）と出力（GDI+）が同じ図形の定義を使い、見た目の食い違いが起きにくい |
 | DD-7 | 自由線 | `Models` の純粋な関数で、通過点列を 3 次ベジェ区間へ変換する（自然スプライン、閉曲線は周期スプライン）。結果は `Outline` の曲線区間になり、描画・ヒットテスト・出力が同じものを使う | 保存するのは通過点だけで、制御点は保存しない（仕様 6.3）。変換は I/O や UI を含まないため、通過点・連続性を単体テストで検証できる |
 | DD-8 | 保存形式 | `System.Text.Json`。図形の多態性は `[JsonPolymorphic]` と `[JsonDerivedType]` を `Shape` に付ける。DTO は作らない。検証は読み込み後の `IsValid()` で行う | DTO を別に作る案は、図形ごとに写像のコードが増える。`Models` は `System.Text.Json` の属性（標準ライブラリ）にのみ依存し、WPF には依存しない。`System.Text.Json` は NaN・無限大のリテラルを既定で受け付けない |
 | DD-9 | Material Design（U-4 の確定案） | Material Design 3、Light。`BundledTheme` の `PrimaryColor="Indigo"`、`SecondaryColor="Amber"`。適用は `App.xaml` と `Views` に限る | 配色は `App.xaml` の 1 行で変更できる。Material Design 固有のダイアログ・通知部品は使わない（仕様 A-16） |
@@ -38,7 +37,7 @@
 | DD-12 | 図形の種類の扱い | 図形の種類（7 種）ごとの違い（アウトライン、ハンドル、ハンドル移動、平行移動、検証）は、`Shape` の抽象メソッドの多態で表す | `switch` で種類を分岐する案は、種類の追加のたびに複数箇所を直す。種類は要件で固定だが、振る舞いの追加先を 1 つに閉じ込めるため多態を選ぶ |
 | DD-13 | インターフェイス | UI に依存する 2 つの境界だけに作る：`IDialogService`（ファイルダイアログ・確認・エラー表示）、`IClipboardService`（クリップボード）。ファイル I/O、設定の保存は、パスを引数に受け取る具象クラスにし、テストでは一時フォルダーを使う | 実装が 1 つしかないインターフェイスは増やさない（YAGNI）。差し替えが必要なのは、テストで UI を起動できない 2 点だけ |
 | DD-14 | `App` クラスの配置（ユーザー指示による例外） | WPF アプリケーションクラス `App` は、WPF プロジェクトのルート namespace 直下（`Shos.WpfCadSample.App`）に置く。`App.xaml` の `x:Class` もこの名前にする。ほかの型は、ルート直下に置かない | `App` を `Views` や `Infrastructure` に入れる案は、アプリケーション全体の入口を、画面や実装の詳細の namespace に属させることになる。`App` は役割をまたぐ起動の入口のため、特例として扱う。例外は `App` 1 つに限り、型が増えないことを構造の確認（S-01）で検証する |
-| DD-15 | ビュー変換の置き場所 | 拡大率とスクロール位置の状態は `DrawingViewModel` が `Viewport` のインスタンスとして保持する（要件 §6）。その規則（`ViewTransform`、`Viewport`）は、UI に依存しない純粋な型として `Models.Geometry` に置く | 要件 §2.1 の表は「ビュー変換」を `ViewModels` の役割に挙げるが、座標変換は `Controllers`（入力の論理座標への変換、許容範囲の換算）も使う。規則を `ViewModels` に置くと `Controllers` → `ViewModels` の逆向きの依存が生じる。状態の持ち主は要件どおり ViewModel とし、規則だけを下位に置く |
+| DD-15 | ビュー変換の置き場所 | 拡大率とスクロール位置の状態は `DrawingViewModel` が `Viewport` のインスタンスとして保持する（仕様 3.4）。その規則（`ViewTransform`、`Viewport`）は、UI に依存しない純粋な型として `Models.Geometry` に置く | 仕様 3.3 の namespace の表は「ビュー変換」を `ViewModels` の役割に挙げるが、座標変換は `Controllers`（入力の論理座標への変換、許容範囲の換算）も使う。規則を `ViewModels` に置くと `Controllers` → `ViewModels` の逆向きの依存が生じる。状態の持ち主は要件どおり ViewModel とし、規則だけを下位に置く |
 
 ## 3. システム構成
 
@@ -203,7 +202,7 @@ classDiagram
   - `HandlePoints`：選択ハンドルを置く点（矩形は 4 つの角、円は中心と円周上の点、ほかは定義点）。
   - `MoveHandle(index, to)`：ハンドルを動かした結果の図形を返す（仕様 5.3 の表のとおり。矩形は、動かした角の対角を固定し、円の中心は円全体を平行移動する）。
   - `Translate(delta)`：図形全体を平行移動する。
-  - `SatisfiesConstraints()`：最小点数を除く仕様 6.3 の制約（隣り合う点が一致しない（最後と最初を含む種類あり）、矩形の幅・高さが 0 でない、半径 > 0、座標が有限）を満たすか。点の一致は、論理座標の完全一致で判定する（仕様 A-27）。制約の判定は、ここだけに置く。
+  - `SatisfiesConstraints()`：最小点数を除く仕様 6.3 の制約（隣り合う点が一致しない（最後と最初を含む種類あり）、矩形の幅・高さが 0 でない、半径 > 0、座標が有限かつ絶対値 1,000,000 以下、導出される幾何値が有限）を満たすか。点の一致は、論理座標の完全一致で判定する（仕様 A-27）。制約の判定は、ここだけに置く。
   - `IsValid()`：最小点数を満たし、`SatisfiesConstraints()` が真で、属性が `ShapeAttributes.IsValid()` を満たすか。コンストラクターは例外を投げず、検証は `IsValid()` で行う（読み込み・貼り付け・編集で共通に使う）。
   - `Bounds`：`Outline` の外接矩形（線の太さは含めない）。
 - 値の等価性：`ImmutableArray<Point2>` の `record` の等価性は参照で比較される。テストと実装は、図形の同一性を `ShapeId` で、点列の比較を `SequenceEqual` で行い、`record` の `==` に頼らない。
@@ -233,7 +232,7 @@ classDiagram
     class CubicBezierSegment { <<record>> +Point2 Control1 +Point2 Control2 }
     class SplineBezier { <<static>> +Open(points) OutlineFigure +Closed(points) OutlineFigure }
     class ShapeHitTester { <<static>> +HitShape(shapes, point, tolerance) int +HitHandle(shape, point, tolerance) int }
-    class ExportFrame { <<record>> +Rect2 Area +double Scale +For(shapes) ExportFrame }
+    class ExportFrame { <<record>> +Rect2 Area +double Scale +int PixelWidth +int PixelHeight +For(shapes) ExportFrame }
     class ViewTransform { <<readonly record struct>> +double Scale +double TranslateX +double TranslateY +ToScreen(Point2) Point2 +ToLogical(Point2) Point2 }
     class Viewport {
         +Rect2 LogicalArea
@@ -268,8 +267,8 @@ classDiagram
   - `HitShape`：中心線からの距離が「線の太さ ÷ 2 + `tolerance`」以内なら線上とする（見えている線の上のクリックで選択できるようにする。仮定 DA-7）。距離は `Outline.DistanceTo`（ベジェは `Flatten` で折れ線へ近似。近似誤差は許容範囲より十分小さく取る。仮定 DA-2）で求める。重なる図形は最も上（後から追加した図形）を返す。内部のクリックでは選択しない（仕様 A-17）。
   - `HitHandle`：`tolerance` 以内のハンドルのうち、最も近いものの添字を返す（仕様 5.3、A-9）。
   - 判定の順序（選択中の図形のハンドル → 図形の線）は、`SelectInteraction` が決める（5.3）。
-- `ExportFrame.For(shapes)`：EMF・画像の出力範囲（外接矩形に線の太さの半分を加えた範囲。仕様 A-10）と縮尺（1、または長辺が 10,000 論理単位を超える場合は `10,000 ÷ 長辺`。仕様 A-24）を求める純粋な関数。`MetafileRenderer` はこの結果だけを使って描く。
-- `ViewTransform`：論理座標 → 画面座標 `(sx, sy) = (tx + s·x, ty − s·y)`（Y 反転を含む）と、その逆変換。ビュー変換は、ここに集約する（要件 §3）。
+- `ExportFrame.For(shapes)`：EMF・画像の出力範囲（外接矩形に線の太さの半分を加えた範囲。仕様 A-10）と縮尺を求める純粋な関数。初期縮尺は 1 とし、整数ピクセルに切り上げた各辺が 10,000 以下、画素数が 4,000,000 以下となるまで縦横比を保って縮小する（仕様 A-24）。`MetafileRenderer` はこの結果だけを使って描く。
+- `ViewTransform`：論理座標 → 画面座標 `(sx, sy) = (tx + s·x, ty − s·y)`（Y 反転を含む）と、その逆変換。ビュー変換は、ここに集約する（仕様 3.4）。
 - `Viewport`（拡大縮小・スクロールの規則。仕様 5.6）：
   - `Overview`＝論理領域と全図形の外接矩形の和集合。全体図の拡大率（100%）は、`Overview` が表示領域に収まる倍率 `FitScale` である。`MinScale = FitScale`、`MaxScale = 32 × FitScale`（仕様 A-7）。
   - `ZoomAt`：1 ノッチ 1.2 倍（仕様 A-7）。カーソル位置の論理座標が動かないように `Center` を補正し、`Scale` を `[MinScale, MaxScale]` に制限する。
@@ -324,7 +323,7 @@ classDiagram
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲（画面上の px ÷ `Scale`）を論理座標へ換算してから、`DrawInteraction` または `SelectInteraction` へ渡す。
   - `SetTool` は、入力中の図形を取り消し、描画ツールへの切り替えで選択を解除する（仕様 5.10）。
   - 入力中は `Undo` / `Redo` / `Paste` を、ドラッグ中は `Undo` / `Redo` / `Paste` / `DeleteSelected` と、`MainViewModel` の Copy / Copy as Metafile / Copy as Image を実行しない（無効）。入力中の Copy as Metafile / Copy as Image は実行でき、入力中の図形を含めない（仕様 5.10）。`IsInputInProgress` / `IsDragging` を `ViewModels` が `CanExecute` に使う。
-  - `Paste(shape, repeat)` は、図形に新しい `ShapeId` を付け、(X + 10·`repeat`, Y − 10·`repeat`) だけずらして配置し（仕様 5.7）、`Drawing.Add` で追加し、ツールを Select に切り替えて貼り付けた図形を選択する。`repeat`（1、2、…）の決定は `MainViewModel` の責務とする（5.4）。
+  - `Paste(shape, repeat)` は、図形に新しい `ShapeId` を付け、(X + 10·`repeat`, Y − 10·`repeat`) だけずらして配置し（仕様 5.7）、`IsValid()` で再検証してから `Drawing.Add` する。オフセット適用後に制約違反なら、追加せずエラーを通知する。成功時はツールを Select に切り替えて貼り付けた図形を選択する。`repeat`（1、2、…）の決定は `MainViewModel` の責務とする（5.4）。
   - `Drawing.Committed` を購読する唯一の型である。受けたら、選択中の `ShapeId` が存在すれば維持し、存在しなければ解除し（仕様 5.5）、その後に自身の `Committed` を発生させる。`ViewModels` は `EditorController.Committed` だけを購読するため、選択の補正が先に終わっていることが保証される。
   - 状態の変化は `StateChanged`、ドキュメントの確定的な変更は `Committed` で通知する。
 - `DrawInteraction`（描画ツール）：
@@ -401,6 +400,7 @@ classDiagram
   - `RefreshClipboardStateCommand`：Paste・コピー系コマンドの有効状態を、クリップボードの内容に合わせて更新する。`Views` が、ウィンドウの再アクティブ化と Edit メニューを開いたときに呼ぶ（WPF にはクリップボードの変更通知がないため。リスク R-5）。
   - 終了の流れ（6.5）：`ExitCommand` は `CloseRequested` を発生させるだけで、保存確認はしない。`WindowClosingBehavior` が `CloseRequested` を受けてメインウィンドウを閉じ、`Closing`（タイトルバーの閉じるボタン、`Alt+F4` を含む）で `TryClose()` を呼ぶ。
   - `TryClose()`：入力中の図形を取り消し、未保存の変更があれば保存確認を行い、閉じてよいかを返す。閉じてよい場合は、続けて `SaveSettings()` を呼ぶ。
+  - New / Open / Exit の保存確認で Yes が選ばれた場合、保存が成功したときだけ保留中の操作を続ける。保存失敗または Save As の保存先選択キャンセルは操作全体を中止し、ドキュメントと変更あり状態を維持する（仕様 5.8、AC-34）。
   - `SaveSettings()`：`MainPlacement`、`PropertiesPlacement`、`IsPropertiesWindowVisible`、`EditorController.DefaultAttributes` から `AppSettings` を組み立てて `SettingsStorage.Save` を呼ぶ。失敗はエラーを表示するが、終了を妨げない（仕様 7 章）。設定の組み立てと保存は、ここ 1 か所で行う。
 - `DrawingViewModel`：描画領域の状態。`EditorController` と `Viewport` を保持し、バインドする `Transform`、`Handles`（画面座標のハンドル位置。選択と `Transform` の変化で再計算する）、`InputShapes`（入力中の図形。0 または 1 個）、ステータスの文言を公開する。
   - `EditorController.Committed` と、ファイルの読み込み・ウィンドウサイズの変更で、`Viewport.UpdateOverview` を呼び、`Handles` を更新する。入力中・ドラッグ中は呼ばない（仕様 5.6）。
@@ -481,7 +481,7 @@ classDiagram
 | `Infrastructure.CompositionRoot` | 起動時の組み立て | サービス、`Drawing`、`EditorController`、`Viewport`、各 ViewModel を作り、`MainViewModel` を公開する。`MainWindow` は `App.xaml` のリソースから `DataContext` を取得し、コードビハインドに起動時のコードを書かない。`StartupUri` で `MainWindow` を開く |
 | `Infrastructure.DialogService`、`ClipboardService`、`MetafileRenderer`、`NativeClipboard` | `Services` の実装 | 5.5 のとおり |
 
-- 図形の `DataTemplate`：要件 §3 に従い、図形の種類ごとに `DataTemplate`（`DataType` で `LineShape`、`CircleShape` など 7 種を選ぶ）を用意する。いずれの `DataTemplate` も、描画は `Path` と `ShapeToGeometryConverter`（`Shape.CreateOutline()` から作るジオメトリ）で行い、要件 §3 の「`Path` など」に当たる。種類ごとに WPF の `Line`・`Ellipse` などを使わないのは、描画・ヒットテスト・EMF／画像の出力が同じ `Outline` を使う判断（DD-6、DD-7）を保つためである。種類ごとの違い（ツールチップや将来の見た目の調整の置き場所）は、各 `DataTemplate` に閉じる。
+- 図形の `DataTemplate`：仕様 3.4 に従い、図形の種類ごとに `DataTemplate`（`DataType` で `LineShape`、`CircleShape` など 7 種を選ぶ）を用意する。いずれの `DataTemplate` も、描画は `Path` と `ShapeToGeometryConverter`（`Shape.CreateOutline()` から作るジオメトリ）で行い、仕様 3.4 の「`Path` など」に当たる。種類ごとに WPF の `Line`・`Ellipse` などを使わないのは、描画・ヒットテスト・EMF／画像の出力が同じ `Outline` を使う判断（DD-6、DD-7）を保つためである。種類ごとの違い（ツールチップや将来の見た目の調整の置き場所）は、各 `DataTemplate` に閉じる。
 - 図形の配置：`ItemContainerStyle` で `Canvas.Left="{Binding Bounds.Left}"`、`Canvas.Top="{Binding Bounds.Bottom}"` をバインドする（論理座標、Y 上向き）。層の `Transform`（Y 反転を含む）が画面座標へ変換する。`Path` の `StrokeThickness` は論理座標の太さ、`Stroke` は `RgbColorToBrushConverter`、`StrokeDashArray` は `LineStyleToDashesConverter` を使う。
 - 選択ハンドルは、`Handles`（画面座標）に 8 px の四角を置く。描画領域の背景は全体を白とし、論理領域は枠線だけで示す（仕様 4.3）。拡大率に左右されない固定サイズ（仕様 A-18）。
 - ツールバーのツールボタンは、`RadioButton` の `IsChecked` を `CurrentTool` と `EnumEqualsConverter` でバインドし、押すと `SelectToolCommand` を実行する。
@@ -646,7 +646,7 @@ sequenceDiagram
 - 純粋な関数・型（`SplineBezier`、`Outline`、`ShapeHitTester`、`Viewport`、`ViewTransform`、`ExportFrame`、`Shape` の各メソッド、`ShapeKindInfo`、`DocumentSerializer`、`ClipboardShapes`、`AppSettings.IsValid`）は、入力と期待結果で検証する。
 - `MainViewModel` は、偽の `IDialogService` と `IClipboardService`、一時フォルダーの `DocumentStorage`・`SettingsStorage` で、保存確認の分岐、例外の表示（読み取り専用の保存先を含む）、ペーストの回数、終了時に保存される設定を検証する。
 - `EditorController` は、`PointerEvent` の列を与えて、`Drawing` の状態・`StateChanged`・`Committed` を検証する（入力中の状態遷移、ダブルクリック、`Esc`、ドラッグ 1 回 = Undo 1 回、制約違反の移動の拒否など）。
-- テスト計画書で扱う最低限の項目（要件 §9）との対応：ベジェ変換 → `SplineBezier`、シリアライズの往復 → `DocumentSerializer`、移動・端点移動・ヒットテスト → `Shape` と `ShapeHitTester`、状態遷移 → `EditorController`、Undo / Redo → `Drawing` と `EditorController`、拡大率の下限 → `Viewport`。
+- テスト計画書で扱う最低限の項目（仕様 3.6）との対応：ベジェ変換 → `SplineBezier`、シリアライズの往復 → `DocumentSerializer`、移動・端点移動・ヒットテスト → `Shape` と `ShapeHitTester`、状態遷移 → `EditorController`、Undo / Redo → `Drawing` と `EditorController`、拡大率の下限 → `Viewport`。
 - テストできず、実際の起動で確認する項目：描画の見た目、Material Design のスタイル、EMF・画像の他アプリケーションでの表示（AC-17）、モニターの構成、ウィンドウの復元。
 
 ### 8.2 エラー処理
@@ -712,3 +712,5 @@ sequenceDiagram
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-06 | [`create-wpf-cad.prompt.md` のレビュー](../Reviews/20261106-create-wpf-cad-prompt-review.md)の指摘 4 にユーザーが (a) を選択：要件 §3 の「図形の種類ごとの `DataTemplate`」を 5.7 と 7 章（F-02）に追記（いずれも `Path` で描く）。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | [要件の一本化](../Plans/20261106-requirements-consolidation-plan.md)に伴い、要件の参照を `create-wpf-cad.prompt.md` の節番号（§）から仕様書 3 章へ置き換えた（冒頭、DD-1、DD-4、DD-5、DD-15、5.2、5.7、8.1）。設計の内容は変えていない。状態を `レビュー待ち` に戻した |
+| 2026-11-06 | 要件一本化後の仕様書レビュー指摘 1〜3 に伴い、座標上限・導出値の検証（5.1）、Paste オフセット後の再検証（5.3）、画像換算画素数と寸法の上限（DD-6、`ExportFrame`）を反映。状態は `レビュー待ち` のまま |

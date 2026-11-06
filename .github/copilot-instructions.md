@@ -3,7 +3,7 @@
 ## Project
 
 - This repository creates a simple WPF CAD application using C# 14 and .NET 10 with MVC and MVVM.
-- Follow [create-wpf-cad.prompt.md](prompts/create-wpf-cad.prompt.md) for the application requirements; do not duplicate its feature specification here.
+- Treat the approved CAD specification (`Documents\YYYYMMDD-cad-specification.md`) as the sole requirements document; do not duplicate its feature specification here.
 - Use the existing solution `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx`. Keep application and test projects under `Source\Shos.WpfCadSample\` and add them to that solution; do not create another solution.
 
 ## Repository layout
@@ -26,14 +26,14 @@
 
 ## Plan before substantial implementation
 
-- Before the initial CAD implementation, use [create-cad-plan.prompt.md](prompts/create-cad-plan.prompt.md) to create and obtain approval for these separate documents in order: a dated Markdown specification in `Documents\` (including features, UI design, and conceptual data structures), a dated Markdown architecture/class design in `Documents\` (including needed UML), then dated Markdown implementation and test plans in `Plans\`.
+- The CAD documents are, in order: a dated Markdown specification in `Documents\` (the sole requirements document, including features, UI design, conceptual data structures, and implementation requirements), a dated Markdown architecture/class design in `Documents\` (including needed UML), then dated Markdown implementation and test plans in `Plans\`. Create and approve them in that order; once they exist, revise them instead of recreating them.
 - Create and obtain approval for each stage before creating the next. Do not start implementation until the specification, architecture/class design, implementation plan, and test plan are all approved.
 - Create `Documents\` or `Plans\` when needed. Mark each new document `状態：レビュー待ち`; change it to `状態：承認済み` only after the user explicitly approves it. Revert changed approved documents and affected downstream documents to `状態：レビュー待ち`.
 - For other multi-step changes affecting design or scope, create a Markdown plan in `Plans\`.
 - Include the date and topic in each document filename, for example `Documents\YYYYMMDD-cad-specification.md`, `Documents\YYYYMMDD-cad-architecture.md`, and `Plans\YYYYMMDD-cad-implementation-plan.md`.
 - Each plan in `Plans\` must include the goal, scope and exclusions, requirements, design, ordered steps and completion criteria, test approach, risks, and open questions.
 - Present plans and wait for user approval before implementing them. Do not change application code for the initial CAD implementation before all CAD documents are approved.
-- Before running `create-wpf-cad.prompt.md`, confirm that the CAD specification, architecture/class design, implementation plan, and test plan are all approved; create and get approval for any missing document first.
+- Before starting the CAD implementation, confirm that the CAD specification, architecture/class design, implementation plan, and test plan are all approved; create and get approval for any missing document first.
 - A simple, bounded maintenance fix does not require a plan or prior approval. If work needs a substantial change from an approved plan, update the plan and get approval before proceeding.
 
 ## Sustainable coding

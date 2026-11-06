@@ -1,13 +1,12 @@
-状態：承認済み
+状態：レビュー待ち
 
 # 簡易 WPF CAD 実装計画書
 
 - 作成日：2026-11-05
 - 位置づけ：計画の段階3（実装計画書）。[テスト計画書](./20261105-cad-test-plan.md)と一組で、同時にレビューへ提示する。
 - 前提とする承認済み文書：
-  - [20261105-cad-specification.md](../Documents/20261105-cad-specification.md)（仕様書。2026-11-06 改訂・再承認済み）
+  - [20261105-cad-specification.md](../Documents/20261105-cad-specification.md)（仕様書。唯一の要件の文書）
   - [20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md)（アーキテクチャー／クラス設計書。2026-11-06 改訂・再承認済み）
-- 根拠となる要件：[create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)
 - 進捗の記録先：[Progress\20261105-cad-progress.md](../Progress/20261105-cad-progress.md)
 - 本書は「いつ、何を、どの順で作るか」を定める。仕様・設計は再定義しない。実装の詳細で設計と食い違う場合は、9 章の手順に従う。
 
@@ -21,7 +20,7 @@
 
 | 区分 | 内容 |
 |---|---|
-| 対象 | 設計書 3.1 の 3 プロジェクト（`Shos.WpfCadSample.Core`、`Shos.WpfCadSample`、`Shos.WpfCadSample.Tests`）の作成と、仕様書の全機能（F-01〜F-19、AC-01〜AC-33）の実装。`Source\README.md` の作成 |
+| 対象 | 設計書 3.1 の 3 プロジェクト（`Shos.WpfCadSample.Core`、`Shos.WpfCadSample`、`Shos.WpfCadSample.Tests`）の作成と、仕様書の全機能（F-01〜F-19、AC-01〜AC-35）の実装。`Source\README.md` の作成 |
 | 対象外 | 仕様書 1.2 の対象外の機能（印刷、複数選択、グループ化、スナップ、レイヤー、寸法線、テキスト図形、回転・拡大縮小、塗りつぶし、グリッド、最近使ったファイル、多言語、テーマ切り替え）。UI の自動化テスト（テスト計画書 2 章）。CI の構築 |
 
 ### 1.3 現状（2026-11-06 時点）
@@ -31,7 +30,7 @@
 
 ## 2. 段階の一覧と依存関係
 
-設計書の層の順（`Models` → `Controllers` → `ViewModels` → `Views`）に沿って、要件プロンプトの 5 段階を 10 段階に細分化する。
+設計書の層の順（`Models` → `Controllers` → `ViewModels` → `Views`）に沿って、10 段階で進める。
 
 ```mermaid
 flowchart LR
@@ -68,7 +67,8 @@ flowchart LR
 
 ### 3.1 共通の手順
 
-1. **開始時**：[進捗記録](../Progress/20261105-cad-progress.md)に、その段階の開始と前提の確認を記録する。`.github\skills\sustainable-code-jp\SKILL.md` と、作業に応じた `references\` を読む（新機能は `testing.md` の「テストファースト」ほか、設計の判断を伴う箇所は `object-design.md`、`simplicity.md`）。
+1. **開始時**：仕様書・設計書・実装計画書・テスト計画書の先頭行がすべて `状態：承認済み` で、相互に整合していることを確認する。不足・未承認・矛盾があれば実装せず、該当文書の作成または更新へ戻る。承認済みの仕様書と設計書を唯一の詳細仕様として扱う。[進捗記録](../Progress/20261105-cad-progress.md)に、その段階の開始と前提の確認を記録する。スキルを使う前に、リポジトリ指示に従って `.github\skills\` と `.claude\skills\` の複製を比較し、差があれば報告する。`.github\skills\sustainable-code-jp\SKILL.md` と、作業に応じた `references\` を読む（新機能は `testing.md` の「テストファースト」ほか、設計の判断を伴う箇所は `object-design.md`、`simplicity.md`）。
+   - その段階のテスト対象のプロジェクトがまだない場合は、まずテスト可能な骨組みを用意する。
 2. **テストファースト**：Red（失敗するテスト）→ Green（最小の実装）→ Refactor の順で進める。バグの修正は、まず再現テストを追加して Red を確認する。
 3. **小さく刻む**：意味のある一手ごとに、関連するテストを実行する。壊れた状態で次の一手へ進まない。
 4. **段階の終わり**：次の完了条件をすべて確認する。
@@ -86,7 +86,7 @@ flowchart LR
 
 - C-1・C-2 のコマンドは、Windows のシェルと bash のどちらでも通るよう `/` 区切りで書き、Windows の `dotnet` で実行する（WSL からは `dotnet.exe`。リポジトリ指示の「Build and test」）。Windows の `dotnet` を使えない環境では、確認できなかったことと理由を進捗記録に書き、完了とはしない。
 - `dotnet build` の警告ゼロは、`Directory.Build.props` の `TreatWarningsAsErrors`（I-1 で設定）で強制する。
-- UI を含む段階（I-7〜I-10）は、C-1〜C-2 に加えて、テスト計画書の手動テストの該当項目を実施し、結果（合否と所見）を進捗記録に記録する。
+- UI を含む段階（I-7〜I-10）は、C-1〜C-2 に加えて、テスト計画書の手動テストの該当項目を実施し、結果（合否と所見）を進捗記録に記録する。エージェントがアプリの画面を操作できない場合は、手動テストの手順をユーザーに示して実施を依頼し、結果を進捗記録に記録する。実施していない項目を合格としない。
 - コミットは、ユーザーが依頼したときだけ行う。
 
 ## 4. 使用する技術・ライブラリ
@@ -143,12 +143,12 @@ flowchart LR
   - `ShapeKindInfo` は、入力の規則（`FromTool`、`MinPoints`、`IsFixedTwoPoint`、`Create`）と、候補の図形を作って `SatisfiesConstraints()` で判定する `CanAppend` を持つ。制約の知識は持たない。
   - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`Committed`、`IsModified`、`Load`、`IndexOf` を実装する。
   - `ShapeHitTester`：`HitShape` は中心線からの距離が「線の太さ ÷ 2 + 許容範囲」以内を線上とし（DA-7）、`HitHandle` は許容範囲内で最も近いハンドルを返す（仕様 5.3、A-9）。
-  - `ExportFrame`：EMF・画像の出力範囲と縮尺（長辺 10,000 論理単位を超える場合の縮小。仕様 A-10、A-24）を求める純粋な関数（設計書 5.2）。
+  - `ExportFrame`：EMF・画像の出力範囲と縮尺（整数ピクセルに切り上げた各辺が 10,000 以下、画素数が 4,000,000 以下となるよう、縦横比を保って縮小する。仕様 A-10、A-24）を求める純粋な関数（設計書 5.2）。
   - `System.Text.Json` の多態性の属性（`[JsonPolymorphic]`、`[JsonDerivedType]`）は I-4 で付ける（シリアライズのテストと一緒に行う）。
 - **前提**：I-2。
 - **成果物**：`Models\*.cs`、`Models\Geometry\ShapeHitTester.cs`、`Models\Geometry\ExportFrame.cs`、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-SHP、T-ATT、T-HIT、T-DRW の全ケースが成功する。特に、「`PreviewReplace` → `RestoreOriginal` → `Replace` の 1 回が、Undo 1 回で元に戻る」（R-7）ことを確認する。
-- **対応する要件**：F-04、F-07、F-08、F-10、F-12（AC-05〜AC-09、AC-28、AC-32 の出力範囲と縮尺）。
+- **対応する要件**：F-04、F-07、F-08、F-10、F-12（AC-05〜AC-09、AC-28、AC-32 の出力範囲と縮尺、AC-35 の座標範囲の検証）。
 
 ### I-4 保存・設定
 
@@ -159,7 +159,7 @@ flowchart LR
 - **前提**：I-3。
 - **成果物**：`Serialization\*.cs`、`Settings\*.cs`、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-SER、T-STO、T-SET の全ケースが成功する。
-- **対応する要件**：F-12（独自形式）、F-13、F-14（AC-12、AC-16、AC-18、AC-19、AC-21、AC-24、AC-25、AC-31）。
+- **対応する要件**：F-12（独自形式）、F-13、F-14（AC-12、AC-16、AC-18、AC-19、AC-21、AC-24、AC-25、AC-31、AC-35 の読み込み時の検証）。
 
 ### I-5 Controllers
 
@@ -172,7 +172,7 @@ flowchart LR
 - **前提**：I-3（`Viewport` は I-2）。
 - **成果物**：`Controllers\*.cs`、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-EDC の全ケースが成功する。
-- **対応する要件**：F-04〜F-08、F-10、F-12（AC-01〜AC-03、AC-05〜AC-09、AC-16、AC-26、AC-28、AC-29）。
+- **対応する要件**：F-04〜F-08、F-10、F-12（AC-01〜AC-03、AC-05〜AC-09、AC-16、AC-26、AC-28、AC-29、AC-35 の入力・編集・ペースト時の検証）。
 
 ### I-6 ViewModels と契約
 
@@ -187,7 +187,7 @@ flowchart LR
 - **前提**：I-4、I-5。
 - **成果物**：`Services\*.cs`、`ViewModels\*.cs`、`Tests\Support\`（偽のサービス、一時フォルダー、図形の組み立て補助）、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-VM の全ケースが成功する。
-- **対応する要件**：F-07、F-09、F-10、F-12、F-13、F-14（AC-09〜AC-12、AC-16、AC-19、AC-20、AC-24、AC-27、AC-29、AC-30、AC-32 のエラー表示）。
+- **対応する要件**：F-07、F-09、F-10、F-12、F-13、F-14（AC-09〜AC-12、AC-16、AC-19、AC-20、AC-24、AC-27、AC-29、AC-30、AC-32 のエラー表示、AC-34）。
 
 ### I-7 Infrastructure
 
@@ -225,23 +225,23 @@ flowchart LR
 - **前提**：I-8。
 - **成果物**：`Views\*`（`DrawingSurface`、`PropertiesWindow`、`Behaviors`、`Themes`）。
 - **完了条件**：共通の完了条件に加えて、手動テスト M-03〜M-20（I-7 から移した M-12〜M-14 と、I-8 から移した性能の M-20 を含む）を実施し、合格する。M-20 で応答が目安（仕様 A-14）を超える場合は、R-10 の対応を取る。
-- **対応する要件**：F-02、F-04〜F-14（AC-01〜AC-03、AC-05〜AC-11、AC-13〜AC-17、AC-20、AC-21、AC-26〜AC-30、AC-32、AC-33）。
+- **対応する要件**：F-02、F-04〜F-14（AC-01〜AC-03、AC-05〜AC-11、AC-13〜AC-17、AC-20、AC-21、AC-26〜AC-30、AC-32〜AC-35）。
 
 ### I-10 仕上げ
 
 - **作業**：
   - `Source\README.md` を完成させる：概要、フォルダー／namespace の構成、使用パッケージと版、操作方法（ショートカット一覧）、設計判断（座標系、EMF の方式、Material Design の版・配色と適用範囲、参照した資料と出典）。
-  - 完了条件（要件 §11）の確認：コードビハインドに `InitializeComponent()` 以外のロジックがない（`MainWindow` を含む）こと、ルート namespace 直下に `App` 以外の型がないこと、警告ゼロ。
+  - 完了条件（仕様 3.7）の確認：コードビハインドに `InitializeComponent()` 以外のロジックがない（`MainWindow` を含む）こと、ルート namespace 直下に `App` 以外の型がないこと、警告ゼロ。
   - 全体のセルフレビュー（七箇条と、臭いの名前での点検）と、範囲外の気づきの記録。
   - スモークテスト（図形追加 → 選択 → 移動 → Undo / Redo → 保存 → 読込）と、テスト計画書の全手動テストの実施。
 - **前提**：I-9。
 - **成果物**：`Source\README.md`、進捗記録（最終の結果）。
-- **完了条件**：要件プロンプト §11 の完了条件をすべて満たす。
+- **完了条件**：仕様 3.7 の完了条件をすべて満たす。
   - `dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` が警告・エラーなしで成功する（Windows の `dotnet` で実行。3.2）。
   - `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` がすべて成功する。
   - コードビハインドに `InitializeComponent()` 以外のロジックがない（T-ARC の確認手順）。
   - ルート namespace 直下に `App` 以外の型がない（T-ARC、S-01）。
-  - 仕様書の受け入れ条件 AC-01〜AC-33 が、テスト計画書の対応表のとおり確認され、合格している。
+  - 仕様書の受け入れ条件 AC-01〜AC-35 が、テスト計画書の対応表のとおり確認され、合格している。
   - 起動したアプリで、要件のすべての図形・編集・拡大縮小・クリップボード・保存の機能が動作する。
 
 ## 6. 要件・仕様の受け入れ条件と段階の対応
@@ -258,6 +258,8 @@ flowchart LR
 | AC-16、AC-17（クリップボード） | I-4、I-5、I-6、I-7 | I-4、I-5、I-6、I-9 |
 | AC-32（出力の大きさの上限、出力の失敗） | I-3、I-6、I-7 | I-3、I-6、I-9 |
 | AC-33（属性ウィンドウのキー操作） | I-9 | I-9 |
+| AC-34（保存確認の後の保存失敗・キャンセル） | I-6 | I-6、I-9 |
+| AC-35（座標の範囲） | I-3、I-4、I-5 | I-3、I-4、I-5、I-9 |
 | AC-22、AC-23（対象外の機能がない、Material Design） | I-8、I-9、I-10 | I-10 |
 
 ## 7. リスクと対応
@@ -302,7 +304,8 @@ Source\
 5. 進捗記録に、変更の理由と、承認の結果を記録する。
 
 - 次のものは、承認を要する逸脱である：段階の順序・分割の変更、プロジェクト構成・namespace・主要なクラスの責務の変更、保存形式の変更、EMF などの方式の変更、仕様の動作の変更、要件にない機能の追加。
-- 次のものは、承認を要しない（設計の範囲内の実装の詳細）：非公開のメソッド・補助クラスの追加、定数の調整（仮定 A-1、A-6、A-7、A-18、DA-5 の数値など。ただし、変更した値は README の設計判断に記録する）、テストの追加。
+- 要件に書かれていない機能は追加しない（YAGNI。C-5）。
+- 次のものは、承認を要しない（設計の範囲内の実装の詳細）。承認済み文書で決まっていない実装の詳細は、この範囲に限り、合理的な既定値を選んで `Source\README.md` の「設計判断」節に理由を記録する：非公開のメソッド・補助クラスの追加、定数の調整（仮定 A-1、A-6、A-7、A-18、DA-5 の数値など。ただし、変更した値は README の設計判断に記録する）、テストの追加。
 
 ## 10. 未決事項
 
@@ -324,3 +327,6 @@ Source\
 | 2026-11-06 | ユーザーがテスト計画書と一組で再承認（状態を `承認済み` に更新） |
 | 2026-11-06 | 設計書 5.7 への「図形の種類ごとの `DataTemplate`」の追記に合わせ、I-8 の `DrawingView` の作業に追記。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | [要件の一本化](../Plans/20261106-requirements-consolidation-plan.md)に伴い、`create-wpf-cad.prompt.md` への参照を仕様書へ置き換え（冒頭、2 章、I-10）、同プロンプトの作業方針（§0）のうち未記載のもの（4 文書の承認と整合の確認、承認済み文書を唯一の詳細仕様とすること、スキルの複製の比較、テスト対象がない場合の骨組み、画面を操作できない場合の手動テストの依頼、YAGNI と README への記録）を 3.1、3.2、9 章に追記。状態を `レビュー待ち` に戻した |
+| 2026-11-06 | 要件一本化後の仕様書レビュー指摘 1〜3 に伴い、実装対象の受け入れ条件を AC-35 までに更新（保存確認後の保存失敗時の中止、出力画素数上限、座標範囲の検証）。状態は `レビュー待ち` のまま |
+| 2026-11-06 | [対応の確認](../Reviews/20261106-cad-specification-fix-check-review.md)の指摘 1、2 に対応：6 章の対応表に AC-34、AC-35 の行を追加し、I-3〜I-6、I-9 の「対応する要件」に追記。I-3 の `ExportFrame` の説明に画素数の上限を追記。状態は `レビュー待ち` のまま |
