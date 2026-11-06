@@ -43,10 +43,13 @@ Source\Shos.WpfCadSample\
 | CommunityToolkit.Mvvm | 8.4.2 | Core | `ObservableObject`、`RelayCommand` |
 | MaterialDesignThemes | 5.4.0 | WPF | UI の外観（Material Design 3、Light） |
 | xunit | 2.9.3 | Tests | テスト |
-| xunit.runner.visualstudio | 3.1.4 | Tests | `dotnet test`（VSTest）からの実行 |
-| Microsoft.NET.Test.Sdk | 17.14.1 | Tests | `dotnet test` の実行環境 |
+| xunit.runner.visualstudio | 4.0.1 | Tests | `dotnet test`（VSTest）からの実行 |
+| Microsoft.NET.Test.Sdk | 18.11.0 | Tests | `dotnet test` の実行環境 |
 
-- 版は、導入時点で NuGet の最新の安定版であることを確認して固定します（実装計画書 P-1）。上表の版の確認状況は、[進捗記録](../Progress/20261105-cad-progress.md)を参照してください。
+- 版は、導入時点で NuGet の最新の安定版であることを確認して固定します（実装計画書 P-1）。上表の版は、2026-11-06 に NuGet の最新の安定版であることを確認しました。確認と動作の状況は、[進捗記録](../Progress/20261105-cad-progress.md)を参照してください。
+- `xunit.runner.visualstudio` と `Microsoft.NET.Test.Sdk` は、要件（仕様書 3.2）の xUnit のテストを `dotnet test`（VSTest）で実行するための付随パッケージです。xUnit の本体（`xunit`）だけでは `dotnet test` からテストを見つけて実行できないため、追加しています。
+- `xunit` は v2 系（2.9.3）を使います。実績のある v2 系の組み合わせで、`slnx` 全体の `dotnet test` を確実に動かすためです（実装計画書 4 章。v3 への移行は要件外）。
+- EMF・画像の出力に使う GDI+（`System.Drawing`）は、WPF のフレームワーク参照（`Microsoft.WindowsDesktop.App.WPF`）に `System.Drawing.Common` が含まれるため、パッケージを追加せずに使えます（2026-11-06 の試作 R-2 で確認）。
 
 ## 操作方法
 
