@@ -1,0 +1,10 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>Shos.WpfCadSample</RootNamespace>
+  </PropertyGroup>
+
+</Project>

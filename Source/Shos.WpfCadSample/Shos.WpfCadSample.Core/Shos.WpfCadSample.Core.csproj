@@ -2,13 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="Geometry\" />
+    <Folder Include="Models\Geometry\" />
     <Folder Include="Controllers\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Serialization\" />
@@ -17,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Shos.UndoRedoList" Version="1.0.8" />
   </ItemGroup>
 

@@ -1,5 +1,4 @@
 <Solution>
-  <Folder Name="/Documents/" />
   <Project Path="Shos.WpfCadSample.Core/Shos.WpfCadSample.Core.csproj" Id="ad91768f-55d7-45c1-9ba9-4d533ebbaa4a" />
   <Project Path="Shos.WpfCadSample.Tests/Shos.WpfCadSample.Tests.csproj" Id="e330e456-ff4c-4d9f-b95e-14c8305faf22" />
   <Project Path="Shos.WpfCadSample/Shos.WpfCadSample.csproj" Id="baedb266-1afb-49fa-a98a-fb2b9bbf3e39" />

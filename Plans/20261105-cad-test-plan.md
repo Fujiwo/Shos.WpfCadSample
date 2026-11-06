@@ -1,4 +1,4 @@
-状態：承認済み
+状態：レビュー待ち
 
 # 簡易 WPF CAD テスト計画書
 
@@ -496,8 +496,8 @@ Get-ChildItem Source\Shos.WpfCadSample\Shos.WpfCadSample -Recurse -Filter *.xaml
 Get-ChildItem Source\Shos.WpfCadSample -Recurse -Include *.cs |
   Select-String -Pattern '^\s*namespace\s+Shos\.WpfCadSample\s*(;|\{)'
 
-# S-01（補足）：namespace を宣言していない .cs ファイル（グローバル名前空間の型）がないこと（出力が空であること。obj／bin の自動生成ファイルは除く）
-Get-ChildItem Source\Shos.WpfCadSample -Recurse -Include *.cs |
+# S-01（補足）：namespace を宣言していない .cs ファイル（グローバル名前空間の型）がないこと（出力が空であること。obj／bin の自動生成ファイルと、型を持たずアセンブリ属性だけを書く AssemblyInfo.cs は除く）
+Get-ChildItem Source\Shos.WpfCadSample -Recurse -Include *.cs -Exclude AssemblyInfo.cs |
   Where-Object { $_.FullName -notmatch '\\(obj|bin)\\' } |
   Where-Object { -not (Select-String -Path $_.FullName -Pattern '^\s*namespace\s' -Quiet) } |
   Select-Object -ExpandProperty FullName
@@ -536,3 +536,4 @@ $shapes = foreach ($i in 0..999) {
 | 2026-11-06 | 仕様書の 2026-11-06 改訂に伴い、状態を `レビュー待ち` に戻した |
 | 2026-11-06 | [テスト計画書のレビュー](../Reviews/20261106-cad-test-plan-review.md)の指摘 1〜6 に対応：仕様書・設計書・実装計画書の 2026-11-06 改訂の反映（範囲を AC-33 まで、段階の対応表の I-7〜I-9、T-VM-02・M-18 の Yes / No / Cancel、T-VPT-11 の上限の補正、T-STO-03 と T-STO-07 の例外の分離、T-SER-14 の図形 1 個、T-EDC-29 と T-VM-23 の責務の分離、T-ATT-03・T-VM-10・T-VM-16・M-02 の修正、T-SHP-16・17、T-HIT-07、T-EXP-01〜03、T-SER-16・17、T-SET-08、T-EDC-32〜34、T-VM-23〜25、T-ARC-04 の追加、M-06・M-07・M-09・M-13・M-14 の拡充、8 章の対応表）、コマンドの `/` 区切りと Windows の `dotnet`、T-SPL-10 の時間の扱い、付録 B の生成方法、付録 A のグローバル名前空間の確認、前提文書の記述 |
 | 2026-11-06 | ユーザーが実装計画書と一組で再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | [初期プロジェクトの確認](../Reviews/20261106-initial-projects-review.md)で見つかった付録 A の誤検出を修正（型を持たない `AssemblyInfo.cs` を、namespace を宣言していないファイルの検索から除外）。状態を `レビュー待ち` に戻した |

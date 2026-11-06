@@ -1,6 +1,6 @@
 # CAD 開発 進捗記録
 
-- 最終更新：2026-11-06（4 文書がすべて承認済み。実装は未着手）
+- 最終更新：2026-11-06（I-1 を実施中。テスト計画書の付録 A の修正によりテスト計画書がレビュー待ち）
 - 対象：簡易 WPF CAD（[create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)）
 - 更新ルール：文書の作成・承認、実装段階の開始・完了、方針の変更があるたびに、このファイルを更新する。承認状態の正本は各文書の先頭の状態行であり、この表はその写しである。
 
@@ -15,17 +15,29 @@
 | 1 | 仕様書 | [Documents\20261105-cad-specification.md](../Documents/20261105-cad-specification.md) | 承認済み | 2026-11-05 に承認。2026-11-06 に再レビューの指摘 1〜12 を反映して変更し、同日ユーザーが再承認 |
 | 2 | アーキテクチャー／クラス設計書（UML を含む） | [Documents\20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md) | 承認済み | 2026-11-05 に承認。2026-11-06 に仕様書の改訂とレビューの指摘 1〜11 を反映（DD-15、DA-7、6.5 を追加）し、同日ユーザーが再承認。同日、`create-wpf-cad.prompt.md` のレビュー指摘 4（(a)）により、図形の種類ごとの `DataTemplate` を 5.7・7 章に追記し、レビュー待ちに戻した。同日ユーザーが再承認 |
 | 3 | 実装計画書 | [Plans\20261105-cad-implementation-plan.md](../Plans/20261105-cad-implementation-plan.md) | 承認済み | 2026-11-05 に承認。仕様書の変更の影響を受けるため、2026-11-06 にレビュー待ちに戻した。同日、レビューの指摘 1〜7 を反映（仕様書・設計書の改訂、コマンドの表記、M-20 と EMF の確認の I-9 への移動など）。同日ユーザーが一組で再承認。設計書の追記に合わせて I-8 に追記し、レビュー待ちに戻した。同日ユーザーが再承認 |
-| 3 | テスト計画書 | [Plans\20261105-cad-test-plan.md](../Plans/20261105-cad-test-plan.md) | 承認済み | 2026-11-05 に承認。仕様書の変更の影響を受けるため、2026-11-06 にレビュー待ちに戻した。同日、レビューの指摘 1〜6 を反映（自動 172 ケース、手動 22 項目）。同日ユーザーが一組で再承認。`DataTemplate` の追記では変更不要（描画の確認は M-02 で足りる）のため、承認を維持 |
+| 3 | テスト計画書 | [Plans\20261105-cad-test-plan.md](../Plans/20261105-cad-test-plan.md) | レビュー待ち | 2026-11-05 に承認。仕様書の変更の影響を受けるため、2026-11-06 にレビュー待ちに戻した。同日、レビューの指摘 1〜6 を反映（自動 172 ケース、手動 22 項目）。同日ユーザーが一組で再承認。`DataTemplate` の追記では変更不要（描画の確認は M-02 で足りる）のため、承認を維持。初期プロジェクトの確認で見つかった付録 A の誤検出（`AssemblyInfo.cs`）を修正し、レビュー待ちに戻した |
 
 ## 3. 実装の進捗
 
 | 項目 | 状況 |
 |---|---|
-| ソリューション | `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` は存在するが、プロジェクトは未登録 |
-| アプリ／テストプロジェクト | 未作成 |
-| ビルド・テスト | プロジェクトがないため未実施 |
+| 段階 | I-1（骨組みと試作）を実施中 |
+| ソリューション | `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` に 3 プロジェクトを登録済み（ユーザーが追加。2026-11-06） |
+| アプリ／テストプロジェクト | 初期プロジェクトを、[確認結果](../Reviews/20261106-initial-projects-review.md)に沿って修正済み（`Directory.Build.props`、`MainWindow` の namespace、`CommunityToolkit.Mvvm` の参照先、フォルダー、仮のクラス・テストの削除、`coverlet.collector` の削除）。`Source\README.md` の骨子を作成 |
+| ビルド・テスト | 2026-11-06、ユーザーが Windows で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告・エラーなし）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は、T-ARC-04 の修正後の再実行で 3 件すべて成功（失敗 0、スキップ 0） |
+| パッケージの版（P-1） | 未確認（NuGet に接続できないため）。現在の版：Shos.UndoRedoList 1.0.8、CommunityToolkit.Mvvm 8.4.2、MaterialDesignThemes 5.4.0、xunit 2.9.3、xunit.runner.visualstudio 3.1.4、Microsoft.NET.Test.Sdk 17.14.1 |
+| 試作（R-1、R-2、R-6、R-8） | R-8 は確認済み（`slnx` 全体の `dotnet test` で xunit 2.9.3 と xunit.runner.visualstudio 3.1.4 のテストが実行された）。R-1（EMF の貼り付け）、R-2（`System.Drawing.Common`）、R-6（`CommunityToolkit.Mvvm` のソースジェネレーター）は未実施で、Windows での試作が必要 |
 
-4 文書はすべて承認済みのため、実装を開始できる（`create-wpf-cad.prompt.md` の実行による）。
+### テスト群の実装状況（実装計画書 C-3）
+
+| テスト群 | 段階 | 実装 | 実行結果 |
+|---|---|---|---|
+| T-ARC | I-1、I-10 | T-ARC-01、02、04 を実装（`Tests\Architecture\ArchitectureTests.cs`）。T-ARC-03 は `dotnet test` の実行そのもので確認する | 3 件成功（2026-11-06、Windows）。T-ARC-03 も確認済み |
+| T-GEO、T-SPL、T-OUT、T-VPT | I-2 | 未着手 | — |
+| T-SHP、T-ATT、T-HIT、T-DRW、T-EXP | I-3 | 未着手 | — |
+| T-SER、T-STO、T-SET | I-4 | 未着手 | — |
+| T-EDC | I-5 | 未着手 | — |
+| T-VM | I-6 | 未着手 | — |
 
 ## 4. 確定した方針
 
@@ -84,6 +96,13 @@
 | 2026-11-06 | ユーザーの指示（「指摘4 は (a) で。既存のプロンプトを直して。」）により、`create-wpf-cad.prompt.md` の指摘 1〜3、5〜8 を既存のプロンプトに反映（段階・完了条件は承認済みの計画書に従う、曖昧な点の扱いを実装計画書 9 章に合わせる、コマンドの `/` 区切りと Windows の `dotnet`、GUI を操作できない場合の手動テストの依頼、コードビハインドの規則、C# の文法、スキルの複製の比較）。指摘 4 は (a)：設計書 5.7・7 章と実装計画書 I-8 に `DataTemplate` を追記し、両文書をレビュー待ちに戻した。テスト計画書は変更不要のため承認を維持 |
 | 2026-11-06 | ユーザーの指示により、C# の新しい文法を「積極的に使う」方針に統一：`.github\copilot-instructions.md` の CAD conventions を「actively use new C# syntax」に改め、`create-wpf-cad.prompt.md` §1 を「積極的に使う」に戻した（[プロンプトのレビュー](../Reviews/20261106-create-wpf-cad-prompt-review.md)の指摘 7 は、この決定により取り下げ） |
 | 2026-11-06 | ユーザーが設計書と実装計画書を再承認（「設計書と実装計画書を再承認」）。両文書の状態を `承認済み` に更新。4 文書がすべて承認済みになった |
+| 2026-11-06 | ユーザーが初期の 3 プロジェクトを追加（コミット `93d63bf`）。内容を確認し、[結果](../Reviews/20261106-initial-projects-review.md)を記録（中 4 件、低 5 件：`MainWindow` の namespace、`Directory.Build.props` の未作成、`CommunityToolkit.Mvvm` の参照先、`Geometry` フォルダーの位置など）。NuGet への接続と Windows の `dotnet.exe` が使えないため、復元・ビルド・テストは未実施 |
+| 2026-11-06 | ユーザーの指示（「修正せよ。こちらで Windows でビルド・テストする。」）により、初期プロジェクトの確認の指摘 1〜9 を修正：`Directory.Build.props`（`Nullable`、`ImplicitUsings`、`TreatWarningsAsErrors`、`RootNamespace=Shos.WpfCadSample`）を追加、`MainWindow` を `Shos.WpfCadSample.Views` へ、`CommunityToolkit.Mvvm` を Core へ移動、`Models\Geometry` へ変更、`Class1`・`UnitTest1`・`coverlet.collector`・不要な `using`・空のソリューションフォルダーを削除。T-ARC-01、02、04 を実装し、`Source\README.md` の骨子を作成。テスト計画書の付録 A を修正し、テスト計画書をレビュー待ちに戻した。ビルド・テストは未実施（ユーザーが Windows で実行する） |
+| 2026-11-06 | ユーザーが Windows でビルド・テスト：ビルドは成功（警告・エラーなし）。テストは T-ARC-04 が失敗。原因は、`Microsoft.NET.Test.Sdk` がテストプロジェクトのグローバル名前空間に生成するエントリポイント `AutoGeneratedProgram` が、生成コードを示す属性（想定した `TestSDKAutoGeneratedCodeAttribute`）を持たず、除外されなかったこと。テストを修正し（型名で除外し、効いていなかった属性名の判定を削除）、再実行を依頼。R-8（`slnx` 全体の `dotnet test`）は、テストが実行されたことで動作を確認 |
+| 2026-11-06 | ユーザーが Windows でテストを再実行：3 件すべて成功（失敗 0、スキップ 0）。I-1 の完了条件のうち C-1、C-2 を満たした。残り：R-1、R-2、R-6 の試作、パッケージの版の確認（P-1）、テスト計画書の再承認 |
+| 2026-11-06 | `create-wpf-cad.prompt.md` と 2 つの計画書の整合を確認し、実行の主体を評価。[結果](../Reviews/20261106-create-wpf-cad-prompt-vs-plans-review.md)を記録（内容の矛盾なし。運用上の注意 1 件：テスト計画書がレビュー待ちのため、プロンプトの開始条件を満たさない。低 3 件：大枠の順序、付随パッケージの理由の記録、WordPad）。評価：プロンプト全体の再実行ではなく、実装計画書を段階ごとに実行し、プロンプトは要件の出典と作業ルールとして使う |
+| 2026-11-06 | ユーザーの指示（「要件を仕様書に吸収して、仕様書を唯一の要件の文書にする」）により、変更計画 [Plans\20261106-requirements-consolidation-plan.md](../Plans/20261106-requirements-consolidation-plan.md) を作成し、レビュー待ちとして提示。承認後に実行する |
+| 2026-11-06 | ユーザーが変更計画を承認（「変更計画を承認」。Q-1 推奨どおり、Q-2 案 B、Q-3 推奨どおり）。変更計画の状態を `承認済み` に更新し、実行を開始 |
 
 ## 7. 次の作業
 
