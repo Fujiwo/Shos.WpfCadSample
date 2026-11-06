@@ -1,4 +1,4 @@
-状態：レビュー待ち
+状態：承認済み
 
 # 簡易 WPF CAD アーキテクチャー／クラス設計書
 
@@ -97,6 +97,11 @@ flowchart TB
     Views -->|"バインド"| ViewModels
     Infra -->|"実装"| Services
     Infra --> Models
+    Infra -->|"組み立て"| ViewModels
+    Infra -->|"組み立て"| Controllers
+    Infra -->|"組み立て"| Serialization
+    Infra -->|"組み立て"| Settings
+    Views -->|"DataTemplate・コンバーター"| Models
     ViewModels --> Controllers
     ViewModels --> Models
     ViewModels --> Serialization
@@ -108,7 +113,7 @@ flowchart TB
     Tests --> CoreProject
 ```
 
-- 依存は一方向である：`Views` → `ViewModels` → `Controllers` → `Models`。`Models` は他のどれにも依存しない。
+- 依存は一方向である：`Views` → `ViewModels` → `Controllers` → `Models`。`Models` は他のどれにも依存しない。WPF プロジェクト（`Views`、`Infrastructure`）から `Core` への依存は、表示（`DataTemplate`、コンバーター）と起動時の組み立て（`CompositionRoot`）のためで、`Core` から WPF への依存はない。
 - `Controllers` は `ViewModels` に依存しない。`Controllers` が状態の変化をイベントで通知し、`ViewModels` がそれを購読して、バインド可能な状態に写す。
 - `Core` は WPF のアセンブリ（`PresentationCore`、`PresentationFramework`、`WindowsBase`）を参照できない（アセンブリが `net10.0` のため、コンパイル時に強制される）。`ICommand` などの .NET 標準の型は、名前空間が `System.Windows.Input` でも使える。WPF の型（`ModifierKeys`、`Point` など）が必要な箇所は、`Core` に独自の型を定義し、`Views` で変換する。
 - Material Design の型とスタイルは、`App.xaml` と `Views` の XAML／カスタムコントロールにとどめる（`Core` は参照できない）。
@@ -135,7 +140,7 @@ flowchart TB
 ```mermaid
 classDiagram
     direction LR
-    class Point2 { <<readonly record struct>> +double X +double Y }
+    class Point2 { <<readonly record struct>> +double X +double Y +IsWithinLimits() bool }
     class Vector2 { <<readonly record struct>> +double X +double Y }
     class Rect2 { <<readonly record struct>> +double Left +double Bottom +double Right +double Top }
     class RgbColor { <<readonly record struct>> +byte R +byte G +byte B +ToHex() +TryParse() }
@@ -202,16 +207,17 @@ classDiagram
   - `HandlePoints`：選択ハンドルを置く点（矩形は 4 つの角、円は中心と円周上の点、ほかは定義点）。
   - `MoveHandle(index, to)`：ハンドルを動かした結果の図形を返す（仕様 5.3 の表のとおり。矩形は、動かした角の対角を固定し、円の中心は円全体を平行移動する）。
   - `Translate(delta)`：図形全体を平行移動する。
-  - `SatisfiesConstraints()`：最小点数を除く仕様 6.3 の制約（隣り合う点が一致しない（最後と最初を含む種類あり）、矩形の幅・高さが 0 でない、半径 > 0、座標が有限かつ絶対値 1,000,000 以下、導出される幾何値が有限）を満たすか。点の一致は、論理座標の完全一致で判定する（仕様 A-27）。制約の判定は、ここだけに置く。
+  - `SatisfiesConstraints()`：最小点数を除く仕様 6.3 の制約（隣り合う点が一致しない（最後と最初を含む種類あり）、矩形の幅・高さが 0 でない、半径 > 0、すべての定義点が `Point2.IsWithinLimits()` を満たす）を満たすか。座標の範囲内では、外接矩形やスプライン制御点などの導出値は有限になる（仕様 6.3、A-29）。防御として、`CreateOutline()` の結果が有限であることも確かめる。点の一致は、論理座標の完全一致で判定する（仕様 A-27）。制約の判定は、ここだけに置く。
   - `IsValid()`：最小点数を満たし、`SatisfiesConstraints()` が真で、属性が `ShapeAttributes.IsValid()` を満たすか。コンストラクターは例外を投げず、検証は `IsValid()` で行う（読み込み・貼り付け・編集で共通に使う）。
   - `Bounds`：`Outline` の外接矩形（線の太さは含めない）。
+- `Point2.IsWithinLimits()`：X と Y がともに有限で、絶対値が 1,000,000 以下であるか（仕様 6.3、A-29）。座標の範囲の判定は、ここだけに置く（`SatisfiesConstraints()` と `ShapeKindInfo.CanAppend` の 1 点目が使う）。
 - 値の等価性：`ImmutableArray<Point2>` の `record` の等価性は参照で比較される。テストと実装は、図形の同一性を `ShapeId` で、点列の比較を `SequenceEqual` で行い、`record` の `==` に頼らない。
 - `ShapeId`：保存しない（`[JsonIgnore]`）。読み込み・貼り付けで生成した図形には、新しい `ShapeId` が付く。`with` による置き換えでは引き継がれる。
 - `ShapeAttributes.IsValid()`：太さが 0.5〜50（仕様 A-6）で有限、線種が定義済みの値であること。`ShapeAttributes.Default` の初期値は、黒、太さ 1.0、Solid（仕様 A-21）。
 - `LineStyle` の破線のパターン（太さに対する倍率）：Dash `[4, 2]`、Dot `[1, 2]`、DashDot `[4, 2, 1, 2]`、Solid は実線（仮定 DA-5）。画面（WPF の `StrokeDashArray`）と出力（GDI+ の `DashPattern`）で、同じ倍率を使う。
 - `ShapeKindInfo`：図形の種類ごとの入力規則（`Tool` から `ShapeKind` への対応、最小点数、2 点で確定する種類か）だけを持つ。制約の知識は持たない。
   - `FromTool`：`Tool` と `ShapeKind` の対応をこの 1 か所に置く。
-  - `CanAppend(kind, points, point)`：1 点目は座標が有限であることだけを確かめる。2 点目以降は、点を加えた候補を `Create` で作り、`SatisfiesConstraints()` で判定する（直前の点と同じ、矩形の幅・高さが 0、閉じる図形で最後と最初が同じ位置になる点を拒否する。仕様 5.2）。入力時と読み込み時で、同じ判定を使う。
+  - `CanAppend(kind, points, point)`：1 点目は `Point2.IsWithinLimits()`（座標が有限で、範囲内）だけを確かめる。2 点目以降は、点を加えた候補を `Create` で作り、`SatisfiesConstraints()` で判定する（直前の点と同じ、矩形の幅・高さが 0、閉じる図形で最後と最初が同じ位置になる点、座標の範囲外の点を拒否する。仕様 5.2）。入力時と読み込み時で、同じ判定を使う。
 - `Drawing` の責務は、「図形の一覧と、その Undo / Redo、未保存状態を保つ」ことである。
   - 内部の一覧は、`UndoRedoObservableCollection<Shape>`（履歴の上限は 1,000。仮定 DA-1）。外部へは、読み取りと変更通知だけを持つ `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開し、変更は `Drawing` の操作だけで行う（`IsModified` と `Committed` を迂回させない）。View は、この一覧にバインドする。
   - `Add` / `RemoveAt` / `Replace`：記録される変更。実行後に `IsModified = true` とし、`Committed` を発生させる。`Committed` を購読するのは `EditorController` だけとする（5.3）。
@@ -301,7 +307,8 @@ classDiagram
         +DeleteSelected()
         +Undo()
         +Redo()
-        +Paste(Shape shape, int repeat)
+        +Paste(Shape shape, int repeat) bool
+        +Reset()
         +PreviewAttributes(ShapeAttributes)
         +CommitAttributes()
     }
@@ -323,8 +330,9 @@ classDiagram
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲（画面上の px ÷ `Scale`）を論理座標へ換算してから、`DrawInteraction` または `SelectInteraction` へ渡す。
   - `SetTool` は、入力中の図形を取り消し、描画ツールへの切り替えで選択を解除する（仕様 5.10）。
   - 入力中は `Undo` / `Redo` / `Paste` を、ドラッグ中は `Undo` / `Redo` / `Paste` / `DeleteSelected` と、`MainViewModel` の Copy / Copy as Metafile / Copy as Image を実行しない（無効）。入力中の Copy as Metafile / Copy as Image は実行でき、入力中の図形を含めない（仕様 5.10）。`IsInputInProgress` / `IsDragging` を `ViewModels` が `CanExecute` に使う。
-  - `Paste(shape, repeat)` は、図形に新しい `ShapeId` を付け、(X + 10·`repeat`, Y − 10·`repeat`) だけずらして配置し（仕様 5.7）、`IsValid()` で再検証してから `Drawing.Add` する。オフセット適用後に制約違反なら、追加せずエラーを通知する。成功時はツールを Select に切り替えて貼り付けた図形を選択する。`repeat`（1、2、…）の決定は `MainViewModel` の責務とする（5.4）。
+  - `Paste(shape, repeat)` は、図形に新しい `ShapeId` を付け、(X + 10·`repeat`, Y − 10·`repeat`) だけずらして配置し（仕様 5.7）、`IsValid()` で再検証してから `Drawing.Add` し、`true` を返す。オフセット適用後に制約または座標の範囲に違反するなら、追加せずに `false` を返す（エラーの表示は `MainViewModel` が行う。予期できる入力の不正のため、例外にはしない。8.2）。成功時はツールを Select に切り替えて貼り付けた図形を選択する。`repeat`（1、2、…）の決定は `MainViewModel` の責務とする（5.4）。
   - `Drawing.Committed` を購読する唯一の型である。受けたら、選択中の `ShapeId` が存在すれば維持し、存在しなければ解除し（仕様 5.5）、その後に自身の `Committed` を発生させる。`ViewModels` は `EditorController.Committed` だけを購読するため、選択の補正が先に終わっていることが保証される。
+  - `Reset()`：入力中の図形とドラッグを取り消し、選択を解除する（Open・New でドキュメントを置き換えたとき。`Drawing.Load` は `Committed` を発生させないため、選択の補正はこの操作で行う）。
   - 状態の変化は `StateChanged`、ドキュメントの確定的な変更は `Committed` で通知する。
 - `DrawInteraction`（描画ツール）：
   - `Down`：`ShapeKindInfo.CanAppend` で許される点だけを追加する（拒否したときは、状態メッセージで伝える）。`ClickCount >= 2` の確定、または 2 点で確定する図形の 2 点目で、`ShapeKindInfo.Create` → `IsValid()` で検証し、`Drawing.Add` する。最小点数に満たなければ、追加せず取り消す。
@@ -371,6 +379,8 @@ classDiagram
         +PointerCommand
         +CancelCommand ScrollCommand SelectToolCommand
         +SetViewSizeCommand ZoomCommand
+        +CancelInput()
+        +ResetForNewDocument()
     }
     class PropertiesViewModel {
         +bool HasSelection
@@ -383,6 +393,7 @@ classDiagram
     class AttributeEditModel { +byte Red +byte Green +byte Blue +string Hex +double Thickness +LineStyle LineStyle }
     MainViewModel --> DrawingViewModel
     MainViewModel --> PropertiesViewModel
+    MainViewModel --> Drawing
     MainViewModel --> IDialogService
     MainViewModel --> IClipboardService
     MainViewModel --> DocumentStorage
@@ -395,15 +406,19 @@ classDiagram
 ```
 
 - `MainViewModel`：アプリケーション全体の状態とコマンド。ファイル操作の流れ（保存確認、Open / Save / New / Exit、エラー表示）、タイトル（`<名前>[*] - WPF CAD Sample`）、属性ウィンドウの表示状態、ウィンドウの配置、クリップボード関連のコマンドの有効状態を扱う。
+  - `Drawing` は、`Load`（Open・New）、`MarkSaved`、`IsModified` と、保存する図形の一覧のために保持する。表示とコントローラーの状態（入力、選択、拡大縮小）には、`DrawingViewModel` の操作を通してだけ触れる。
   - Open / Paste の入力が不正なときは、`DocumentFormatException`（5.6）を受け取り、`IDialogService` でエラーを表示する。I/O の例外（`IOException`、`UnauthorizedAccessException`）とクリップボードの例外（`ClipboardOperationException`）も、ここで受けて表示する（仕様 7 章、8.2）。
-  - ペーストのずらし量：最後に貼った独自形式のテキストと回数を持つ。貼るときにクリップボードのテキストが前回と同じなら回数を 1 増やし、異なれば 1 に戻して、`EditorController.Paste(shape, 回数)` を呼ぶ。`CopyCommand` の実行で回数を 0 に戻す（仕様 5.7）。判定に必要なクリップボードの内容を扱う `MainViewModel` に置く。
+  - ペーストのずらし量：最後に貼った独自形式のテキストと回数を持つ。貼るときにクリップボードのテキストが前回と同じなら回数を 1 増やし、異なれば 1 に戻して、`EditorController.Paste(shape, 回数)` を呼ぶ。`Paste` が `false` を返したら（オフセット適用後に制約または座標の範囲に違反）、`IDialogService.ShowError` でエラーを表示し、ドキュメントは変更しない（仕様 7 章）。`CopyCommand` の実行で回数を 0 に戻す（仕様 5.7）。判定に必要なクリップボードの内容を扱う `MainViewModel` に置く。
   - `RefreshClipboardStateCommand`：Paste・コピー系コマンドの有効状態を、クリップボードの内容に合わせて更新する。`Views` が、ウィンドウの再アクティブ化と Edit メニューを開いたときに呼ぶ（WPF にはクリップボードの変更通知がないため。リスク R-5）。
   - 終了の流れ（6.5）：`ExitCommand` は `CloseRequested` を発生させるだけで、保存確認はしない。`WindowClosingBehavior` が `CloseRequested` を受けてメインウィンドウを閉じ、`Closing`（タイトルバーの閉じるボタン、`Alt+F4` を含む）で `TryClose()` を呼ぶ。
   - `TryClose()`：入力中の図形を取り消し、未保存の変更があれば保存確認を行い、閉じてよいかを返す。閉じてよい場合は、続けて `SaveSettings()` を呼ぶ。
+  - New / Open / Exit は、保存確認の前に `DrawingViewModel.CancelInput()` で入力中の図形を取り消す（仕様 5.10。`TryClose` と同じ順序）。New・Open が成功したら、`Drawing.Load` の後に `DrawingViewModel.ResetForNewDocument()` を呼ぶ（仕様 5.8 の全体図表示と選択の解除）。
   - New / Open / Exit の保存確認で Yes が選ばれた場合、保存が成功したときだけ保留中の操作を続ける。保存失敗または Save As の保存先選択キャンセルは操作全体を中止し、ドキュメントと変更あり状態を維持する（仕様 5.8、AC-34）。
   - `SaveSettings()`：`MainPlacement`、`PropertiesPlacement`、`IsPropertiesWindowVisible`、`EditorController.DefaultAttributes` から `AppSettings` を組み立てて `SettingsStorage.Save` を呼ぶ。失敗はエラーを表示するが、終了を妨げない（仕様 7 章）。設定の組み立てと保存は、ここ 1 か所で行う。
 - `DrawingViewModel`：描画領域の状態。`EditorController` と `Viewport` を保持し、バインドする `Transform`、`Handles`（画面座標のハンドル位置。選択と `Transform` の変化で再計算する）、`InputShapes`（入力中の図形。0 または 1 個）、ステータスの文言を公開する。
-  - `EditorController.Committed` と、ファイルの読み込み・ウィンドウサイズの変更で、`Viewport.UpdateOverview` を呼び、`Handles` を更新する。入力中・ドラッグ中は呼ばない（仕様 5.6）。
+  - `EditorController.Committed` とウィンドウサイズの変更で、`Viewport.UpdateOverview` を呼び、`Handles` を更新する。入力中・ドラッグ中は呼ばない（仕様 5.6）。
+  - `CancelInput()`：`EditorController.Cancel()` で入力中の図形を取り消す。
+  - `ResetForNewDocument()`：`EditorController.Reset()`（入力の取り消しと選択の解除）の後、新しい図形の外接矩形で `Viewport.UpdateOverview` を呼んでから `Viewport.Reset()` で全体図の表示にし、`Handles` を更新する（仕様 5.8。拡大中でも全体図に戻す点が、`Committed` での補正と異なる）。
   - ホイール・キー（`Ctrl+矢印`）・`Esc` は、コマンドで受ける。
 - `PropertiesViewModel`：属性ウィンドウの状態。選択図形の属性（選択がなければ空欄・無効）と、新規図形の既定属性を、それぞれ `AttributeEditModel`（RGB のスライダー、16 進、太さ、線種。いずれかを編集すると他も連動する）で扱う。不正な入力は、直前の有効値へ戻す（仕様 5.4）。既定属性は `EditorController.DefaultAttributes` に反映し、設定に保存する対象にする。
 
@@ -460,7 +475,7 @@ classDiagram
 ```
 
   `type` の値：`line`、`circle`、`rectangle`、`polyline`、`polygon`、`openCurve`、`closedCurve`。
-- `DocumentSerializer.Deserialize` の検証（仕様 7 章「不正とみなす条件」）：①JSON の解析（`JsonException`）、②形式の識別子とバージョン（現行より新しい場合は `DocumentFormatError.NewerVersion` を先に判定。1 未満は不正）、③未知の図形の種類・線種（判別子や列挙値の不一致は `JsonException`）、④必須項目（`required` と `[JsonRequired]`）、⑤色の形式（`RgbColor` の `JsonConverter`）、⑥各図形の `IsValid()`（座標の有限性、制約、点数、太さの範囲）。1 つでも不正なら全体を拒否し、`DocumentFormatException`（`Error`、理由）にまとめる。
+- `DocumentSerializer.Deserialize` の検証（仕様 7 章「不正とみなす条件」）：①JSON の解析（`JsonException`）、②形式の識別子とバージョン（現行より新しい場合は `DocumentFormatError.NewerVersion` を先に判定。1 未満は不正）、③未知の図形の種類・線種（判別子や列挙値の不一致は `JsonException`）、④必須項目（`required` と `[JsonRequired]`）、⑤色の形式（`RgbColor` の `JsonConverter`）、⑥各図形の `IsValid()`（座標の有限性と範囲、制約、点数、太さの範囲）。1 つでも不正なら全体を拒否し、`DocumentFormatException`（`Error`、理由）にまとめる。
 - `ClipboardShapes`：独自形式のクリップボード用。同じ検証を使い、形式の識別子は `Shos.WpfCadSample.Clipboard`。図形はちょうど 1 個とし、0 個または 2 個以上は不正とする（仕様 6.6、7 章）。
 - `DocumentStorage.Save`：同じフォルダーの一時ファイルへ書いてから `File.Replace`（新規は `File.Move`）で置き換える。失敗しても元のファイルを壊さない（仕様 7 章）。I/O の例外は呼び出し側（`MainViewModel`）へ伝える。
 - `SettingsStorage`（`%APPDATA%\Shos.WpfCadSample\settings.json`。パスはコンストラクターで受け取る）：
@@ -565,13 +580,19 @@ stateDiagram-v2
 sequenceDiagram
     actor User
     participant MVM as MainViewModel
+    participant DVM as DrawingViewModel
     participant DS as IDialogService
     participant ST as DocumentStorage
     participant D as Drawing
     User->>MVM: Open
-    MVM->>MVM: 未保存なら AskSaveChanges (入力中の図形は取り消す)
+    MVM->>DVM: CancelInput()
+    opt 未保存の変更あり
+        MVM->>DS: AskSaveChanges(name)
+        DS-->>MVM: Yes / No / Cancel
+        Note over MVM: Cancel、または Yes の後の保存失敗・Save As のキャンセルなら、ここで中止（ドキュメントと変更あり状態を維持。AC-34）
+    end
     MVM->>DS: ShowOpenFileDialog
-    DS-->>MVM: path
+    DS-->>MVM: path（キャンセルなら中止）
     MVM->>ST: Load(path)
     alt 不正・I/O エラー
         ST-->>MVM: DocumentFormatException / IOException / UnauthorizedAccessException
@@ -579,7 +600,7 @@ sequenceDiagram
     else 成功
         ST-->>MVM: shapes
         MVM->>D: Load(shapes) ※履歴を消去し IsModified = false
-        MVM->>MVM: Viewport.Reset / 選択解除
+        MVM->>DVM: ResetForNewDocument() ※選択解除・全体図表示
     end
 ```
 
@@ -602,7 +623,7 @@ sequenceDiagram
         MVM->>DS: AskSaveChanges(name)
         DS-->>MVM: Yes / No / Cancel
     end
-    alt Cancel または保存の失敗
+    alt Cancel、または Yes の後の保存失敗・Save As のキャンセル
         MVM-->>MW: false (閉じるのを取り消す)
     else 閉じてよい
         MVM->>MVM: SaveSettings() で AppSettings を組み立てる
@@ -634,7 +655,7 @@ sequenceDiagram
 | F-17 | C# 14 / .NET 10、record、外部パッケージ | 3.1、DD-2、DD-10。`record` / `readonly record struct` を使う |
 | F-18 | README、完了条件 | 実装計画書で扱う |
 | F-19 | Material Design | DD-9、5.7 |
-| A-17〜A-28 | 仕様の仮定 | A-17：`ShapeHitTester`。A-18：`Viewport` と `DrawingView`。A-19：`EditorController`。A-20：`Viewport.UpdateOverview`、`DrawingViewModel`。A-21：`ShapeAttributes.Default`。A-22：`SettingsStorage`、`MainViewModel.SaveSettings`。A-23：`SelectInteraction`。A-24：`ExportFrame`、`MetafileRenderer`。A-25：`PropertiesWindow`、`WindowVisibilityBehavior`。A-26：`DrawingSurface`（`CaptureLost`）、`SelectInteraction`。A-27：`Shape.SatisfiesConstraints`。A-28：`SettingsStorage.Load`、`AppSettings.IsValid` |
+| A-17〜A-29 | 仕様の仮定 | A-17：`ShapeHitTester`。A-18：`Viewport` と `DrawingView`。A-19：`EditorController`。A-20：`Viewport.UpdateOverview`、`DrawingViewModel`。A-21：`ShapeAttributes.Default`。A-22：`SettingsStorage`、`MainViewModel.SaveSettings`。A-23：`SelectInteraction`。A-24：`ExportFrame`、`MetafileRenderer`。A-25：`PropertiesWindow`、`WindowVisibilityBehavior`。A-26：`DrawingSurface`（`CaptureLost`）、`SelectInteraction`。A-27：`Shape.SatisfiesConstraints`。A-28：`SettingsStorage.Load`、`AppSettings.IsValid`。A-29：`Point2.IsWithinLimits`、`Shape.SatisfiesConstraints`、`ShapeKindInfo.CanAppend`、`EditorController.Paste`、`DocumentSerializer`、`ClipboardShapes` |
 | 仕様 4.6、6.6 | 保存確認（Yes / No / Cancel）、独自形式の図形は 1 個 | `IDialogService.AskSaveChanges`（5.5）、`ClipboardShapes`（5.6） |
 
 ## 8. テスト容易性とエラー処理
@@ -656,7 +677,7 @@ sequenceDiagram
 | `Models` | コンストラクターは例外を投げない。不正は `IsValid()` で表す。呼び出し側が不正な操作（制約違反）を拒否する |
 | `Serialization` | 形式の不正を `DocumentFormatException`（`Invalid` / `NewerVersion`）で通知する。ファイルの I/O の例外は、そのまま伝える |
 | `Settings` | 不正・破損は例外にせず、既定値と `Warning` を返す。保存の失敗は例外で伝える |
-| `ViewModels` | `MainViewModel` が、`DocumentFormatException`、`IOException`、`UnauthorizedAccessException`（読み取り専用・権限なし。`IOException` の派生ではない）、`ClipboardOperationException` を受けて、`IDialogService` で英語のエラーを表示する（元のドキュメントは変更しない）。捕捉する例外はこの 4 種に限り、ほかの例外は握りつぶさない |
+| `ViewModels` | `MainViewModel` が、`DocumentFormatException`、`IOException`、`UnauthorizedAccessException`（読み取り専用・権限なし。`IOException` の派生ではない）、`ClipboardOperationException` を受けて、`IDialogService` で英語のエラーを表示する（元のドキュメントは変更しない）。Paste のオフセット適用後の違反は、例外ではなく `EditorController.Paste` の戻り値（`false`）で受けて表示する。捕捉する例外はこの 4 種に限り、ほかの例外は握りつぶさない |
 | `Views`／`Infrastructure` | クリップボードへの出力の生成と書き込みの失敗（他のアプリが使用中、GDI+ の失敗、大きすぎるビットマップなど）は、`ClipboardService` が `ClipboardOperationException` に包んで `MainViewModel` へ伝える（`Core` が GDI+ や COM の例外型に依存しないため） |
 
 ## 9. 仮定・リスク・トレードオフ・未決事項
@@ -699,7 +720,7 @@ sequenceDiagram
 | U-3 | 画像・EMF の出力解像度と範囲、EMF の方式 | 2026-11-05 の本書の承認により、DD-6 と仕様 A-10 のとおり確定。出力の上限は仕様 A-24。方式の実現性は R-1 の試作で確認する |
 | U-4 | Material Design 3 の配色 | 2026-11-05 の本書の承認により、DD-9 のとおり（`Indigo` と `Amber`）確定。`App.xaml` の 1 行で変更できる |
 
-仕様書にない決定（DD-1〜DD-14、DA-1〜DA-6）は、2026-11-05 の本書のレビューで承認を得た。2026-11-06 に追加した DD-15、DA-7 と変更点は、再承認の対象とする。レビューで変更があれば、本書を更新して再承認を得る（下流の実装計画書・テスト計画書は、本書の承認後に作成した）。
+仕様書にない決定（DD-1〜DD-14、DA-1〜DA-6）は、2026-11-05 の本書のレビューで承認を得た。2026-11-06 に追加した DD-15、DA-7 は、同日の再承認で承認を得た。レビューで変更があれば、本書を更新して再承認を得る（下流の実装計画書・テスト計画書は、本書の承認後に作成した）。
 
 ## 10. 改訂履歴
 
@@ -714,3 +735,5 @@ sequenceDiagram
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-06 | [要件の一本化](../Plans/20261106-requirements-consolidation-plan.md)に伴い、要件の参照を `create-wpf-cad.prompt.md` の節番号（§）から仕様書 3 章へ置き換えた（冒頭、DD-1、DD-4、DD-5、DD-15、5.2、5.7、8.1）。設計の内容は変えていない。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | 要件一本化後の仕様書レビュー指摘 1〜3 に伴い、座標上限・導出値の検証（5.1）、Paste オフセット後の再検証（5.3）、画像換算画素数と寸法の上限（DD-6、`ExportFrame`）を反映。状態は `レビュー待ち` のまま |
+| 2026-11-06 | [設計書のレビュー（要件一本化・仕様変更の反映後）](../Reviews/20261106-cad-architecture-review-2.md)の指摘 1〜8 に対応：座標の範囲の判定を `Point2.IsWithinLimits()` に一本化し、`CanAppend` の 1 点目にも適用（5.1）、導出値の有限性を仕様 A-29 に合わせて防御の検査と明記（5.1）、Open・New の後の表示の初期化を `DrawingViewModel.ResetForNewDocument()` と `EditorController.Reset()` に置き、入力の取り消しを `DrawingViewModel.CancelInput()` 経由に（5.3、5.4、6.4）、`EditorController.Paste` が成否を `bool` で返し `MainViewModel` がエラーを表示（5.3、5.4、8.2）、6.4・6.5 に AC-34 の中止の分岐、7 章に A-29、5.6 の検証⑥に座標の範囲、3.3 の依存関係図に WPF プロジェクトから `Core` への依存、9.4 の古い記述の修正。指摘 9 は記録のみ（実装中に判断）。状態は `レビュー待ち` のまま |
+| 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |

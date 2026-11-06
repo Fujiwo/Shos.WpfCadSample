@@ -1,4 +1,4 @@
-状態：レビュー待ち
+状態：承認済み
 
 # 簡易 WPF CAD 実装計画書
 
@@ -25,7 +25,8 @@
 
 ### 1.3 現状（2026-11-06 時点）
 
-- ソリューション `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` は存在するが、プロジェクトは未登録（`<Solution />` のみ）。アプリケーションのコードとテストはない（2026-11-05 から変化なし）。
+- I-1 の途中まで進んでいる。3 プロジェクト（`Shos.WpfCadSample.Core`、`Shos.WpfCadSample`、`Shos.WpfCadSample.Tests`）を `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` に登録し、`Directory.Build.props`、設計書 3.2 のフォルダー、T-ARC-01・02・04、`Source\README.md` の骨子を作成済み。2026-11-06 に Windows の `dotnet` でビルド（警告・エラーなし）とテスト（3 件成功）を確認した。
+- I-1 の残り（試作 R-1、R-2、R-6、パッケージの版の確認 P-1、README へのテスト用付随パッケージの理由の追記）と、各段階の実施状況は、[進捗記録](../Progress/20261105-cad-progress.md)を正とする。作成済みの骨組みは作り直さない。
 - 開発環境：Windows 側の .NET SDK 10.0.403、`Microsoft.WindowsDesktop.App` 10.0.14 のランタイムを確認済み（2026-11-05）。WPF のプロジェクトは Linux の `dotnet` ではビルド・テストできないため、ビルドとテストは Windows の `dotnet` で行う（3.2）。
 
 ## 2. 段階の一覧と依存関係
@@ -49,9 +50,9 @@ flowchart LR
 
 | 段階 | 名称 | 前提 | 主な成果物（配置先） | 対応するテスト群（テスト計画書） |
 |---|---|---|---|---|
-| I-1 | 骨組みと試作 | なし | 3 プロジェクト、`Directory.Build.props`、README の骨子、EMF の試作の結果（R-1、R-2、R-6） | T-ARC |
+| I-1 | 骨組みと試作 | なし | 3 プロジェクト、`Directory.Build.props`、README の骨子、試作と確認の結果（R-1、R-2、R-6、R-8） | T-ARC |
 | I-2 | 幾何とスプライン | I-1 | `Models.Geometry`（点・矩形・`Outline`・`SplineBezier`・`ViewTransform`・`Viewport`） | T-GEO、T-SPL、T-OUT、T-VPT |
-| I-3 | 図形・属性・Drawing | I-2 | `Models`（`Shape` 7 種、属性、`ShapeKindInfo`、`Drawing`）、`ShapeHitTester`、`ExportFrame` | T-SHP、T-ATT、T-HIT、T-DRW |
+| I-3 | 図形・属性・Drawing | I-2 | `Models`（`Shape` 7 種、属性、`ShapeKindInfo`、`Drawing`）、`ShapeHitTester`、`ExportFrame` | T-SHP、T-ATT、T-HIT、T-DRW、T-EXP |
 | I-4 | 保存・設定 | I-3 | `Serialization`、`Settings` | T-SER、T-STO、T-SET |
 | I-5 | Controllers | I-3 | `Controllers`（`EditorController`、各 Interaction、`AttributeEditor`） | T-EDC |
 | I-6 | ViewModels と契約 | I-4、I-5 | `ViewModels`、`Services`（契約） | T-VM |
@@ -112,10 +113,10 @@ flowchart LR
   1. `Source\Shos.WpfCadSample\` に、`Shos.WpfCadSample.Core`（クラスライブラリ、`net10.0`）、`Shos.WpfCadSample`（WPF、`net10.0-windows`）、`Shos.WpfCadSample.Tests`（xUnit、`net10.0`）を作成し、`Shos.WpfCadSample.slnx` に追加する（別のソリューションは作らない）。参照関係は設計書 3.1 のとおり（WPF → Core、Tests → Core）。
   2. `Source\Shos.WpfCadSample\Directory.Build.props` に、共通の設定（`Nullable=enable`、`TreatWarningsAsErrors=true`、`RootNamespace=Shos.WpfCadSample`）を置く。各プロジェクトにフォルダー（`Models`、`Models\Geometry`、`Controllers`、`ViewModels`、`Serialization`、`Settings`、`Services`／`Views`、`Infrastructure`）を設計書 3.2 のとおり作る。`Core` と `Tests` のルート直下には型を置かない（WPF アプリの `App` だけは、設計書 DD-14 の例外としてルート直下に置く）。
   3. パッケージ（4 章）を導入し、版を確認する。
-  4. `Source\README.md` の骨子（概要、フォルダー／namespace の構成、使用パッケージと版）を作る。
+  4. `Source\README.md` の骨子（概要、フォルダー／namespace の構成、使用パッケージと版）を作る。`xunit.runner.visualstudio` と `Microsoft.NET.Test.Sdk` は、仕様 3.2 の xUnit を `dotnet test` で実行するための付随パッケージとして、用途と理由を README に書く（4 章）。
   5. 進捗記録の「実装の進捗」に、テスト群（テスト計画書の T-ARC〜T-VM）ごとの実装状況の表を追加する（C-3 の確認先）。
   6. **試作（使い捨ての確認。成果は結果の記録のみ）**：
-     - R-1：GDI+ の `Metafile` に直線とベジェを描き、`GetHenhmetafile()` のハンドルを `SetClipboardData(CF_ENHMETAFILE)` で渡し、WordPad または Word へ貼り付けて表示されることを確認する。
+     - R-1：GDI+ の `Metafile` に直線とベジェを描き、`GetHenhmetafile()` のハンドルを `SetClipboardData(CF_ENHMETAFILE)` で渡し、Word（または EMF を貼り付けられる Office アプリ）へ貼り付けて表示されることを確認する（WordPad は Windows 11 24H2 以降で提供されていない）。
      - R-2：`System.Drawing.Common` が WPF プロジェクトで追加のパッケージなしに使えるかを確認する。
      - R-6：`CommunityToolkit.Mvvm` の `[ObservableProperty]` などが、C# 14 / .NET 10 でビルドできるかを確認する。
      - 試作のコードは、成果物に残さない（R-1 の方式を採るときの本実装は I-7 で、テストファーストで行う）。
@@ -123,31 +124,31 @@ flowchart LR
 - **成果物**：3 プロジェクトと `Directory.Build.props`、`Source\README.md` の骨子、試作の結果（進捗記録）。
 - **完了条件**：C-1、C-2（空に近いテストプロジェクトでも、少なくとも 1 件のテストが実行・成功する）、C-6 に加えて、次を満たす。
   - 3 プロジェクトが `slnx` に含まれ、`dotnet build` / `dotnet test` がリポジトリルートから成功する。
-  - R-1、R-2、R-6 の結果が記録されている。R-1 で EMF の方式が成立しない場合は、**実装を進めずに** 9 章の手順で設計書の DD-6 を更新して再承認を得る。
+  - R-1、R-2、R-6、R-8（`slnx` 全体の `dotnet test` で 1 件以上のテストが実行される）の結果が記録されている。R-1 で EMF の方式が成立しない場合は、**実装を進めずに** 9 章の手順で設計書の DD-6 を更新して再承認を得る。
 - **対応するテスト**：T-ARC（Core のルート namespace と参照の確認の枠組み）。
 
 ### I-2 幾何とスプライン
 
-- **作業**：`Models.Geometry` に、`Point2`、`Vector2`、`Rect2`（`readonly record struct`）、`Outline`（`OutlineFigure`、`LineSegment`、`CubicBezierSegment`）、`SplineBezier`（`Open`、`Closed`）、`ViewTransform`、`Viewport` を、テストファーストで実装する（設計書 5.2）。
+- **作業**：`Models.Geometry` に、`Point2`（座標の範囲の判定 `IsWithinLimits()`：有限かつ絶対値 1,000,000 以下。設計書 5.1、仕様 A-29）、`Vector2`、`Rect2`（`readonly record struct`）、`Outline`（`OutlineFigure`、`LineSegment`、`CubicBezierSegment`）、`SplineBezier`（`Open`、`Closed`）、`ViewTransform`、`Viewport` を、テストファーストで実装する（設計書 5.2）。
   - `SplineBezier` は、Shos.BezierSamples の `BezierWpf/Geometry.cs` の考え方（接線の三重対角系、閉曲線は Sherman-Morrison）に基づく。コードは複製せず、出典（リポジトリとファイル、MIT）をコメントと README に記載する。
   - `Viewport` は、全体図（`Overview`）、`FitScale`、`MinScale`、32 倍の上限（`MaxScale`）、1 ノッチ 1.2 倍のズーム、50 px のスクロール、全体図が変わったときの維持と、下限・上限の両方の補正（仕様 5.6。設計書 5.2）を持つ。
 - **前提**：I-1。
 - **成果物**：`Models\Geometry\*.cs` と、対応する `Tests\Models\Geometry\*Tests.cs`。
 - **完了条件**：共通の完了条件に加えて、T-GEO、T-SPL、T-OUT、T-VPT の全ケースが成功する。
-- **対応する要件**：F-03、F-06、F-11（AC-04、AC-13、AC-14、AC-15、AC-30）。
+- **対応する要件**：F-03、F-06、F-11（AC-04、AC-13、AC-14、AC-15、AC-30、AC-35 の座標の範囲の判定）。
 
 ### I-3 図形・属性・Drawing
 
 - **作業**：`Models` に、`ShapeId`、`RgbColor`、`LineStyle`、`ShapeAttributes`、`ShapeKind`、`Shape`（抽象）と 7 種の図形（`LineShape`、`CircleShape`、`RectangleShape`、`PolylineShape`、`PolygonShape`、`OpenCurveShape`、`ClosedCurveShape`）、`ShapeKindInfo`、`Drawing` を実装し、`Models.Geometry` に `ShapeHitTester` を実装する（設計書 5.1、5.2）。
   - 図形は不変な `record`。`CreateOutline`、`HandlePoints`、`MoveHandle`、`Translate`、`SatisfiesConstraints`、`IsValid`、`Bounds` を `Shape` の多態で実装する（DD-12）。制約の判定（点の完全一致を含む。仕様 A-27）は `SatisfiesConstraints()` の 1 か所に置き、`IsValid()` は最小点数・`SatisfiesConstraints()`・`ShapeAttributes.IsValid()` を組み合わせる（設計書 5.1）。
   - `ShapeKindInfo` は、入力の規則（`FromTool`、`MinPoints`、`IsFixedTwoPoint`、`Create`）と、候補の図形を作って `SatisfiesConstraints()` で判定する `CanAppend` を持つ。制約の知識は持たない。
-  - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`Committed`、`IsModified`、`Load`、`IndexOf` を実装する。
+  - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`Undo` / `Redo`（実行後に `IsModified = true` と `Committed`。仕様 A-11）、`CanUndo` / `CanRedo`、`Committed`、`IsModified`、`Load`、`MarkSaved`、`IndexOf` を実装する。
   - `ShapeHitTester`：`HitShape` は中心線からの距離が「線の太さ ÷ 2 + 許容範囲」以内を線上とし（DA-7）、`HitHandle` は許容範囲内で最も近いハンドルを返す（仕様 5.3、A-9）。
   - `ExportFrame`：EMF・画像の出力範囲と縮尺（整数ピクセルに切り上げた各辺が 10,000 以下、画素数が 4,000,000 以下となるよう、縦横比を保って縮小する。仕様 A-10、A-24）を求める純粋な関数（設計書 5.2）。
   - `System.Text.Json` の多態性の属性（`[JsonPolymorphic]`、`[JsonDerivedType]`）は I-4 で付ける（シリアライズのテストと一緒に行う）。
 - **前提**：I-2。
 - **成果物**：`Models\*.cs`、`Models\Geometry\ShapeHitTester.cs`、`Models\Geometry\ExportFrame.cs`、対応するテスト。
-- **完了条件**：共通の完了条件に加えて、T-SHP、T-ATT、T-HIT、T-DRW の全ケースが成功する。特に、「`PreviewReplace` → `RestoreOriginal` → `Replace` の 1 回が、Undo 1 回で元に戻る」（R-7）ことを確認する。
+- **完了条件**：共通の完了条件に加えて、T-SHP、T-ATT、T-HIT、T-DRW、T-EXP の全ケースが成功する。特に、「`PreviewReplace` → `RestoreOriginal` → `Replace` の 1 回が、Undo 1 回で元に戻る」（R-7）ことを確認する。
 - **対応する要件**：F-04、F-07、F-08、F-10、F-12（AC-05〜AC-09、AC-28、AC-32 の出力範囲と縮尺、AC-35 の座標範囲の検証）。
 
 ### I-4 保存・設定
@@ -167,8 +168,9 @@ flowchart LR
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲を（画面上の px ÷ `Scale`）で換算する。
   - 仕様 5.10 の、入力中・ドラッグ中のコマンドの無効化（ドラッグ中の Copy 系を含む。入力中の Copy as Metafile / Image は可）、ツール切り替え時の取り消しと選択解除、貼り付け後のツール切り替えと選択を実装する。
   - `SelectInteraction`：判定の順序（選択中の図形のハンドル → 図形の線）、`Esc` と `CaptureLost` によるドラッグの取り消し（仕様 5.3、A-26）。`DrawInteraction` は `CaptureLost` を無視する。
-  - `Paste(shape, repeat)`：(X + 10·`repeat`, Y − 10·`repeat`) のずらし。`repeat` の決定（累積と Copy によるリセット）は I-6 の `MainViewModel` で実装する（設計書 5.3、5.4）。
+  - `Paste(shape, repeat)`：(X + 10·`repeat`, Y − 10·`repeat`) のずらしと再検証。違反なら追加せず `false` を返す。`repeat` の決定（累積と Copy によるリセット）は I-6 の `MainViewModel` で実装する（設計書 5.3、5.4）。
   - `Drawing.Committed` を購読し、選択の `ShapeId` による維持・解除（仕様 5.5）の後に、自身の `Committed` を発生させる（`ViewModels` はこちらだけを購読する。設計書 5.3）。
+  - `Reset()`：入力中の図形とドラッグの取り消しと、選択の解除（Open・New の後。設計書 5.3）。
 - **前提**：I-3（`Viewport` は I-2）。
 - **成果物**：`Controllers\*.cs`、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-EDC の全ケースが成功する。
@@ -179,15 +181,15 @@ flowchart LR
 - **作業**：
   - `Services`：`IDialogService`（`AskSaveChanges` は `SaveChangesAnswer`：Yes / No / Cancel）、`IClipboardService`、`ClipboardOperationException`（設計書 5.5）。
   - `ViewModels`：`MainViewModel`、`DrawingViewModel`、`PropertiesViewModel`、`HandleItem`、`AttributeEditModel`（設計書 5.4）。`CommunityToolkit.Mvvm` の `ObservableObject` / `RelayCommand` を使う。
-  - `MainViewModel`：New / Open / Save / Save As / Exit の流れ（保存確認、エラー表示）、捕捉する 4 種の例外（`DocumentFormatException`、`IOException`、`UnauthorizedAccessException`、`ClipboardOperationException`。設計書 8.2）、タイトルと `*`、属性ウィンドウの表示状態と配置（`PropertiesPlacement`）、設定の読み込み、`RefreshClipboardStateCommand`、ペーストの回数（前回と同じテキストなら累積、異なれば 1、`CopyCommand` で 0 に戻す。仕様 5.7）。
+  - `MainViewModel`：New / Open / Save / Save As / Exit の流れ（保存確認、エラー表示）、捕捉する 4 種の例外（`DocumentFormatException`、`IOException`、`UnauthorizedAccessException`、`ClipboardOperationException`。設計書 8.2）、タイトルと `*`、属性ウィンドウの表示状態と配置（`PropertiesPlacement`）、設定の読み込み、`RefreshClipboardStateCommand`、ペーストの回数（前回と同じテキストなら累積、異なれば 1、`CopyCommand` で 0 に戻す。仕様 5.7）と、`Paste` が `false` のときのエラー表示。New・Open では、保存確認の前に `DrawingViewModel.CancelInput()`、成功後に `DrawingViewModel.ResetForNewDocument()` を呼ぶ（設計書 5.4、6.4）。
   - 終了の流れ（設計書 6.5）：`ExitCommand` は `CloseRequested` を発生させるだけとし、`TryClose()`（入力中の図形の取り消し、保存確認）と、閉じてよい場合の `SaveSettings()`（`AppSettings` の組み立てと保存。失敗は表示のみ）を実装する。
-  - `DrawingViewModel`：`Handles`、`Transform`、`StatusText`、`CursorText`、`ZoomText`、コマンド。`EditorController.Committed` / ファイルの読み込み / ウィンドウサイズの変更で `Viewport.UpdateOverview` を呼ぶ（入力中・ドラッグ中は呼ばない）。
+  - `DrawingViewModel`：`Handles`、`Transform`、`StatusText`、`CursorText`、`ZoomText`、コマンド。`EditorController.Committed` / ウィンドウサイズの変更で `Viewport.UpdateOverview` を呼ぶ（入力中・ドラッグ中は呼ばない）。`CancelInput()` と `ResetForNewDocument()`（選択解除と全体図の表示。仕様 5.8）。
   - `PropertiesViewModel`：RGB・16 進・太さ・線種の連動と、不正入力の直前の値への復帰。
   - テストでは、偽の `IDialogService` と `IClipboardService`、一時フォルダーを使う。
 - **前提**：I-4、I-5。
 - **成果物**：`Services\*.cs`、`ViewModels\*.cs`、`Tests\Support\`（偽のサービス、一時フォルダー、図形の組み立て補助）、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-VM の全ケースが成功する。
-- **対応する要件**：F-07、F-09、F-10、F-12、F-13、F-14（AC-09〜AC-12、AC-16、AC-19、AC-20、AC-24、AC-27、AC-29、AC-30、AC-32 のエラー表示、AC-34）。
+- **対応する要件**：F-07、F-09、F-10、F-12、F-13、F-14（AC-09〜AC-12、AC-16、AC-19、AC-20、AC-24、AC-27、AC-29、AC-30、AC-32 のエラー表示、AC-34、AC-35 のペースト時のエラー表示）。
 
 ### I-7 Infrastructure
 
@@ -205,7 +207,7 @@ flowchart LR
 - **作業**：
   - `App.xaml`：`App` クラスは、WPF アプリのルート namespace 直下（`Shos.WpfCadSample.App`。設計書 DD-14 の例外）に置き、`x:Class` をその名前にする。`materialDesign:BundledTheme`（`BaseTheme="Light"`、`PrimaryColor="Indigo"`、`SecondaryColor="Amber"`）と `MaterialDesign3.Defaults.xaml` を `MergedDictionaries` に追加し、`MainWindow` と `PropertiesWindow` に `MaterialDesignWindow` スタイルを適用する。使うスタイルの名前（メニュー、ツールバーのボタン、スライダー、テキストボックスなど）は、公式のドキュメントとソースで確認する（R-3）。
   - `Infrastructure.CompositionRoot`：サービスと ViewModel の組み立て。`MainWindow` の `DataContext` は `App.xaml` のリソースから取得し、コードビハインドに起動時のコードを書かない。
-  - `MainWindow`：メニュー（仕様 4.2 の項目とショートカット）、ツールバー（ツールの `RadioButton`、Undo / Redo）、`DrawingView`、ステータスバー。
+  - `MainWindow`：メニュー（仕様 4.2 の項目とショートカット。File メニューの New / Open / Save / Save As / Exit は、この段階で `MainViewModel` のコマンドにバインドし、M-02 でファイルを開けるようにする）、ツールバー（ツールの `RadioButton`、Undo / Redo）、`DrawingView`、ステータスバー。
   - `DrawingView`（UserControl）：描画領域の背景は全体を白とし、論理領域は枠線だけで示す（仕様 4.3）。論理領域の枠、図形の `ItemsControl`（`ItemsPanel` は `Canvas`、`RenderTransform` に `Transform`、`Canvas.Left` / `Canvas.Top` を `Bounds` にバインド。図形の種類ごとの `DataTemplate` を 7 種用意し、いずれも `Path` と `ShapeToGeometryConverter` で描く。設計書 5.7）、入力中の図形の `ItemsControl`、ハンドルの `ItemsControl`。
   - コンバーター：`ShapeToGeometryConverter`、`RgbColorToBrushConverter`、`LineStyleToDashesConverter`、`ViewTransformToMatrixConverter`、`EnumEqualsConverter`。
   - コードビハインド（`*.xaml.cs`）は `InitializeComponent()` のみ。
@@ -221,7 +223,7 @@ flowchart LR
   - キー操作：`Delete`、`Esc`、`Ctrl+矢印`、`Ctrl+ホイール`、メニューのショートカット（`Ctrl+Z`、`Ctrl+Y`、`Ctrl+C`、`Ctrl+V`、`Ctrl+N`、`Ctrl+O`、`Ctrl+S`、`Ctrl+Shift+S`、`F4`）を、`InputBindings` とコマンドで定義する。テキスト入力部品にフォーカスがあるときは、その部品が編集系キーを処理する（仕様 5.4）。
   - `PropertiesWindow`：`DataContext` は `MainViewModel`。「Selected Shape」と「Defaults for New Shapes」の 2 区画（Material Design のカード状の面）、RGB スライダー・16 進・太さ・線種。仕様 4.2 のショートカット（`Alt+F4` を除く）を、`MainWindow` と共有のリソースから `InputBindings` として定義する。`Alt+F4` を含む閉じる操作は非表示に変える（仕様 4.5、A-25）。
   - ビヘイビア：`EditCommit`（スライダーのドラッグ完了、`Enter`、フォーカス移動、リスト選択で確定）、`WindowPlacementBehavior`（`RestoreBounds` を使った配置の保存・復元）、`WindowClosingBehavior`（`CloseRequested` でメインウィンドウを閉じ、`Closing` で `TryClose()` を呼び、偽なら閉じるのを取り消す。設計書 6.5）、`WindowVisibilityBehavior`（属性ウィンドウの表示状態と、閉じる操作の非表示への変換）。
-  - ファイル操作、クリップボード操作、設定の保存・復元を、画面から実行できるようにする。
+  - クリップボード操作（Edit メニュー）と、設定の保存・復元（`WindowPlacementBehavior` など）を、画面から実行できるようにする。ファイル操作のメニューは I-8 でバインド済みで、この段階では M-18 などで動作を確認する。
 - **前提**：I-8。
 - **成果物**：`Views\*`（`DrawingSurface`、`PropertiesWindow`、`Behaviors`、`Themes`）。
 - **完了条件**：共通の完了条件に加えて、手動テスト M-03〜M-20（I-7 から移した M-12〜M-14 と、I-8 から移した性能の M-20 を含む）を実施し、合格する。M-20 で応答が目安（仕様 A-14）を超える場合は、R-10 の対応を取る。
@@ -259,7 +261,7 @@ flowchart LR
 | AC-32（出力の大きさの上限、出力の失敗） | I-3、I-6、I-7 | I-3、I-6、I-9 |
 | AC-33（属性ウィンドウのキー操作） | I-9 | I-9 |
 | AC-34（保存確認の後の保存失敗・キャンセル） | I-6 | I-6、I-9 |
-| AC-35（座標の範囲） | I-3、I-4、I-5 | I-3、I-4、I-5、I-9 |
+| AC-35（座標の範囲） | I-2、I-3、I-4、I-5、I-6 | I-2〜I-6、I-9 |
 | AC-22、AC-23（対象外の機能がない、Material Design） | I-8、I-9、I-10 | I-10 |
 
 ## 7. リスクと対応
@@ -330,3 +332,8 @@ Source\
 | 2026-11-06 | [要件の一本化](../Plans/20261106-requirements-consolidation-plan.md)に伴い、`create-wpf-cad.prompt.md` への参照を仕様書へ置き換え（冒頭、2 章、I-10）、同プロンプトの作業方針（§0）のうち未記載のもの（4 文書の承認と整合の確認、承認済み文書を唯一の詳細仕様とすること、スキルの複製の比較、テスト対象がない場合の骨組み、画面を操作できない場合の手動テストの依頼、YAGNI と README への記録）を 3.1、3.2、9 章に追記。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | 要件一本化後の仕様書レビュー指摘 1〜3 に伴い、実装対象の受け入れ条件を AC-35 までに更新（保存確認後の保存失敗時の中止、出力画素数上限、座標範囲の検証）。状態は `レビュー待ち` のまま |
 | 2026-11-06 | [対応の確認](../Reviews/20261106-cad-specification-fix-check-review.md)の指摘 1、2 に対応：6 章の対応表に AC-34、AC-35 の行を追加し、I-3〜I-6、I-9 の「対応する要件」に追記。I-3 の `ExportFrame` の説明に画素数の上限を追記。状態は `レビュー待ち` のまま |
+| 2026-11-06 | [設計書のレビュー（要件一本化・仕様変更の反映後）](../Reviews/20261106-cad-architecture-review-2.md)への設計書の修正に合わせ、I-5 に `EditorController.Reset()` と `Paste` の戻り値、I-6 に `CancelInput()`・`ResetForNewDocument()` と Paste の違反の表示を追記。状態は `レビュー待ち` のまま |
+| 2026-11-06 | [実装計画書のレビュー（要件一本化・仕様と設計の再承認後）](../Reviews/20261106-cad-implementation-plan-review-2.md)の指摘 1〜7 に対応：1.3 を I-1 の途中の現状に更新（作成済みの骨組みは作り直さない）、R-1 の確認先を Word に、I-1 に README へのテスト用付随パッケージの理由と R-8 の結果の記録を追加、I-2 に `Point2.IsWithinLimits()`、I-3 の `Drawing` の操作の列挙を補完、AC-35 の段階に I-2・I-6 を追加、File メニューのバインドを I-8 に明記し I-9 の作業を絞った。状態は `レビュー待ち` のまま |
+| 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | [テスト計画書のレビュー（要件一本化・仕様／設計／実装計画の再承認後）](../Reviews/20261106-cad-test-plan-review-2.md)の指摘 2 に対応：I-3 のテスト群（2 章の表、完了条件）に、テスト計画書と同じく T-EXP を加えた。状態を `レビュー待ち` に戻した |
+| 2026-11-06 | ユーザーが実装計画書とテスト計画書を一組で承認（状態を `承認済み` に更新） |
