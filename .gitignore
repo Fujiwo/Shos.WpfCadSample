@@ -23,3 +23,25 @@ x86/
 # NuGet package artifacts
 *.nupkg
 *.snupkg
+
+# Placeholders created by the Claude Code sandbox in WSL (not project files)
+/.bash_profile
+/.bashrc
+/.profile
+/.gitconfig
+/.gitmodules
+/.mcp.json
+/.ripgreprc
+/.vscode
+/.claude/agents
+/.claude/commands
+/.claude/hooks
+/.claude/launch.json
+/.claude/loop.md
+/.claude/output-styles
+/.claude/routines
+/.claude/scheduled_tasks.json
+/.claude/settings.json
+/.claude/settings.local.json
+/.claude/workflows
+/.claude/.cc-writes
