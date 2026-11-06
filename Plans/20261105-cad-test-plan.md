@@ -1,18 +1,18 @@
-状態：レビュー待ち
+状態：承認済み
 
 # 簡易 WPF CAD テスト計画書
 
 - 作成日：2026-11-05
 - 位置づけ：計画の段階3（テスト計画書）。[実装計画書](./20261105-cad-implementation-plan.md)と一組で、同時にレビューへ提示する。
 - 前提とする承認済み文書：
-  - [20261105-cad-specification.md](../Documents/20261105-cad-specification.md)（仕様書。状態：承認済み）
-  - [20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md)（アーキテクチャー／クラス設計書。状態：承認済み）
+  - [20261105-cad-specification.md](../Documents/20261105-cad-specification.md)（仕様書。2026-11-06 改訂・再承認済み）
+  - [20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md)（アーキテクチャー／クラス設計書。2026-11-06 改訂・再承認済み）
 - 根拠となる要件：[create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)（§9 テスト）
-- 本書は「何を、どのレベルで、どう確認するか」を定める。テストケースの実施状況は、本書ではなく[進捗記録](../Progress/20261105-cad-progress.md)に記録する（本書は承認済み文書のため、実施のたびに更新しない）。
+- 本書は「何を、どのレベルで、どう確認するか」を定める。テストケースの実施状況は、本書ではなく[進捗記録](../Progress/20261105-cad-progress.md)に記録する（本書は計画文書のため、実施のたびに更新しない）。
 
 ## 1. 目的と範囲
 
-- 目的：仕様書の受け入れ条件（AC-01〜AC-31）と、要件プロンプト §9 の最低限のテストを、実装計画書の各段階の完了条件として確認できるようにする。
+- 目的：仕様書の受け入れ条件（AC-01〜AC-33）と、要件プロンプト §9 の最低限のテストを、実装計画書の各段階の完了条件として確認できるようにする。
 - 範囲：`Shos.WpfCadSample.Core` の全機能（`Models`、`Controllers`、`ViewModels`、`Serialization`、`Settings`）の自動テスト。WPF アプリ（`Views`、`Infrastructure`）の手動テスト。
 - 対象外：UI の自動化テスト（画面操作の記録・再生、スクリーンショットの比較）、性能の自動計測、CI の構築、コードカバレッジの計測ツール。
 
@@ -43,10 +43,10 @@
 
 ### 2.3 テストの実行方法
 
-- 全体（実装計画書の各段階の完了条件。リポジトリルートから）：
-  - `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx`
-  - `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx`
-- 作業中の絞り込み：`dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx --filter "FullyQualifiedName~Shos.WpfCadSample.Tests.Models.Geometry"` のように、namespace またはクラス名で絞る。段階の終わりには、必ず全体を実行する。
+- 全体（実装計画書の各段階の完了条件。リポジトリルートから。Windows の `dotnet` で実行し、WSL からは `dotnet.exe` を使う。実装計画書 3.2）：
+  - `dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx`
+  - `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx`
+- 作業中の絞り込み：`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx --filter "FullyQualifiedName~Shos.WpfCadSample.Tests.Models.Geometry"` のように、namespace またはクラス名で絞る。段階の終わりには、必ず全体を実行する。
 - 手動テスト：アプリを起動して 7 章の手順を実施し、合否と所見を進捗記録に記録する。
 
 ## 3. 段階ごとの実行方法と完了基準
@@ -55,14 +55,14 @@
 |---|---|---|---|
 | I-1 | T-ARC（枠組み） | なし | 全体のビルドとテストが成功し、1 件以上のテストが実行されている。R-1、R-2、R-6、R-8 の結果が記録されている |
 | I-2 | T-GEO、T-SPL、T-OUT、T-VPT | なし | 全体のビルドとテストが成功し、左記の全ケースが実装されている |
-| I-3 | T-SHP、T-ATT、T-HIT、T-DRW | なし | 同上（R-7 の確認を含む） |
+| I-3 | T-SHP、T-ATT、T-HIT、T-DRW、T-EXP | なし | 同上（R-7 の確認を含む） |
 | I-4 | T-SER、T-STO、T-SET | なし | 同上 |
 | I-5 | T-EDC | なし | 同上 |
 | I-6 | T-VM | なし | 同上 |
-| I-7 | （自動テストなし） | M-12〜M-14 の該当部分 | 全体のビルドとテストが成功し、EMF と画像が WordPad または Word に貼り付けられる |
-| I-8 | （自動テストなし） | M-01、M-02、M-20 | 全体のビルドとテストが成功し、左記の手動テストが合格する |
-| I-9 | （自動テストなし） | M-03〜M-11、M-15〜M-19 | 同上 |
-| I-10 | T-ARC（全体） | M-21、M-22、および全手動テストの再実施 | 実装計画書 I-10 の完了条件をすべて満たす。AC-01〜AC-31 が対応表（8 章）のとおり確認され、合格している |
+| I-7 | （自動テストなし） | なし（EMF・画像・独自形式の確認 M-12〜M-14 は I-9 で行う） | 全体のビルドとテストが成功する |
+| I-8 | （自動テストなし） | M-01、M-02 | 全体のビルドとテストが成功し、左記の手動テストが合格する |
+| I-9 | （自動テストなし） | M-03〜M-20（I-7 から移した M-12〜M-14、I-8 から移した M-20 を含む） | 同上 |
+| I-10 | T-ARC（全体） | M-21、M-22、および全手動テストの再実施 | 実装計画書 I-10 の完了条件をすべて満たす。AC-01〜AC-33 が対応表（8 章）のとおり確認され、合格している |
 
 - 各段階の完了時に、直前までの段階のテストも含めた全体を実行する（既存のテストを壊していないことの確認）。
 
@@ -94,7 +94,7 @@
 | T-SPL-07 | 一直線上の通過点（開いた曲線） | 曲線が、その直線上にある | AC-04 |
 | T-SPL-08 | 参照値との照合：小さい例（4 点）で、独立に実装した素朴な連立方程式の解（ガウス消去）の接線と比較 | 一致する（許容誤差 1e-7） | AC-04 |
 | T-SPL-09 | 通過点を平行移動・拡大した場合の曲線 | 制御点も同じ変換になる（不変性） | AC-04 |
-| T-SPL-10 | 10,000 点の開いた曲線・閉じた曲線の変換 | 値がすべて有限で、1 秒以内に完了する（極端な遅さの検知。許容時間は緩く設定） | A-14 |
+| T-SPL-10 | 10,000 点の開いた曲線・閉じた曲線の変換 | 値がすべて有限である。所要時間はテストの出力に記録し、合否には、桁違いの遅さ（計算量の誤り）だけを検知する緩い上限（10 秒）を使う。上限は、実行環境の負荷や初回の JIT で失敗しない大きさとする（2.2 の決定性を保つため） | A-14 |
 
 ### 4.3 T-OUT：中間表現（`Outline`）
 
@@ -121,7 +121,7 @@
 | T-VPT-08 | `Scroll`：表示範囲が全体図の外へ出ない。全体図の表示中は動かない | 範囲内に制限される | AC-14 |
 | T-VPT-09 | `UpdateOverview`：図形が論理領域の外にある場合 | 全体図が、論理領域と図形の外接矩形の和集合になる | AC-15 |
 | T-VPT-10 | `UpdateOverview`：全体図の表示中（100%）に全体図が変わる | 新しい全体図に合わせて、表示し直される | AC-30 |
-| T-VPT-11 | `UpdateOverview`：拡大中に全体図が広がる | `Scale` と `Center` が維持される（`MinScale` を下回る場合は `MinScale`） | AC-30 |
+| T-VPT-11 | `UpdateOverview`：拡大中に全体図が広がる | `Scale` と `Center` が維持される。全体図が広がると新しい `FitScale` が小さくなるため、維持した `Scale` が新しい `MaxScale`（`FitScale` の 32 倍）を超える場合は、`MaxScale` に補正される（`Center` は維持） | AC-30 |
 | T-VPT-12 | `UpdateOverview`：拡大中に全体図が縮み、表示範囲が外へ出る／`Scale` が新しい `FitScale` を下回る | 内側へ寄せられる／`FitScale` に補正される | AC-30 |
 | T-VPT-13 | `SetViewSize`：ウィンドウサイズの変更 | 全体図の表示中は再フィットされる | 仕様 5.6 |
 | T-VPT-14 | `ZoomPercent`（新しい全体図に対する比） | `Scale ÷ FitScale × 100` | 仕様 4.4 |
@@ -146,6 +146,8 @@
 | T-SHP-13 | `CreateOutline`：Rectangle（閉じた 4 本の直線）、Polygon（閉じる）、Polyline（開く）、曲線（ベジェ区間） | 期待どおりの図形・区間数 | F-02 |
 | T-SHP-14 | `ShapeKindInfo`：最小点数、2 点で確定する種類、`CanAppend`（直前の点と同じ、矩形の同じ X または Y、閉じる図形での最後と最初の一致） | 期待どおりの許可・拒否 | AC-03、仕様 5.2 |
 | T-SHP-15 | `ShapeKindInfo.Create`：点列と属性から図形を作る（7 種） | 期待どおりの種類・点・属性 | AC-01 |
+| T-SHP-16 | `SatisfiesConstraints()`：最小点数に満たない点列（Polygon 2 点など）でも、制約（隣り合う点の一致など）だけを判定する。点の一致は完全一致：同じ座標は一致、わずかに異なる座標（例：1e-12 の差）は一致しない | 最小点数とは独立に制約を判定し、完全一致だけを違反とする | 設計 5.1、仕様 A-27、AC-28 |
+| T-SHP-17 | `ShapeKindInfo.CanAppend` と `IsValid` の一致：同じ点列について、入力で受け入れた点列から作った図形（最小点数を満たすもの）は `IsValid()` が `true`、拒否した点を含む図形は `SatisfiesConstraints()` が `false`。`FromTool` が 7 つの描画ツールを対応する `ShapeKind` に写し、Select には対応しない | 入力時と読み込み時の判定が一致する | 設計 5.1、AC-03 |
 
 ### 4.6 T-ATT：属性
 
@@ -153,7 +155,7 @@
 |---|---|---|---|
 | T-ATT-01 | `RgbColor.ToHex`、`TryParse`：有効（`#RRGGBB`、大文字・小文字） | 往復で一致する | 仕様 6.2 |
 | T-ATT-02 | `RgbColor.TryParse`：無効（`#` なし、桁数違い、16 進でない文字、空） | `false` | AC-31 |
-| T-ATT-03 | `ShapeAttributes.Validate`：太さの境界（0.5、50 は有効。0.49、50.01、NaN、無限大は無効） | 期待どおり | 仕様 A-6 |
+| T-ATT-03 | `ShapeAttributes.IsValid`：太さの境界（0.5、50 は有効。0.49、50.01、NaN、無限大は無効） | 期待どおり | 仕様 A-6 |
 | T-ATT-04 | `ShapeAttributes.Default`の初期値 | 黒（`#000000`）、太さ 1.0、Solid | AC-12 |
 | T-ATT-05 | `LineStyle` の破線のパターン | Solid は実線、Dash `[4,2]`、Dot `[1,2]`、DashDot `[4,2,1,2]` | DA-5 |
 
@@ -169,6 +171,7 @@
 | T-HIT-04 | 何もない位置 | −1 を返す | AC-05 |
 | T-HIT-05 | 拡大率が違っても、画面上の許容範囲（px）が一定 | 同じ画面上の距離でヒット／非ヒットが一致する | AC-05、F-03 |
 | T-HIT-06 | `HitHandle`：ハンドルの許容範囲内／外、複数が近い場合 | 最も近いハンドルの添字／−1 | AC-06 |
+| T-HIT-07 | 太い線（例：太さ 20）：中心線からの距離が「太さ ÷ 2 + 許容範囲」以内／外 | 以内ではヒットし、外ではヒットしない（見えている線の外縁から許容範囲を測る） | AC-05、設計 DA-7 |
 
 ### 4.8 T-DRW：ドキュメント（`Drawing`）
 
@@ -204,8 +207,10 @@
 | T-SER-11 | 不正：定義点が最小点数未満、図形の制約違反（Line の 2 点一致、Circle の半径 0、Rectangle の幅または高さが 0、隣接する同一点） | 同上 | AC-31 |
 | T-SER-12 | 不正な図形が 1 件でも含まれる | 全体が拒否される（一部の図形だけが読み込まれない） | 仕様 7 章 |
 | T-SER-13 | `version` が現行（1）より大きい | `DocumentFormatException`（`NewerVersion`）。ほかの項目が不正でも、バージョンを先に判定する | AC-19 |
-| T-SER-14 | `ClipboardShapes`：図形の列の往復（`ToText` → `FromText`） | 一致する | AC-16 |
+| T-SER-14 | `ClipboardShapes`：図形 1 個の往復（`ToText(shape)` → `FromText(text)`）。7 種それぞれ | 種類・点・属性が一致する（`ShapeId` は新しい） | AC-16 |
 | T-SER-15 | `ClipboardShapes.FromText`：識別子の不一致、不正な図形（T-SER-06〜T-SER-11 と同じ条件） | `DocumentFormatException` | AC-31 |
+| T-SER-16 | 不正：`version` が 1 未満（0、負の数）。ドキュメントと独自形式の両方 | `DocumentFormatException`（`Invalid`） | AC-31、仕様 7 章 |
+| T-SER-17 | `ClipboardShapes.FromText`：図形が 0 個、2 個以上 | `DocumentFormatException`（`Invalid`） | AC-31、仕様 6.6 |
 
 ### 4.10 T-STO：ファイル（`DocumentStorage`。一時フォルダーを使う）
 
@@ -213,10 +218,11 @@
 |---|---|---|---|
 | T-STO-01 | `Save` → `Load` の往復（新規のパス） | 図形が一致する。一時ファイルが残らない | AC-18 |
 | T-STO-02 | 既存のファイルへの上書き | 新しい内容に置き換わる。一時ファイルが残らない | AC-18 |
-| T-STO-03 | 書き込みの失敗（対象のファイルが排他で開かれている／読み取り専用） | `IOException` などが伝わり、元のファイルの内容が変わらず、一時ファイルが残らない | AC-24 |
+| T-STO-03 | 書き込みの失敗（対象のファイルが排他で開かれている） | `IOException` が伝わり、元のファイルの内容が変わらず、一時ファイルが残らない | AC-24 |
 | T-STO-04 | 存在しないフォルダーへの保存 | 例外が伝わる（呼び出し側がエラーを表示する） | 仕様 7 章 |
 | T-STO-05 | `Load`：存在しないファイル | `FileNotFoundException` | 仕様 7 章 |
 | T-STO-06 | `Load`：不正な内容のファイル／新しいバージョンのファイル | `DocumentFormatException`（`Invalid`／`NewerVersion`） | AC-19 |
+| T-STO-07 | 書き込みの失敗（対象のファイルが読み取り専用） | `UnauthorizedAccessException`（`IOException` の派生ではない）が伝わり、元のファイルの内容が変わらず、一時ファイルが残らない | AC-24、設計 8.2 |
 
 ### 4.11 T-SET：設定（`Settings`。一時フォルダーを使う）
 
@@ -227,8 +233,9 @@
 | T-SET-03 | `Load`：破損したファイル（JSON として不正） | 既定値を返し、`Warning` に文言が入り、元のファイルが `settings.json.bak` に退避される | AC-25 |
 | T-SET-04 | `Load`：破損したファイルがあり、既存の `settings.json.bak` もある | 退避ファイルが新しい内容に置き換わる | AC-25 |
 | T-SET-05 | `Load`：退避に失敗する場合（例：`settings.json.bak` が同名のフォルダー） | 既定値を返し、退避に失敗した旨を `Warning` に入れる。例外は投げない | AC-25 |
-| T-SET-06 | `Load`：値が不正（既定属性が範囲外、ウィンドウの幅が負・非有限） | 不正・破損と同じ扱い（既定値と `Warning`） | 仕様 7 章 |
+| T-SET-06 | `Load`：値が不正（既定属性の太さ・色・線種が不正、ウィンドウの幅・高さが 0 以下・非有限、位置が非有限） | 不正・破損と同じ扱い（既定値と `Warning`） | 仕様 7 章 |
 | T-SET-07 | `WindowPlacement.IsWithin(virtualScreen)`：完全に内側、一部がはみ出す、完全に外側、複数モニター（負の座標を含む仮想スクリーン） | 現在のモニターに含まれるかを正しく判定する | AC-21 |
+| T-SET-08 | `Load`：バージョンが現行より新しい、1 未満、整数でない | 不正と同じ扱い（`settings.json.bak` への退避、既定値、`Warning`） | AC-25、仕様 A-28 |
 
 ### 4.12 T-EDC：入力の解釈と編集（`EditorController`）
 
@@ -265,6 +272,9 @@
 | T-EDC-20 | 制約に違反する移動（Line の端点を他方に重ねる、Circle の円周上の点を中心に重ねる、Rectangle の幅または高さを 0 にする） | その位置へは移動せず、直前の有効な状態を保つ。違反位置から戻すと再び追従する | AC-28 |
 | T-EDC-21 | `DeleteSelected` | 選択図形が削除され、選択が解除される。`Undo` で復元される | AC-07 |
 | T-EDC-22 | `Undo` / `Redo` 後の選択：選択中の図形が存在する場合は維持され、存在しなくなった場合（追加の取り消し）は解除される | `ShapeId` で判定される | AC-09 |
+| T-EDC-32 | 判定の順序：選択中の図形のハンドルが、上に重なる別の図形の線と同じ位置にある | ハンドルのドラッグになり、上の図形は選択されない | AC-05、仕様 5.3 |
+| T-EDC-33 | `CaptureLost`：ドラッグ中／描画ツールの入力中 | ドラッグ中は取り消され、図形が元の位置に戻り、履歴は増えない。入力中は無視され、入力中の点が保たれる | AC-26、仕様 A-26 |
+| T-EDC-34 | `Committed` の順序：選択中の図形の追加を `Undo` する | `EditorController.Committed` の発生時点で、選択がすでに解除されている（`Drawing.Committed` → 選択の補正 → `EditorController.Committed`） | AC-09、設計 5.3 |
 
 **ツール・入力中の状態（仕様 5.10）**
 
@@ -281,7 +291,7 @@
 |---|---|---|---|
 | T-EDC-27 | 属性のプレビュー（連続的な変更）→ 確定 | プレビュー中は履歴に記録されず、確定で 1 回の `Undo` 単位として記録される。`Undo` で元の属性に戻る | AC-09、AC-11 |
 | T-EDC-28 | 属性の確定を行わずに選択を変える／取り消す | 元の属性に戻り、履歴は増えない | 仕様 5.4 |
-| T-EDC-29 | `Paste`：図形が (X + 10、Y − 10) ずれて追加される。同じ内容を続けて貼ると、ずれが累積する（10、20、…）。新たな Copy でリセットされる | 期待どおりの位置 | AC-16 |
+| T-EDC-29 | `Paste(shape, repeat)`：`repeat` = 1、2、3 | 図形が (X + 10·`repeat`, Y − 10·`repeat`) ずれて追加される（累積とリセットの判定は T-VM-23） | AC-16 |
 | T-EDC-30 | `Paste` の後 | ツールが Select に切り替わり、貼り付けた図形が選択される。`Undo` 1 回で取り消せる | AC-16、AC-09 |
 | T-EDC-31 | `Paste` で追加した図形の `ShapeId` | 新しい `ShapeId` が付く（元の図形と異なる） | AC-16 |
 
@@ -290,27 +300,30 @@
 | ID | 内容 | 期待結果 | 要件 |
 |---|---|---|---|
 | T-VM-01 | `Title`：未保存の名前（`Untitled`）、保存後のファイル名、変更後の `*` | `<名前>[*] - WPF CAD Sample` | AC-27 |
-| T-VM-02 | New：未保存の変更あり→保存確認の選択（Save、Don't Save、Cancel） | Save：保存してから新規。Don't Save：保存せず新規。Cancel：何もしない | AC-20 |
+| T-VM-02 | New：未保存の変更あり→保存確認の選択（`SaveChangesAnswer` の Yes、No、Cancel） | Yes：保存してから新規。No：保存せず新規。Cancel：何もしない | AC-20 |
 | T-VM-03 | New / Open / Exit：入力中の図形がある | 入力が取り消され、その後に保存確認が行われる | 仕様 5.10 |
 | T-VM-04 | Open：成功 | ドキュメントが置き換わり、履歴が消去され、全体図の表示になり、`IsModified` が `false`、選択が解除される | AC-18 |
 | T-VM-05 | Open：不正なファイル、新しいバージョン、存在しないファイル | `ShowError` が呼ばれ（文言は仕様 7 章）、現在のドキュメントは変更されない | AC-19 |
 | T-VM-06 | Save：保存先が未決定 → Save As と同じ流れ。Save As：拡張子 `.json` の補完 | 期待どおりのパスに保存される | AC-18 |
-| T-VM-07 | Save：書き込みの失敗 | `ShowError` が呼ばれ、変更あり状態が維持され、元のファイルが壊れない | AC-24 |
+| T-VM-07 | Save：書き込みの失敗（排他で開かれたファイルの `IOException`、読み取り専用のファイルの `UnauthorizedAccessException`） | どちらでも `ShowError` が呼ばれ、例外が外へ出ず、変更あり状態が維持され、元のファイルが壊れない | AC-24、設計 8.2 |
 | T-VM-08 | Exit（`TryClose`）：未保存の変更あり、Cancel | 終了しない（`false`） | AC-20 |
 | T-VM-09 | Paste：クリップボードの内容が不正 | `ShowError` が呼ばれ、ドキュメントは変更されない | AC-31 |
-| T-VM-10 | クリップボードの書き込みの失敗（偽のサービスが例外を投げる） | `ShowError` が呼ばれ、ドキュメントは変更されない | 仕様 7 章 |
+| T-VM-10 | クリップボードへの出力の失敗（偽のサービスが、Copy、Copy as Metafile、Copy as Image で `ClipboardOperationException` を投げる） | `ShowError` が呼ばれ、例外が外へ出ず、ドキュメントは変更されない | 仕様 7 章、AC-32 |
 | T-VM-11 | Copy / Paste / Copy as Metafile / Copy as Image の有効状態：選択の有無、クリップボードの内容（`RefreshClipboardStateCommand` の後）、図形の数 | 仕様 4.2 の条件どおりに有効・無効になる | 仕様 4.2 |
 | T-VM-12 | 設定の読み込み：`Warning` がある場合 | 警告が表示される（仕様 7 章の文言）。既定値で起動する | AC-25 |
 | T-VM-13 | 設定の保存：終了時に保存される（既定属性、ウィンドウの配置、属性ウィンドウの表示状態）。保存の失敗 | 保存される。失敗しても終了を妨げず、エラーが表示される | AC-12、AC-21 |
 | T-VM-14 | 属性ウィンドウの表示状態：`TogglePropertiesCommand` | `IsPropertiesWindowVisible` が切り替わる | AC-10 |
 | T-VM-15 | `DrawingViewModel`：`Handles`（画面座標）が、選択と `Transform` の変化で更新される。選択がなければ空 | 期待どおりの位置の `HandleItem` | AC-06 |
-| T-VM-16 | `DrawingViewModel`：`Viewport.UpdateOverview` が、`Committed`・ファイルの読み込み・ウィンドウサイズの変更で呼ばれ、入力中・ドラッグ中は呼ばれない | ドラッグ中に図形が領域外へ出ても、全体図が変わらない。`Up` の後に広がる | AC-15、AC-30 |
+| T-VM-16 | `DrawingViewModel`：`Viewport.UpdateOverview` が、`EditorController.Committed`・ファイルの読み込み・ウィンドウサイズの変更で呼ばれ、入力中・ドラッグ中は呼ばれない | ドラッグ中に図形が領域外へ出ても、全体図が変わらない。`Up` の後に広がる | AC-15、AC-30 |
 | T-VM-17 | `DrawingViewModel`：`StatusText`（ツールと操作案内）、`CursorText`（論理座標）、`ZoomText`（拡大率） | 仕様 4.4 のとおり | 仕様 4.4 |
 | T-VM-18 | `PropertiesViewModel`：選択なしは空欄・無効。選択すると属性が表示され、選択の変更・`Undo` / `Redo` で表示が追従する | 期待どおり | AC-09、AC-11 |
 | T-VM-19 | `PropertiesViewModel`：RGB・16 進の連動 | いずれかの編集で、他が即時に連動する | AC-11、D-4 |
 | T-VM-20 | `PropertiesViewModel`：不正な入力（数値でない、範囲外、`#RRGGBB` でない） | 反映されず、直前の有効値に戻る | 仕様 5.4 |
 | T-VM-21 | `PropertiesViewModel`：既定属性の編集 | `EditorController.DefaultAttributes` に反映され、既存の図形は変わらない。ドキュメントの変更・履歴には影響しない | AC-12 |
 | T-VM-22 | `DrawingViewModel` のツール選択：`SelectToolCommand` と `CurrentTool` | 排他的に 1 つだけ選ばれる | 仕様 4.2 |
+| T-VM-23 | ペーストの回数：同じテキストを続けて貼る、異なるテキストを貼る、`CopyCommand` の後に貼る | `EditorController.Paste` に渡す `repeat` が 1、2、3…と累積し、異なるテキストで 1 に戻り、Copy の後は 1 から始まる | AC-16、仕様 5.7、設計 5.4 |
+| T-VM-24 | 終了の流れ：`ExitCommand`、`TryClose()`（Cancel／No／Yes）、`SaveSettings()` | `ExitCommand` は `CloseRequested` だけを発生させ、保存確認をしない。`TryClose()` が真のときだけ `SaveSettings()` が呼ばれ、既定属性、メインウィンドウと属性ウィンドウの配置（`PropertiesPlacement`）、属性ウィンドウの表示状態が保存される。設定の保存の失敗は表示されるが、`TryClose()` の結果を変えない | AC-12、AC-20、AC-21、設計 6.5 |
+| T-VM-25 | Copy 系のコマンドの有効状態：入力中・ドラッグ中 | ドラッグ中は Copy、Copy as Metafile、Copy as Image が無効。入力中は Copy as Metafile、Copy as Image が有効（図形が 1 つ以上あるとき）で、出力に入力中の図形を含まない | AC-29、仕様 5.10 |
 
 ### 4.14 T-ARC：構造の確認
 
@@ -319,6 +332,15 @@
 | T-ARC-01 | `Core` のアセンブリのすべての型（コンパイラー生成の型を除く）の namespace | ルート（`Shos.WpfCadSample`）直下に型がなく、設計書 3.2 の namespace に属する | F-01 |
 | T-ARC-02 | `Core` のアセンブリが参照するアセンブリ | `PresentationFramework`、`PresentationCore`、`WindowsBase`、`System.Xaml` を含まない | 設計書 3.3 |
 | T-ARC-03 | （I-1）テストプロジェクトが `dotnet test` で実行できる枠組み | 1 件以上のテストが実行・成功する | R-8 |
+| T-ARC-04 | `Core` と `Tests` のアセンブリに、グローバル名前空間（namespace なし）の型がない（コンパイラー生成の型を除く） | 該当する型がない | F-01 |
+
+### 4.15 T-EXP：出力範囲と縮尺（`ExportFrame`）
+
+| ID | 内容 | 期待結果 | 要件 |
+|---|---|---|---|
+| T-EXP-01 | 範囲：線の太さが異なる複数の図形 | 外接矩形に、線の太さの半分を加えた範囲になる | 仕様 A-10 |
+| T-EXP-02 | 縮尺：範囲の長辺が 10,000 論理単位以下（境界の 10,000 を含む） | 縮尺は 1 | 仕様 A-24、AC-32 |
+| T-EXP-03 | 縮尺：範囲の長辺が 10,000 論理単位を超える（横長・縦長の両方。座標が非常に大きい場合を含む） | 縮尺は `10,000 ÷ 長辺` で、縮尺を掛けた長辺が 10,000 になる。縦横比が保たれる | 仕様 A-24、AC-32 |
 
 ## 5. 構造の確認（WPF アプリ側。付録 A のスクリプト）
 
@@ -340,23 +362,23 @@
 | ID | 目的（AC） | 手順 | 期待結果 |
 |---|---|---|---|
 | M-01 | 起動と外観（AC-23） | アプリを起動する | Material Design 3 の Light テーマで、メニュー、ツールバー、描画領域、ステータスバーが表示される。ツールは Select が選ばれている。ウィンドウ、メニュー、ツールバー、ステータスバーが Material Design のスタイルである |
-| M-02 | 図形の表示（AC-23） | 図形の種類と属性（色・太さ・線種）を変えた JSON ファイルを開く | 図形が、色・太さ・線種どおりに表示される。論理領域の枠（白い背景と薄い枠線）が表示される。描画領域の図形の色は、テーマに左右されない |
+| M-02 | 図形の表示（AC-23） | 図形の種類と属性（色・太さ・線種）を変えた JSON ファイルを開く | 図形が、色・太さ・線種どおりに表示される。描画領域の背景は全体が白で、論理領域は薄い枠線だけで示される。描画領域の図形の色は、テーマに左右されない |
 | M-03 | 図形の入力（AC-01） | 7 つのツールで、仕様 5.2 の操作をする | 7 種類のすべての図形が、既定属性（黒、太さ 1.0、Solid）で追加される。ツールは変わらず、追加した図形は選択されない |
 | M-04 | プレビューと `Esc`（AC-02） | 入力の途中でマウスを動かし、`Esc` を押す | マウス位置までのプレビューが表示され、`Esc` で取り消される。ステータスバーの案内が更新される |
 | M-05 | ダブルクリックでの確定（AC-03） | Polyline、Polygon、Open Curve、Closed Curve で、ダブルクリックして確定する。最小点数に満たない確定も行う | 確定時に余分な点が増えない。点数不足なら追加されず、ステータスバーに表示される |
-| M-06 | 選択（AC-05） | Select ツールで、図形の線上、重なる位置、内部、空白をクリックする | 線上で選択（ハンドルが表示される）、重なる場合は最も上、内部では選択されない、空白で解除。拡大率を変えても、クリックの感覚（約 5 px）が変わらない |
-| M-07 | 端点・全体のドラッグ（AC-06、AC-08、AC-26、AC-28） | 各図形で、ハンドルのドラッグ、線上のドラッグを行う。ドラッグ中に `Esc` を押す。制約に違反する位置（端点を他方に重ねるなど）へドラッグする | 仕様 5.3 の表のとおり動く。`Esc` で元に戻る。違反する位置へは動かない。ドラッグ 1 回を `Ctrl+Z` 1 回で戻せる |
+| M-06 | 選択（AC-05） | Select ツールで、図形の線上、重なる位置、内部、空白をクリックする。太い線（太さ 20 程度）の外縁付近をクリックする。下にある選択中の図形のハンドルが、上の図形と重なる位置をドラッグする | 線上で選択（ハンドルが表示される）、重なる場合は最も上、内部では選択されない、空白で解除。拡大率を変えても、クリックの感覚（約 5 px）が変わらない。太い線は、見えている線の上で選択できる。ハンドルが上の図形より優先される |
+| M-07 | 端点・全体のドラッグ（AC-06、AC-08、AC-26、AC-28） | 各図形で、ハンドルのドラッグ、線上のドラッグを行う。ドラッグ中に `Esc` を押す。ドラッグ中に `Alt+Tab` で他のウィンドウへ切り替える。ウィンドウの外までドラッグしてボタンを離す。制約に違反する位置（端点を他方に重ねるなど）へドラッグする | 仕様 5.3 の表のとおり動く。`Esc` と `Alt+Tab` で元に戻る（履歴は増えない）。ウィンドウの外で離すと確定する。違反する位置へは動かない。ドラッグ 1 回を `Ctrl+Z` 1 回で戻せる |
 | M-08 | 削除と Undo / Redo（AC-07、AC-08、AC-09） | `Delete`、`Ctrl+Z`、`Ctrl+Y`、メニュー、ツールバーのボタンで操作する | 削除・取り消し・やり直しができる。Undo / Redo 後の選択状態と属性ウィンドウの表示が矛盾しない |
-| M-09 | 属性ウィンドウの表示と非表示（AC-10） | `View > Properties Window`、`F4`、ウィンドウの閉じるボタン | 表示／非表示が切り替わる（閉じるボタンは非表示）。開いたままメインウィンドウを操作できる |
+| M-09 | 属性ウィンドウの表示と非表示、キー操作（AC-10、AC-33） | `View > Properties Window`、`F4`、ウィンドウの閉じるボタン。属性ウィンドウをアクティブにして、`Alt+F4`、`F4`、`Ctrl+Z`、`Ctrl+Y`、`Ctrl+S` を押す（スライダーなど、テキストボックス以外にフォーカスがある状態と、テキストボックスにフォーカスがある状態の両方） | 表示／非表示が切り替わる（閉じるボタンは非表示）。開いたままメインウィンドウを操作できる。属性ウィンドウでの `Alt+F4` は属性ウィンドウだけを非表示にし、アプリは終了しない。テキストボックス以外にフォーカスがあるとき、`F4`・`Ctrl+Z`・`Ctrl+Y`・`Ctrl+S` がメインウィンドウと同じに働く。テキストボックスにフォーカスがあるときは、`Ctrl+Z` などがテキストに作用する |
 | M-10 | 属性のリアルタイム編集（AC-11、AC-12） | 図形を選択して、色（RGB スライダー・16 進）、太さ、線種を編集する。選択を解除する。「Defaults for New Shapes」を編集して、新しい図形を描く | 選択すると属性が即座に表示され、編集が図形に反映される。1 回の操作（スライダーを離す、`Enter`、フォーカス移動、リスト選択）が、1 回の Undo になる。選択がなければ「Selected Shape」が無効。既定属性が新しい図形に適用される。不正な入力は直前の値に戻る |
 | M-11 | ツール切り替えと入力中のコマンド（AC-29） | 入力中・ドラッグ中に、ツールの切り替え、`Ctrl+Z`、`Ctrl+V`、`Delete`、New を実行する。図形が選択された状態で描画ツールに切り替える。属性ウィンドウのテキストボックスで `Ctrl+Z`、`Delete` を使う | 仕様 5.10 のとおり。テキスト入力中の編集系キーは、図形ではなくテキストに作用する |
 | M-12 | 独自形式のコピー＆ペースト（AC-16） | 図形を選択して `Ctrl+C`、`Ctrl+V` を繰り返す。別のアプリのテキストをコピーしてから Paste を確認する。アプリを 2 つ起動して、図形を貼り付ける | (X + 10、Y − 10) ずつずれて貼り付けられ、貼り付けた図形が選択される（ツールは Select）。1 回の Undo で取り消せる。独自形式がないときは Paste が無効 |
-| M-13 | EMF（AC-17） | 図形（選択あり／なし）で `Copy as Metafile` を実行し、Word（または WordPad）に貼り付ける | 図形が、色・太さ・線種どおりに表示される。選択がなければドキュメント全体、選択があればその図形。背景は透明。ハンドルや論理領域の枠は含まれない |
-| M-14 | 画像（AC-17） | `Copy as Image` を実行し、Word やペイントに貼り付ける | 画像が貼り付けられ、背景は白。範囲と内容は M-13 と同じ |
+| M-13 | EMF（AC-17、AC-32） | 図形（選択あり／なし）で `Copy as Metafile` を実行し、Word（または WordPad）に貼り付ける。図形を論理領域から 20,000 論理単位以上離して置いたドキュメントでも実行する | 図形が、色・太さ・線種どおりに表示される。選択がなければドキュメント全体、選択があればその図形。背景は透明。ハンドルや論理領域の枠は含まれない。大きなドキュメントでも停止せず、長辺が 10,000 px 相当に縮小されて貼り付けられる |
+| M-14 | 画像（AC-17、AC-32） | `Copy as Image` を実行し、Word やペイントに貼り付ける。M-13 と同じ大きなドキュメントでも実行する | 画像が貼り付けられ、背景は白。範囲と内容は M-13 と同じ。大きなドキュメントでは、長辺が 10,000 px の画像になる |
 | M-15 | ズーム（AC-13） | `Ctrl+ホイール` で拡大・縮小する | カーソル位置を中心に拡大・縮小する。全体図より小さくならない。ステータスバーの拡大率が更新される。拡大の上限（32 倍）で止まる |
 | M-16 | スクロール（AC-14） | 拡大中に `Ctrl+矢印` を押す。全体図の表示中にも押す | 一定量（約 50 px）スクロールする。全体図の外へは動かない。全体図の表示中は動かない |
 | M-17 | 全体図の変化（AC-15、AC-30） | 図形を論理領域の外へ移動する（拡大中／全体図の表示中の両方）。ドラッグの途中と、離した後で比較する。削除、Undo で戻す | 領域外の図形を含めて全体図が広がる。ドラッグ中は表示が動かず、離した後に更新される。拡大中は縮尺と中心が維持され、全体図より小さくならない |
-| M-18 | ファイル操作（AC-18、AC-19、AC-20、AC-24、AC-27） | New、Open、Save、Save As。保存して読み込み直す。変更後に New / Open / Exit する。不正なファイル、新しいバージョンのファイル、読み取り専用の保存先 | 保存・読み込みの前後で、図形・属性・描画順が一致する。保存確認（Save、Don't Save、Cancel）が表示され、Cancel で中止できる。不正なファイルでエラーが表示され、現在のドキュメントは変わらない。保存の失敗でエラーが表示され、元のファイルが壊れない。タイトルの `*` が、変更後に表示され、保存で消える |
+| M-18 | ファイル操作（AC-18、AC-19、AC-20、AC-24、AC-27） | New、Open、Save、Save As。保存して読み込み直す。変更後に New / Open / Exit する。不正なファイル、新しいバージョンのファイル、読み取り専用の保存先 | 保存・読み込みの前後で、図形・属性・描画順が一致する。保存確認（Yes、No、Cancel）が表示され、Yes で保存してから、No で保存せずに続行し、Cancel で中止できる。不正なファイルでエラーが表示され、現在のドキュメントは変わらない。保存の失敗でエラーが表示され、元のファイルが壊れない。タイトルの `*` が、変更後に表示され、保存で消える |
 | M-19 | 設定とウィンドウの復元（AC-12、AC-21、AC-25） | 既定属性の変更、ウィンドウの位置・サイズ・最大化、属性ウィンドウの表示状態・位置を変えて終了し、再起動する。`settings.json` を壊してから起動する。モニターの構成を変えて（または範囲外の座標に書き換えて）起動する | 再起動で復元される。破損した設定は `settings.json.bak` に退避され、既定値で起動し、警告が表示される。範囲外の位置は既定の位置に戻る |
 | M-20 | 性能（A-14） | 付録 B の手順で 1,000 図形のファイルを生成して開く。追加、選択、ドラッグ、ズームを操作する | 各操作の応答が、おおむね 100 ms 以内である（体感と、必要に応じて `Stopwatch` による計測。超える場合は、原因を特定して進捗記録に記載し、実装計画書のリスク R-10 に従う） |
 | M-21 | 対象外の機能がないこと、README（AC-22） | メニュー、ツールバー、ショートカットを確認する。`Source\README.md` を確認する | 印刷など、対象外の機能がない。README に、概要、構成、操作方法（ショートカット一覧）、設計判断が記載されている |
@@ -370,35 +392,37 @@
 |---|---|---|
 | AC-01 | T-SHP-15、T-EDC-01〜05、T-EDC-10、T-EDC-11 | M-03 |
 | AC-02 | T-EDC-08、T-EDC-09 | M-03、M-04 |
-| AC-03 | T-SHP-14、T-EDC-04〜06 | M-05 |
+| AC-03 | T-SHP-14、T-SHP-17、T-EDC-04〜06 | M-05 |
 | AC-04 | T-SPL-01〜10 | M-03 |
-| AC-05 | T-OUT-03、T-HIT-01〜05、T-EDC-12、T-EDC-13 | M-06 |
+| AC-05 | T-OUT-03、T-HIT-01〜05、T-HIT-07、T-EDC-12、T-EDC-13、T-EDC-32 | M-06 |
 | AC-06 | T-SHP-04〜08、T-SHP-10、T-HIT-06、T-EDC-14〜16、T-VM-15 | M-07 |
 | AC-07 | T-EDC-21 | M-08 |
 | AC-08 | T-DRW-04、T-DRW-05、T-EDC-17 | M-07 |
-| AC-09 | T-DRW-01〜03、T-DRW-10、T-DRW-11、T-EDC-22、T-EDC-27、T-EDC-30、T-VM-18 | M-08 |
+| AC-09 | T-DRW-01〜03、T-DRW-10、T-DRW-11、T-EDC-22、T-EDC-27、T-EDC-30、T-EDC-34、T-VM-18 | M-08 |
 | AC-10 | T-VM-14 | M-09 |
 | AC-11 | T-SHP-11、T-EDC-27、T-VM-18〜20 | M-10 |
-| AC-12 | T-ATT-04、T-EDC-11、T-SET-02、T-VM-13、T-VM-21 | M-10、M-19 |
+| AC-12 | T-ATT-04、T-EDC-11、T-SET-02、T-VM-13、T-VM-21、T-VM-24 | M-10、M-19 |
 | AC-13 | T-VPT-01〜06 | M-15 |
 | AC-14 | T-VPT-07、T-VPT-08 | M-16 |
 | AC-15 | T-GEO-03、T-OUT-01、T-VPT-09、T-VM-16、T-SHP-12 | M-17 |
-| AC-16 | T-SER-14、T-EDC-29〜31 | M-12 |
+| AC-16 | T-SER-14、T-EDC-29〜31、T-VM-23 | M-12 |
 | AC-17 | （自動テストなし） | M-13、M-14 |
 | AC-18 | T-SER-01、T-SER-03、T-SER-05、T-STO-01、T-STO-02、T-DRW-08、T-VM-04、T-VM-06 | M-18、M-22 |
 | AC-19 | T-SER-06、T-SER-13、T-STO-06、T-VM-05 | M-18 |
-| AC-20 | T-VM-02、T-VM-08 | M-18 |
-| AC-21 | T-SET-02、T-SET-07、T-VM-13 | M-19 |
+| AC-20 | T-VM-02、T-VM-08、T-VM-24 | M-18 |
+| AC-21 | T-SET-02、T-SET-07、T-VM-13、T-VM-24 | M-19 |
 | AC-22 | （自動テストなし） | M-21 |
 | AC-23 | （自動テストなし） | M-01、M-02 |
-| AC-24 | T-STO-03、T-VM-07 | M-18 |
-| AC-25 | T-SET-03〜06、T-VM-12 | M-19 |
-| AC-26 | T-DRW-06、T-EDC-19 | M-07 |
+| AC-24 | T-STO-03、T-STO-07、T-VM-07 | M-18 |
+| AC-25 | T-SET-03〜06、T-SET-08、T-VM-12 | M-19 |
+| AC-26 | T-DRW-06、T-EDC-19、T-EDC-33 | M-07 |
 | AC-27 | T-DRW-09、T-VM-01 | M-18 |
-| AC-28 | T-SHP-09、T-EDC-20 | M-07 |
-| AC-29 | T-EDC-23〜26、T-VM-03 | M-11 |
+| AC-28 | T-SHP-09、T-SHP-16、T-EDC-20 | M-07 |
+| AC-29 | T-EDC-23〜26、T-VM-03、T-VM-25 | M-11 |
 | AC-30 | T-DRW-07、T-VPT-10〜12、T-VM-16 | M-17 |
-| AC-31 | T-ATT-02、T-SER-07〜15、T-VM-09 | M-18 |
+| AC-31 | T-ATT-02、T-SER-07〜17、T-VM-09 | M-18 |
+| AC-32 | T-EXP-01〜03、T-VM-10 | M-13、M-14 |
+| AC-33 | （自動テストなし。キー入力の経路は WPF の `InputBindings` とビヘイビアに依存する） | M-09 |
 
 ### 8.2 要件プロンプト §9 の最低限のテスト
 
@@ -415,13 +439,16 @@
 
 | 項目 | テスト |
 |---|---|
-| F-01（namespace、`Core` の独立） | T-ARC-01、T-ARC-02、S-01、S-02 |
+| F-01（namespace、`Core` の独立） | T-ARC-01、T-ARC-02、T-ARC-04、S-01、S-02 |
 | F-03（論理座標とビュー変換、ハンドルとヒットテストの px） | T-GEO-01、T-GEO-02、T-HIT-05、T-VPT-03、M-06 |
-| F-12（クリップボード） | T-SER-14、T-SER-15、T-EDC-29〜31、T-VM-09〜11、M-12〜M-14 |
-| F-14（設定） | T-SET-01〜07、T-VM-12、T-VM-13、M-19 |
+| F-12（クリップボード） | T-SER-14〜17、T-EXP-01〜03、T-EDC-29〜31、T-VM-09〜11、T-VM-23、T-VM-25、M-12〜M-14 |
+| F-14（設定） | T-SET-01〜08、T-VM-12、T-VM-13、T-VM-24、M-19 |
 | F-19（Material Design） | M-01、M-02 |
 | 設計書 DD-3、R-7（ドラッグ中の置き換えと履歴） | T-DRW-04〜06、T-EDC-17 |
 | 設計書 DD-11（`ShapeId`） | T-SER-04、T-DRW-10、T-EDC-22、T-EDC-31 |
+| 設計書 5.1（制約の判定の一本化、`SatisfiesConstraints`） | T-SHP-16、T-SHP-17 |
+| 設計書 5.3（`Committed` の経路、`CaptureLost`） | T-EDC-33、T-EDC-34、T-VM-16 |
+| 設計書 6.5、8.2（終了の流れ、捕捉する例外） | T-STO-07、T-VM-07、T-VM-10、T-VM-24 |
 | 仕様 A-14（性能） | T-SPL-10（極端な遅さの検知）、M-20 |
 
 ### 8.4 受け入れ条件に直接対応しない補助ケース
@@ -448,7 +475,7 @@
 | 項目 | 理由 | 代替 |
 |---|---|---|
 | 画面の見た目、Material Design のスタイル（AC-23） | UI の自動化テストを行わない | 手動テスト M-01、M-02 |
-| EMF・画像の他のアプリへの貼り付け（AC-17） | `Infrastructure` は WPF アプリにあり、`Tests`（net10.0）から参照できない。他のアプリとの連携は自動化しにくい | 手動テスト M-13、M-14。I-1 の試作（R-1）で方式を確認 |
+| EMF・画像の他のアプリへの貼り付け（AC-17） | `Infrastructure` は WPF アプリにあり、`Tests`（net10.0）から参照できない。他のアプリとの連携は自動化しにくい | 手動テスト M-13、M-14。I-1 の試作（R-1）で方式を確認。出力の範囲と縮尺は `Core` の `ExportFrame` で自動テストする（T-EXP） |
 | マウス・キーボード・ホイールの実際のイベントの変換（`DrawingSurface`） | WPF のイベントに依存する | `Controllers` で、`PointerEvent` の列による入力の解釈を検証し、変換自体は手動テスト M-03〜M-08、M-15、M-16 |
 | ウィンドウの位置・サイズ・最大化の復元、複数モニター | 実行環境に依存する | `WindowPlacement.IsWithin` を T-SET-07 で検証し、実際の復元は M-19 |
 | 性能（A-14） | 環境に依存し、自動計測は不安定になりやすい | T-SPL-10（極端な遅さの検知）と M-20（目安の測定） |
@@ -468,25 +495,37 @@ Get-ChildItem Source\Shos.WpfCadSample\Shos.WpfCadSample -Recurse -Filter *.xaml
 # S-01：ルート namespace 直下の型が App だけであること（ヒットするのは App.xaml.cs の 1 件だけであること）
 Get-ChildItem Source\Shos.WpfCadSample -Recurse -Include *.cs |
   Select-String -Pattern '^\s*namespace\s+Shos\.WpfCadSample\s*(;|\{)'
+
+# S-01（補足）：namespace を宣言していない .cs ファイル（グローバル名前空間の型）がないこと（出力が空であること。obj／bin の自動生成ファイルは除く）
+Get-ChildItem Source\Shos.WpfCadSample -Recurse -Include *.cs |
+  Where-Object { $_.FullName -notmatch '\\(obj|bin)\\' } |
+  Where-Object { -not (Select-String -Path $_.FullName -Pattern '^\s*namespace\s' -Quiet) } |
+  Select-Object -ExpandProperty FullName
 ```
 
 ### 付録 B：1,000 図形のファイルの生成（M-20 用。リポジトリには残さない）
 
 ```powershell
 $random = [System.Random]::new(1)
-$shapes = foreach ($i in 1..1000) {
-    [ordered]@{
-        type = 'line'
-        start = [ordered]@{ x = $random.Next(0, 1000); y = $random.Next(0, 700) }
-        end = [ordered]@{ x = $random.Next(0, 1000); y = $random.Next(0, 700) }
-        attributes = [ordered]@{ color = '#000000'; thickness = 1.0; lineStyle = 'Solid' }
+function New-Point([double]$x, [double]$y) { [ordered]@{ x = $x; y = $y } }
+$attributes = [ordered]@{ color = '#000000'; thickness = 1.0; lineStyle = 'Solid' }
+# 線分・円・開いた自由線・閉じた自由線を 250 個ずつ。各図形の点は、構成上、隣り合う点が一致しない
+$shapes = foreach ($i in 0..999) {
+    $x = $random.Next(50, 900); $y = $random.Next(50, 600)
+    $dx = $random.Next(1, 50); $dy = $random.Next(1, 50)
+    switch ($i % 4) {
+        0 { [ordered]@{ type = 'line'; start = (New-Point $x $y); end = (New-Point ($x + $dx) ($y + $dy)); attributes = $attributes } }
+        1 { [ordered]@{ type = 'circle'; center = (New-Point $x $y); pointOnCircle = (New-Point ($x + $dx) $y); attributes = $attributes } }
+        2 { [ordered]@{ type = 'openCurve'; points = @((New-Point $x $y), (New-Point ($x + 20) ($y + $dy)), (New-Point ($x + 40) $y), (New-Point ($x + 60) ($y + $dy))); attributes = $attributes } }
+        3 { [ordered]@{ type = 'closedCurve'; points = @((New-Point $x $y), (New-Point ($x + 30) $y), (New-Point ($x + 15) ($y + $dy))); attributes = $attributes } }
     }
 }
 [ordered]@{ format = 'Shos.WpfCadSample.Document'; version = 1; shapes = @($shapes) } |
   ConvertTo-Json -Depth 6 | Set-Content (Join-Path $env:TEMP 'cad-1000.json')
 ```
 
-- 2 点が一致する線分が含まれる場合は、読み込みで拒否される。実行して拒否された場合は、生成の種を変える。
+- 各図形は、終点や後続の点を、前の点から必ず 1 以上ずらして作るため、構成上、制約（仕様 6.3）に違反しない。円と自由線を含め、仕様 A-14 の「1,000 図形程度」の描画・ヒットテスト・スプラインの再計算を代表させる。
+- 図形のプロパティ名（`center`、`pointOnCircle`、`points` など）は設計書 5.6 の形式（camelCase）を前提とする。実装で名前が確定したら、それに合わせる。
 
 ## 11. 改訂履歴
 
@@ -494,3 +533,6 @@ $shapes = foreach ($i in 1..1000) {
 |---|---|
 | 2026-11-05 | 初版を作成（承認済みの仕様書・設計書に基づく） |
 | 2026-11-05 | ユーザー指示により、`App` クラスのルート namespace 直下への配置（設計書 DD-14）を反映（S-01、付録 A）。この変更はユーザーが指示し、同時に明示的に承認した |
+| 2026-11-06 | 仕様書の 2026-11-06 改訂に伴い、状態を `レビュー待ち` に戻した |
+| 2026-11-06 | [テスト計画書のレビュー](../Reviews/20261106-cad-test-plan-review.md)の指摘 1〜6 に対応：仕様書・設計書・実装計画書の 2026-11-06 改訂の反映（範囲を AC-33 まで、段階の対応表の I-7〜I-9、T-VM-02・M-18 の Yes / No / Cancel、T-VPT-11 の上限の補正、T-STO-03 と T-STO-07 の例外の分離、T-SER-14 の図形 1 個、T-EDC-29 と T-VM-23 の責務の分離、T-ATT-03・T-VM-10・T-VM-16・M-02 の修正、T-SHP-16・17、T-HIT-07、T-EXP-01〜03、T-SER-16・17、T-SET-08、T-EDC-32〜34、T-VM-23〜25、T-ARC-04 の追加、M-06・M-07・M-09・M-13・M-14 の拡充、8 章の対応表）、コマンドの `/` 区切りと Windows の `dotnet`、T-SPL-10 の時間の扱い、付録 B の生成方法、付録 A のグローバル名前空間の確認、前提文書の記述 |
+| 2026-11-06 | ユーザーが実装計画書と一組で再承認（状態を `承認済み` に更新） |
