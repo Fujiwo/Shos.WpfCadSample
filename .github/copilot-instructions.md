@@ -48,7 +48,7 @@
 
 - Keep types out of the root namespace; use role-based namespaces such as `Models`, `ViewModels`, `Views`, and `Controllers`. The sole exception is the WPF application class `App` (`App.xaml` / `App.xaml.cs`), which lives directly in the WPF project's root namespace (`Shos.WpfCadSample`).
 - Keep XAML code-behind free of application logic other than `InitializeComponent()`.
-- Prefer `record`, `struct`, or `record struct` for suitable value data, and use current C# syntax where it improves clarity.
+- Prefer `record`, `struct`, or `record struct` for suitable value data, and actively use new C# syntax (primary constructors, collection expressions, the `field` keyword, extension members, pattern matching, and so on).
 - Use `Shos.UndoRedoList`'s `UndoRedoObservableCollection<T>` for Undo/Redo.
 - Use Material Design in XAML Toolkit (`MaterialDesignThemes`) for the UI chrome (menus, toolbars, windows, controls). Keep it in `App.xaml` and `Views`; `Models`, `ViewModels`, and `Controllers` must not depend on it, and drawing-area shape colors come from shape attributes, not the theme.
 - Do not add features outside the agreed requirements.

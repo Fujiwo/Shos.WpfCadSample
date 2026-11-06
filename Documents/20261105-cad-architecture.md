@@ -481,6 +481,7 @@ classDiagram
 | `Infrastructure.CompositionRoot` | 起動時の組み立て | サービス、`Drawing`、`EditorController`、`Viewport`、各 ViewModel を作り、`MainViewModel` を公開する。`MainWindow` は `App.xaml` のリソースから `DataContext` を取得し、コードビハインドに起動時のコードを書かない。`StartupUri` で `MainWindow` を開く |
 | `Infrastructure.DialogService`、`ClipboardService`、`MetafileRenderer`、`NativeClipboard` | `Services` の実装 | 5.5 のとおり |
 
+- 図形の `DataTemplate`：要件 §3 に従い、図形の種類ごとに `DataTemplate`（`DataType` で `LineShape`、`CircleShape` など 7 種を選ぶ）を用意する。いずれの `DataTemplate` も、描画は `Path` と `ShapeToGeometryConverter`（`Shape.CreateOutline()` から作るジオメトリ）で行い、要件 §3 の「`Path` など」に当たる。種類ごとに WPF の `Line`・`Ellipse` などを使わないのは、描画・ヒットテスト・EMF／画像の出力が同じ `Outline` を使う判断（DD-6、DD-7）を保つためである。種類ごとの違い（ツールチップや将来の見た目の調整の置き場所）は、各 `DataTemplate` に閉じる。
 - 図形の配置：`ItemContainerStyle` で `Canvas.Left="{Binding Bounds.Left}"`、`Canvas.Top="{Binding Bounds.Bottom}"` をバインドする（論理座標、Y 上向き）。層の `Transform`（Y 反転を含む）が画面座標へ変換する。`Path` の `StrokeThickness` は論理座標の太さ、`Stroke` は `RgbColorToBrushConverter`、`StrokeDashArray` は `LineStyleToDashesConverter` を使う。
 - 選択ハンドルは、`Handles`（画面座標）に 8 px の四角を置く。描画領域の背景は全体を白とし、論理領域は枠線だけで示す（仕様 4.3）。拡大率に左右されない固定サイズ（仕様 A-18）。
 - ツールバーのツールボタンは、`RadioButton` の `IsChecked` を `CurrentTool` と `EnumEqualsConverter` でバインドし、押すと `SelectToolCommand` を実行する。
@@ -615,7 +616,7 @@ sequenceDiagram
 | ID | 要件・仕様 | 実現する設計要素 |
 |---|---|---|
 | F-01 | MVC + MVVM、namespace、`MainWindow` は Views | 3.2、4 章。`MainWindow` は `Views` |
-| F-02 | `UserControl` 内の `ItemsControl`（Canvas）、依存関係プロパティ | `DrawingView`、`DrawingSurface`（5.7）。座標のバインドは 5.7 の「図形の配置」 |
+| F-02 | `UserControl` 内の `ItemsControl`（Canvas）、図形の種類ごとの `DataTemplate`、依存関係プロパティ | `DrawingView`、`DrawingSurface`（5.7）。`DataTemplate` は 5.7 の「図形の `DataTemplate`」、座標のバインドは 5.7 の「図形の配置」 |
 | F-03 | 論理座標と描画座標の分離、線の太さは論理座標 | `ViewTransform`、`Viewport`（DD-4、5.2）。ハンドルとヒットテストは画面上の固定 px |
 | F-04 | 7 種類の図形と入力方法 | `Shape` の 7 つの派生（5.1）、`ShapeKindInfo`、`DrawInteraction`（5.3） |
 | F-05 | プレビュー、`Esc`、ダブルクリック確定、点数不足 | `DrawInteraction`、`InputShapes`（5.3、6.1） |
@@ -708,4 +709,6 @@ sequenceDiagram
 | 2026-11-05 | ユーザー指示により、`App` クラスだけをルート namespace 直下に置く例外を追加（3.1、DD-14）。この変更はユーザーが指示し、同時に明示的に承認した |
 | 2026-11-06 | 仕様書の 2026-11-06 改訂（レビュー待ち）に伴い、状態を `レビュー待ち` に戻した |
 | 2026-11-06 | [設計書のレビュー](../Reviews/20261106-cad-architecture-review.md)の指摘 1〜11 に対応：仕様の改訂の反映（保存確認 Yes / No / Cancel、`ExportFrame` による出力の上限、属性ウィンドウのショートカットと `Alt+F4`、最も近いハンドル、`CaptureLost`、`MaxScale` の補正、ドラッグ中の Copy 系の禁止、独自形式の図形 1 個、バージョン 1 未満、設定の検証）、`PointerModifiers` の導入、制約の判定の `Shape.SatisfiesConstraints()` への一本化と `ShapeKindInfo.FromTool`、捕捉する例外の明記と `ClipboardOperationException`、`Shapes` の読み取り専用での公開、ペーストの回数の持ち主（`MainViewModel`）、`Committed` の購読経路の一本化、終了の流れ（6.5、`SaveSettings`、`PropertiesWindowSettings`）、ヒットテストへの線の太さ（DA-7）、`IsValid()` への名前の統一、DD-15（ビュー変換の置き場所） |
+| 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | [`create-wpf-cad.prompt.md` のレビュー](../Reviews/20261106-create-wpf-cad-prompt-review.md)の指摘 4 にユーザーが (a) を選択：要件 §3 の「図形の種類ごとの `DataTemplate`」を 5.7 と 7 章（F-02）に追記（いずれも `Path` で描く）。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |

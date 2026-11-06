@@ -10,17 +10,18 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 ## 0. 作業方針
 
 - 実装を始める前に、`Documents\` にある CAD 仕様書とアーキテクチャー／クラス設計書、および `Plans\` にある実装計画書とテスト計画書を確認する。各文書の先頭行が `状態：承認済み` であり、相互に整合している場合に限り実装を開始する。不足・未承認・矛盾があれば実装せず、該当文書の作成または更新へ戻る。
-- 承認済み仕様書と設計書を唯一の詳細仕様として扱い、このプロンプトの要件を勝手に変更しない。要件との矛盾や計画外の変更が必要な場合は、影響する文書を更新して再承認を得てから実装する。
-- 最初に `.github\skills\sustainable-code-jp\SKILL.md` と、必要な `references\*.md` を読み、その判断基準（命名、Testable 設計、Think Simple、ガード節など）に従ってコードを書くこと。
-- 要件に書かれていない機能は追加しない（YAGNI）。曖昧な点は、合理的な既定値を選んで `Source\README.md` の「設計判断」節に理由を添えて記録する。ユーザーの確認が必須な場合のみ質問する。
+- 承認済み仕様書と設計書を唯一の詳細仕様として扱い、段階・順序・完了条件・テストは承認済みの実装計画書とテスト計画書に従う。このプロンプトの要件を勝手に変更しない。要件との矛盾や計画外の変更が必要な場合は、影響する文書を更新して再承認を得てから実装する。
+- 最初に `.github\skills\sustainable-code-jp\SKILL.md` と、必要な `references\*.md` を読み（読む前に、リポジトリ指示に従って `.github\skills\` と `.claude\skills\` の複製を比較し、差があれば報告する）、その判断基準（命名、Testable 設計、Think Simple、ガード節など）に従ってコードを書くこと。
+- 要件に書かれていない機能は追加しない（YAGNI）。承認済み文書で決まっていない実装の詳細は、実装計画書の「設計・計画から逸脱する際の承認手順」で承認を要しないとされる範囲（非公開のメソッド・補助クラスの追加、定数の調整など）に限り、合理的な既定値を選んで `Source\README.md` の「設計判断」節に理由を添えて記録する。それ以外（仕様の動作、主要なクラスの責務、保存形式、方式の変更など）は、同じ手順で影響する文書を更新し、ユーザーの承認を得てから実装する。
 - 各段階の開始時と完了時に、`Progress\` の進捗記録（例：`Progress\YYYYMMDD-cad-progress.md`）を更新し、実行したビルド・テストのコマンドと結果、未解決の課題を記録する。
-- 次の順に段階的に進め、**各段階の終わりにリポジトリルートから `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` と `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が成功すること**を確認してから次へ進む。各段階の開始時にテスト対象プロジェクトがまだない場合は、まずテスト可能な骨組みを用意する。
+- 段階的に進め、**各段階の終わりにリポジトリルートから `dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` と `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` が成功すること**を確認してから次へ進む。コマンドは Windows の `dotnet` で実行する（WSL からは `dotnet.exe`。WPF のプロジェクトは Linux の `dotnet` ではビルド・テストできない）。実行できない場合は、確認できなかったことと理由を報告し、その段階を完了としない。各段階の開始時にテスト対象プロジェクトがまだない場合は、まずテスト可能な骨組みを用意する。
+- 段階の大枠は次のとおり。実際の段階の分割・順序・完了条件は、承認済みの実装計画書（I-1〜I-10）に従う。
   1. 参照資料の調査、ソリューションの骨組み
   2. Models（図形・属性・シリアライズ・ベジェ変換）とそのテスト
   3. ViewModels / Controllers（図形追加・選択・編集・Undo/Redo）とそのテスト
   4. Views（描画・操作・プロパティウィンドウ・ズーム）
   5. クリップボード・設定の保存・仕上げ
-- 完了後、実際にアプリを起動してスモークテスト（図形追加→選択→移動→Undo/Redo→保存→読込）を行い、結果を報告する。
+- 完了後、実際にアプリを起動してスモークテスト（図形追加→選択→移動→Undo/Redo→保存→読込）を行い、結果を報告する。エージェントがアプリの画面を操作できない場合は、テスト計画書の手動テストの手順をユーザーに示して実施を依頼し、結果を進捗記録に記録する。実施していない項目を合格と報告しない。
 
 ## 1. 技術要件
 
@@ -61,7 +62,7 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
 ### 2.2 MVVM とコードビハインド
 
 - View は Model・ViewModel とデータバインドで結ぶ。
-- コードビハインド（`*.xaml.cs`）は、`InitializeComponent()` 以外は原則書かない。入力処理は、コマンド、添付プロパティ、ビヘイビア、カスタムコントロールのルーテッドイベント／コマンドで実現する。
+- コードビハインド（`*.xaml.cs`）には、`InitializeComponent()` 以外のロジックを書かない。入力処理は、コマンド、添付プロパティ、ビヘイビア、カスタムコントロールのルーテッドイベント／コマンドで実現する。
 - `MainWindow` の XAML / コードはできるだけシンプルにする。必要に応じて `UserControl` やカスタムコントロールを作って分割する。
 - カスタムコントロールの XAML（ControlTemplate）は、コントロールごとに別ファイルの `ResourceDictionary` とし、`Themes\Generic.xaml` から `MergedDictionaries` で取り込む。
 - View には、バインド対象として適宜 Dependency Property を用意する。
@@ -194,8 +195,8 @@ WPF アプリケーションとして、簡易な 2D CAD を既存の `Source\Sh
   - アプリ本体プロジェクト、テストプロジェクト
 - `Source\README.md`：概要、フォルダー／namespace の構成、操作方法（ショートカット一覧を含む）、設計判断（座標系、EMF の方式、Material Design の版・配色と適用範囲、参照した資料と出典）
 - 完了条件（すべて満たすこと。満たした根拠として、実行したコマンドと結果を報告する）
-  - `dotnet build Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` が警告・エラーなしで成功する
-  - `dotnet test Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` がすべて成功する
+  - `dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` が警告・エラーなしで成功する（Windows の `dotnet` で実行する）
+  - `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` がすべて成功する
   - コードビハインドに `InitializeComponent()` 以外のロジックがない（`MainWindow` を含む）
   - ルート namespace 直下に型がない（例外は WPF アプリケーションクラス `App` のみ）
   - 要件のすべての図形・編集・拡大縮小・クリップボード・保存機能が、実際の起動で動作する

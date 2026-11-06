@@ -206,7 +206,7 @@ flowchart LR
   - `App.xaml`：`App` クラスは、WPF アプリのルート namespace 直下（`Shos.WpfCadSample.App`。設計書 DD-14 の例外）に置き、`x:Class` をその名前にする。`materialDesign:BundledTheme`（`BaseTheme="Light"`、`PrimaryColor="Indigo"`、`SecondaryColor="Amber"`）と `MaterialDesign3.Defaults.xaml` を `MergedDictionaries` に追加し、`MainWindow` と `PropertiesWindow` に `MaterialDesignWindow` スタイルを適用する。使うスタイルの名前（メニュー、ツールバーのボタン、スライダー、テキストボックスなど）は、公式のドキュメントとソースで確認する（R-3）。
   - `Infrastructure.CompositionRoot`：サービスと ViewModel の組み立て。`MainWindow` の `DataContext` は `App.xaml` のリソースから取得し、コードビハインドに起動時のコードを書かない。
   - `MainWindow`：メニュー（仕様 4.2 の項目とショートカット）、ツールバー（ツールの `RadioButton`、Undo / Redo）、`DrawingView`、ステータスバー。
-  - `DrawingView`（UserControl）：描画領域の背景は全体を白とし、論理領域は枠線だけで示す（仕様 4.3）。論理領域の枠、図形の `ItemsControl`（`ItemsPanel` は `Canvas`、`RenderTransform` に `Transform`、`Canvas.Left` / `Canvas.Top` を `Bounds` にバインド）、入力中の図形の `ItemsControl`、ハンドルの `ItemsControl`。
+  - `DrawingView`（UserControl）：描画領域の背景は全体を白とし、論理領域は枠線だけで示す（仕様 4.3）。論理領域の枠、図形の `ItemsControl`（`ItemsPanel` は `Canvas`、`RenderTransform` に `Transform`、`Canvas.Left` / `Canvas.Top` を `Bounds` にバインド。図形の種類ごとの `DataTemplate` を 7 種用意し、いずれも `Path` と `ShapeToGeometryConverter` で描く。設計書 5.7）、入力中の図形の `ItemsControl`、ハンドルの `ItemsControl`。
   - コンバーター：`ShapeToGeometryConverter`、`RgbColorToBrushConverter`、`LineStyleToDashesConverter`、`ViewTransformToMatrixConverter`、`EnumEqualsConverter`。
   - コードビハインド（`*.xaml.cs`）は `InitializeComponent()` のみ。
 - **前提**：I-7。
@@ -322,3 +322,5 @@ Source\
 | 2026-11-06 | 仕様書の 2026-11-06 改訂に伴い、状態を `レビュー待ち` に戻した |
 | 2026-11-06 | [実装計画書のレビュー](../Reviews/20261106-cad-implementation-plan-review.md)の指摘 1〜7 に対応：仕様書・設計書の 2026-11-06 改訂の反映（I-2〜I-9、AC-32・AC-33、6 章）、ビルド・テストのコマンドの `/` 区切りと Windows の `dotnet` での実行（3.2、I-10）、C-3 の確認先と I-1 での表の追加、M-20 と R-10 の I-9 への移動、I-7 の手動確認の I-9 への移動、xUnit v2 を選ぶ理由の修正、1.3 と 10 章の更新 |
 | 2026-11-06 | ユーザーがテスト計画書と一組で再承認（状態を `承認済み` に更新） |
+| 2026-11-06 | 設計書 5.7 への「図形の種類ごとの `DataTemplate`」の追記に合わせ、I-8 の `DrawingView` の作業に追記。状態を `レビュー待ち` に戻した |
+| 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
