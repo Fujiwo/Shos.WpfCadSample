@@ -1,10 +1,10 @@
-状態：レビュー待ち
+状態：承認済み
 
 # 簡易 WPF CAD アーキテクチャー／クラス設計書
 
 - 作成日：2026-11-05
 - 位置づけ：計画の段階2（アーキテクチャー／クラス設計書）。次段階は `Plans\20261105-cad-implementation-plan.md` と `Plans\20261105-cad-test-plan.md`（本書の承認後に作成）。
-- 前提とする文書：[20261105-cad-specification.md](./20261105-cad-specification.md)（2026-11-06 改訂版。状態：レビュー待ち。仕様書の再承認を前提に、本書も再承認を得る）
+- 前提とする文書：[20261105-cad-specification.md](./20261105-cad-specification.md)（2026-11-06 改訂版。2026-11-06 に再承認済み）
 - 根拠となる要件：[create-wpf-cad.prompt.md](../.github/prompts/create-wpf-cad.prompt.md)
 - 設計の指針：[sustainable-code-jp スキル](../.github/skills/sustainable-code-jp/SKILL.md)（責務の分割、Testable、Think Simple、YAGNI）
 - 本書は「どう作るか」（構成、責務、クラス、データフロー、UML）を定める。画面・操作・データの仕様は仕様書が正であり、本書は再定義しない。
@@ -708,3 +708,4 @@ sequenceDiagram
 | 2026-11-05 | ユーザー指示により、`App` クラスだけをルート namespace 直下に置く例外を追加（3.1、DD-14）。この変更はユーザーが指示し、同時に明示的に承認した |
 | 2026-11-06 | 仕様書の 2026-11-06 改訂（レビュー待ち）に伴い、状態を `レビュー待ち` に戻した |
 | 2026-11-06 | [設計書のレビュー](../Reviews/20261106-cad-architecture-review.md)の指摘 1〜11 に対応：仕様の改訂の反映（保存確認 Yes / No / Cancel、`ExportFrame` による出力の上限、属性ウィンドウのショートカットと `Alt+F4`、最も近いハンドル、`CaptureLost`、`MaxScale` の補正、ドラッグ中の Copy 系の禁止、独自形式の図形 1 個、バージョン 1 未満、設定の検証）、`PointerModifiers` の導入、制約の判定の `Shape.SatisfiesConstraints()` への一本化と `ShapeKindInfo.FromTool`、捕捉する例外の明記と `ClipboardOperationException`、`Shapes` の読み取り専用での公開、ペーストの回数の持ち主（`MainViewModel`）、`Committed` の購読経路の一本化、終了の流れ（6.5、`SaveSettings`、`PropertiesWindowSettings`）、ヒットテストへの線の太さ（DA-7）、`IsValid()` への名前の統一、DD-15（ビュー変換の置き場所） |
+| 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
