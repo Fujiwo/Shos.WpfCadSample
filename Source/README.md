@@ -38,7 +38,8 @@ Source\Shos.WpfCadSample\
     │   └─ Geometry\            … Shos.WpfCadSample.Tests.Models.Geometry
     ├─ Serialization\           … Shos.WpfCadSample.Tests.Serialization
     ├─ Settings\                … Shos.WpfCadSample.Tests.Settings
-    └─ Support\                 … Shos.WpfCadSample.Tests.Support（一時フォルダーなどのテストの補助）
+    ├─ ViewModels\              … Shos.WpfCadSample.Tests.ViewModels
+    └─ Support\                 … Shos.WpfCadSample.Tests.Support（一時フォルダー、偽の IDialogService・IClipboardService）
 ```
 
 ## 使用するパッケージと版
@@ -96,3 +97,9 @@ Source\Shos.WpfCadSample\
 | I-5 | ハンドルのドラッグ | ハンドルは、つかんだ位置とのずれを保って動かす（カーソルの位置へ飛ばない） | ハンドルの許容範囲（約 6 px）の端をつかんだときに、図形が跳ねないようにするため |
 | I-5 | 状態表示の文言 | ツールごとの操作案内を表示し、点を受け付けなかったときや点数が足りないときは、その理由を次のクリックまで表示する（英語） | 仕様 A-12 の操作案内と、仕様 5.2 の「状態表示にその旨を表示する」のため |
 | I-5 | `IInteraction` などの補助の型 | `DrawInteraction`、`SelectInteraction`、`AttributeEditor`、`IInteraction` は `Controllers` の内部の型とし、外部へは `EditorController` だけを公開する | ViewModels が使うのは `EditorController` だけのため（設計書 5.3、5.4） |
+| I-6 | ViewModels の組み立て | `MainViewModel` が、`Drawing`・`Viewport`・`EditorController`・`DrawingViewModel`・`PropertiesViewModel` を作る。外から受け取るのは、`IDialogService`・`IClipboardService`・`DocumentStorage`・`SettingsStorage` だけ | 1 つのドキュメントの部品の組を 1 か所で作り、I-7 の `CompositionRoot` は UI に依存するサービスとパスだけを渡せばよいようにするため |
+| I-6 | `MainViewModel.LoadSettings()` | 起動時に呼ぶ公開メソッドとした（設計書 5.4 は `SaveSettings()` だけを挙げている）。読み込み自体の失敗（他のアプリが排他で開いているなど）も、警告と既定値で起動を続ける | 実装計画書 I-6 の「設定の読み込み」を、表示（警告）を伴うためコンストラクターではなく明示的な操作にした。I-4 からの申し送りの対応 |
+| I-6 | `AttributeEditModel` の太さ | 太さの入力は文字列の `ThicknessText` とした（設計書 5.4 の図では `double Thickness`） | 数値でない入力を ViewModel で受けて「反映せず、直前の有効値へ戻す」（仕様 5.4）ため。有効な値は `Attributes.Thickness` で得る |
+| I-6 | `DrawingViewModel` のコマンドの引数 | `SetViewSizeCommand` は `ViewSize`、`ZoomCommand` は `ZoomRequest`（カーソル位置とノッチ数）、`ScrollCommand` は `ScrollDirection` を受け取る。描画領域の外へ出たことを伝える `PointerLeaveCommand` を加えた | Core が WPF の型（`Size` など）に依存しないため。カーソル位置の表示を、描画領域の外で空欄にするため（仕様 4.4） |
+| I-6 | 貼り付けの回数 | 貼り付けに成功したときだけ、回数と前回のテキストを更新する | 失敗した貼り付けを回数に含めると、次の貼り付けのずらし量が、実際に貼った回数とずれるため |
+| I-6 | エラー・警告の文言 | 仕様 7 章の文言に、原因と対象のファイルを続ける（例：`The file is not a valid CAD document.` の後に理由と `File: <パス>`） | 仕様 4.6「操作名、原因、対象ファイルを示す英語の文」のため。タイトルは操作名（`Open`、`Save`、`Paste` など） |

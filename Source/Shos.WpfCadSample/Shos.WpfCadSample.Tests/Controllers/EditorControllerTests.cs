@@ -387,6 +387,19 @@ public class EditorControllerTests
         Assert.Equal([new(150, 100), new(350, 100)], drawing.Shapes[0].HandlePoints);
     }
 
+    // T-EDC-17（Committed の時点でドラッグが終わっている。ViewModels が全体図を更新できるように。I-6 で見つけた不具合の再現）
+    [Fact]
+    public void Committed_AfterDrag_IsRaisedWhenDraggingHasEnded()
+    {
+        AddLine(100, 100, 300, 100);
+        bool? draggingWhenCommitted = null;
+        editor.Committed += (_, _) => draggingWhenCommitted = editor.IsDragging;
+
+        Drag(200, 100, 200, 150);
+
+        Assert.False(draggingWhenCommitted);
+    }
+
     // T-EDC-18
     [Fact]
     public void MovementBelowThreshold_IsAClickAndRecordsNothing()

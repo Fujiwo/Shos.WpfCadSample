@@ -76,14 +76,16 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
         drag.Current = candidate;
     }
 
-    // 元の図形へ戻してから、最終の図形を 1 回だけ記録する（R-7）
+    // 元の図形へ戻してから、最終の図形を 1 回だけ記録する（R-7）。
+    // 記録の通知（Committed）の時点でドラッグが終わっているよう、先にドラッグを終える（全体図の更新はドラッグ中にしないため）
     void Finish()
     {
-        if (drag is { HasChanged: true } current) {
-            drawing.RestoreOriginal(current.Index, current.Original);
-            drawing.Replace(current.Index, current.Current);
-        }
+        var finished = drag;
         drag = null;
+        if (finished is { HasChanged: true }) {
+            drawing.RestoreOriginal(finished.Index, finished.Original);
+            drawing.Replace(finished.Index, finished.Current);
+        }
     }
 
     sealed class Drag(int index, Shape original, int handleIndex, Point2 start)
