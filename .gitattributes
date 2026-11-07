@@ -1,0 +1,9 @@
+# 改行コードを正規化する：リポジトリには LF で格納し、作業ツリーでは各環境の既定に従う
+* text=auto
+
+# バイナリーファイル
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
