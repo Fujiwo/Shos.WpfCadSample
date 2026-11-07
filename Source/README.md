@@ -33,6 +33,7 @@ Source\Shos.WpfCadSample\
 │   └─ Infrastructure\          … Shos.WpfCadSample.Infrastructure
 └─ Shos.WpfCadSample.Tests\     … net10.0。xUnit。Core を参照
     ├─ Architecture\            … Shos.WpfCadSample.Tests.Architecture
+    ├─ Controllers\             … Shos.WpfCadSample.Tests.Controllers
     ├─ Models\                  … Shos.WpfCadSample.Tests.Models
     │   └─ Geometry\            … Shos.WpfCadSample.Tests.Models.Geometry
     ├─ Serialization\           … Shos.WpfCadSample.Tests.Serialization
@@ -91,3 +92,7 @@ Source\Shos.WpfCadSample\
 | I-4 | 設定の既定値 | メインウィンドウは (80, 60) に 1000 × 700、属性ウィンドウは表示し (760, 120) に 300 × 520 | 仕様に具体値がない。1366 × 768 の画面にも収まる大きさにした |
 | I-4 | `WindowPlacement.IsWithin` | ウィンドウ全体が仮想スクリーンに含まれるときだけ `true`（一部がはみ出すと `false`） | 仕様 5.9 の「含まれる」を、ウィンドウ全体が含まれることと解釈した。仮想スクリーンの矩形は、画面座標（Y 下向き）の `Rect2` で、`Bottom` が上端、`Top` が下端 |
 | I-4 | 設定の退避 | 不正な設定ファイルは `settings.json.bak` へ移動する（既存の退避ファイルは置き換える） | 仕様 7 章。移動に失敗したときは、元のファイルを残し、終了時の保存で置き換わる（仮定 A-22） |
+| I-5 | 入力中・ドラッグ中に無効なコマンド | `EditorController` の `Undo`・`Redo`・`DeleteSelected`・`SetTool` は何もせずに戻り、`Paste` は何も変えずに `false` を返す | 無効化は ViewModels の `CanExecute` が行う（仕様 5.10）。呼ばれても状態を壊さないようにした |
+| I-5 | ハンドルのドラッグ | ハンドルは、つかんだ位置とのずれを保って動かす（カーソルの位置へ飛ばない） | ハンドルの許容範囲（約 6 px）の端をつかんだときに、図形が跳ねないようにするため |
+| I-5 | 状態表示の文言 | ツールごとの操作案内を表示し、点を受け付けなかったときや点数が足りないときは、その理由を次のクリックまで表示する（英語） | 仕様 A-12 の操作案内と、仕様 5.2 の「状態表示にその旨を表示する」のため |
+| I-5 | `IInteraction` などの補助の型 | `DrawInteraction`、`SelectInteraction`、`AttributeEditor`、`IInteraction` は `Controllers` の内部の型とし、外部へは `EditorController` だけを公開する | ViewModels が使うのは `EditorController` だけのため（設計書 5.3、5.4） |
