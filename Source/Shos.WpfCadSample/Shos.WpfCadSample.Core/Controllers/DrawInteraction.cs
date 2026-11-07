@@ -21,6 +21,8 @@ sealed class DrawInteraction(Drawing drawing, ShapeKind kind, Func<ShapeAttribut
     public void Handle(PointerInput input)
     {
         switch (input.Action) {
+            case PointerAction.Down when input.ClickCount >= 2 && ShapeKindInfo.IsFixedTwoPoint(kind):
+                break;          // 2 点図形は 2 回目のクリックで確定済み
             case PointerAction.Down when input.ClickCount >= 2:
                 Confirm();      // ダブルクリックの 2 回目は点を加えない（仕様 5.2）
                 break;

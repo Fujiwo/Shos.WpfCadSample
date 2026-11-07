@@ -112,6 +112,23 @@ public class EditorControllerTests
         Assert.Equal(ShapeAttributes.Default, shape.Attributes);
     }
 
+    [Theory]
+    [InlineData(Tool.Line)]
+    [InlineData(Tool.Circle)]
+    [InlineData(Tool.Rectangle)]
+    public void DoubleClickingCompletedFixedShapeEndpoint_DoesNotReportTooFewPoints(Tool tool)
+    {
+        editor.SetTool(tool);
+        var guidance = editor.StatusMessage;
+
+        Click(10, 20);
+        Click(110, 70);
+        Click(110, 70, clickCount: 2);
+
+        Assert.Single(drawing.Shapes);
+        Assert.Equal(guidance, editor.StatusMessage);
+    }
+
     // T-EDC-04、T-EDC-05
     [Theory]
     [InlineData(Tool.Polyline, typeof(PolylineShape))]
