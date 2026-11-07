@@ -25,7 +25,7 @@ public class ShapeKindInfoTests
         Assert.Equal(isFixedTwoPoint, ShapeKindInfo.IsFixedTwoPoint(kind));
     }
 
-    // T-SHP-14
+    // T-SHP-14：1 点目には比べる点がないため、座標の範囲だけを判定する（境界ちょうどは受け付ける）
     [Theory]
     [MemberData(nameof(AllKinds))]
     public void CanAppend_FirstPoint_OnlyRequiresCoordinateWithinLimits(ShapeKind kind)
@@ -54,7 +54,7 @@ public class ShapeKindInfoTests
     public void CanAppend_Rectangle_RejectsZeroWidthOrHeight(double x, double y)
         => Assert.False(ShapeKindInfo.CanAppend(ShapeKind.Rectangle, [new(0, 0)], new(x, y)));
 
-    // T-SHP-14
+    // T-SHP-14：閉じる図形では、最後の点が最初の点と一致すると閉じる辺の長さが 0 になる。開いた図形では問題にならない
     [Theory]
     [InlineData(ShapeKind.Polygon, false)]
     [InlineData(ShapeKind.ClosedCurve, false)]

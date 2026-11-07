@@ -9,6 +9,7 @@ public class ArchitectureTests
 {
     const string rootNamespace = "Shos.WpfCadSample";
 
+    // 設計書 3.2 で定めた、Core の namespace
     static readonly string[] coreNamespaces = [
         "Shos.WpfCadSample.Models",
         "Shos.WpfCadSample.Models.Geometry",

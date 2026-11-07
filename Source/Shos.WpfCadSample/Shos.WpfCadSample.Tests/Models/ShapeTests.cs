@@ -31,7 +31,7 @@ public class ShapeTests
         ClosedCurve(new(0, 0), new(10, 0), new(5, 8))
     ];
 
-    // 点 p0 を (x, y) に置き換えた 7 種の図形。座標の範囲の検証に使う
+    // 最初の点を point にした 7 種の図形。座標の範囲の検証に使う
     public static IEnumerable<Shape> ShapesWithPoint(Point2 point) => [
         Line(point, new(1, 1)),
         Circle(point, new(1, 1)),
@@ -88,7 +88,7 @@ public class ShapeTests
     public void IsValid_IsTrueForCoordinateOnTheLimit(double x, double y)
         => Assert.All(ShapesWithPoint(new(x, y)), shape => Assert.True(shape.IsValid(), shape.Kind.ToString()));
 
-    // T-SHP-18
+    // T-SHP-18：範囲いっぱいの矩形も加え、座標が最も大きい図形からの導出値（スプラインの制御点を含む）が有限であることを確かめる
     [Theory]
     [InlineData(limit, limit)]
     [InlineData(-limit, limit)]
@@ -155,6 +155,7 @@ public class ShapeTests
 
         var moved = Assert.IsType<CircleShape>(circle.MoveHandle(0, new(15, 25)));
 
+        // 円周上の点も同じだけ動き、中心からの差 (3, 4)（半径 5）が保たれる
         Assert.Equal(new Point2(15, 25), moved.Center);
         Assert.Equal(new Point2(18, 29), moved.PointOnCircle);
         Assert.Equal(circle.Radius, moved.Radius, 1e-9);
@@ -164,6 +165,7 @@ public class ShapeTests
     [Fact]
     public void MoveHandle_CirclePointOnCircle_ChangesRadius()
     {
+        // 円周上の点を、中心 (5, 5) から 10 離れた (5, 15) へ動かす
         var moved = Assert.IsType<CircleShape>(Circle(new(5, 5), new(8, 9)).MoveHandle(1, new(5, 15)));
 
         Assert.Equal(new Point2(5, 5), moved.Center);
@@ -226,10 +228,12 @@ public class ShapeTests
         Assert.Throws<ArgumentOutOfRangeException>(() => shape.MoveHandle(shape.HandlePoints.Count, new(0, 0)));
     }
 
-    // T-SHP-09
+    // T-SHP-09：MoveHandle 自体は制約を判定しない。結果の IsValid で、呼び出し側が拒否を判断する
     [Fact]
     public void MoveHandle_ResultViolatingConstraint_IsInvalid()
     {
+        // 順に：端点を他方に重ねる、円周上の点を中心に重ねる、角を対角と同じ X にする（幅 0）、
+        // 隣り合う点を重ねる、多角形の最後を最初に重ねる、座標の範囲外へ動かす
         Assert.False(Line(new(0, 0), new(10, 5)).MoveHandle(0, new(10, 5)).IsValid());
         Assert.False(Circle(new(5, 5), new(8, 9)).MoveHandle(1, new(5, 5)).IsValid());
         Assert.False(Rectangle(new(0, 0), new(10, 5)).MoveHandle(0, new(10, 3)).IsValid());
@@ -277,6 +281,7 @@ public class ShapeTests
         Assert.Equal(new Rect2(0, -5, 10, 0), Rectangle(new(10, -5), new(0, 0)).Bounds);
         Assert.Equal(new Rect2(0, 0, 10, 10), Polyline(new(0, 0), new(10, 0), new(10, 10)).Bounds);
         Assert.Equal(new Rect2(0, 0, 10, 10), Polygon(new(0, 0), new(10, 0), new(10, 10)).Bounds);
+        // 一直線上の通過点を結ぶ曲線は、その直線からはみ出さない（高さ 0）
         AssertNear(new Rect2(0, 0, 10, 0), OpenCurve(new(0, 0), new(4, 0), new(10, 0)).Bounds, 1e-9);
     }
 
@@ -342,6 +347,7 @@ public class ShapeTests
     [Fact]
     public void SatisfiesConstraints_TreatsOnlyExactlyEqualPointsAsCoincident()
     {
+        // 許容誤差を設けていれば一致とみなされうる、ごく小さい差（仮定 A-27）
         var almost = new Point2(1 + 1e-12, 1);
 
         Assert.False(Polyline(new(1, 1), new(1, 1)).SatisfiesConstraints());

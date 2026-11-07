@@ -7,6 +7,7 @@ namespace Shos.WpfCadSample.Tests.Support;
 /// </summary>
 sealed class FakeDialogService : IDialogService
 {
+    // ダイアログの応答。ファイルのダイアログでは、null がキャンセルを表す
     public string? OpenPath { get; set; }
     public string? SavePath { get; set; }
     public SaveChangesAnswer SaveChangesAnswer { get; set; } = SaveChangesAnswer.No;
@@ -16,6 +17,9 @@ sealed class FakeDialogService : IDialogService
     /// </summary>
     public Action? AskingSaveChanges { get; set; }
 
+    /// <summary>
+    /// 呼ばれたメソッドの名前を、呼ばれた順に記録する（表示の有無と順序の確認に使う）。
+    /// </summary>
     public List<string> Calls { get; } = [];
     public List<(string Title, string Message)> Errors { get; } = [];
     public List<string> Warnings { get; } = [];

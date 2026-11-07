@@ -8,13 +8,16 @@ namespace Shos.WpfCadSample.Controllers;
 /// </summary>
 sealed class DrawInteraction(Drawing drawing, ShapeKind kind, Func<ShapeAttributes> defaultAttributes, Action<string> report) : IInteraction
 {
-    readonly List<Point2> points = [];
+    readonly List<Point2> points = [];   // クリックで確定した点（論理座標）。マウス位置は含めない
 
     /// <summary>
     /// 入力中の図形（マウス位置までを含むプレビュー）。入力中でなければ null。
     /// </summary>
     public Shape? InputShape { get; private set; }
 
+    /// <summary>
+    /// 入力中か（1 点目をクリックしてから、確定または取り消しまで）。
+    /// </summary>
     public bool IsActive => points.Count > 0;
 
     // Up は使わない。CaptureLost は無視し、入力中の点を保つ（設計書 5.3）
@@ -41,6 +44,7 @@ sealed class DrawInteraction(Drawing drawing, ShapeKind kind, Func<ShapeAttribut
         InputShape = null;
     }
 
+    // 加えると図形が不正になる点は加えず、理由（座標の範囲外か、それ以外か）を状態表示に出す
     void Append(Point2 point)
     {
         if (!ShapeKindInfo.CanAppend(kind, points, point)) {
@@ -54,6 +58,7 @@ sealed class DrawInteraction(Drawing drawing, ShapeKind kind, Func<ShapeAttribut
             InputShape = Preview(point);
     }
 
+    // 確定した点にマウス位置を加えた、表示だけの図形（記録しない）
     Shape Preview(Point2 cursor) => ShapeKindInfo.Create(kind, [.. points, cursor], defaultAttributes());
 
     // 最小点数に満たなければ、追加せずに取り消す（仕様 5.2）
@@ -65,7 +70,7 @@ sealed class DrawInteraction(Drawing drawing, ShapeKind kind, Func<ShapeAttribut
             return;
         }
         var shape = ShapeKindInfo.Create(kind, points, defaultAttributes());
-        Cancel();
+        Cancel();       // 追加の通知（Committed）の時点で、入力中でない状態にしておく
         if (shape.IsValid())
             drawing.Add(shape);
         else

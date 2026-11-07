@@ -10,11 +10,11 @@ namespace Shos.WpfCadSample.Controllers;
 sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Action<ShapeId?> select) : IInteraction
 {
     // 画面上の大きさ（仕様 A-9）
-    const double handleTolerancePixels = 6;
-    const double lineTolerancePixels = 5;
-    const double dragThresholdPixels = 3;
+    const double handleTolerancePixels = 6;     // ハンドルをつかめる距離
+    const double lineTolerancePixels = 5;       // 図形の線を選べる距離
+    const double dragThresholdPixels = 3;       // これ未満の移動はクリックとみなす
 
-    Drag? drag;
+    Drag? drag;     // ドラッグ中の状態。ドラッグ中でなければ null
 
     /// <summary>
     /// ドラッグ中か（図形の上でボタンを押してから離すまで）。
@@ -57,7 +57,7 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
     // 判定の順序：選択中の図形のハンドル → 図形の線（上から順）→ 何もなければ選択の解除（仕様 5.3、A-9）
     void Begin(PointerInput input)
     {
-        Cancel();
+        Cancel();       // 前のドラッグが終わっていなければ、元へ戻してから始める
         var (index, handleIndex) = HitSelectedHandle(input);
         if (handleIndex < 0) {
             index = ShapeHitTester.HitShape(drawing.Shapes, input.Point, input.Pixels(lineTolerancePixels));
@@ -88,7 +88,7 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
         drag.Current = candidate;
     }
 
-    // 元の図形へ戻してから、最終の図形を 1 回だけ記録する（R-7）。
+    // 元の図形へ戻してから、最終の図形を 1 回だけ記録する（設計書 R-7）。
     // 記録の通知（Committed）の時点でドラッグが終わっているよう、先にドラッグを終える（全体図の更新はドラッグ中にしないため）
     void Finish()
     {
@@ -100,13 +100,16 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
         }
     }
 
+    /// <summary>
+    /// 1 回のドラッグの状態：対象の図形とその元の形、つかんだハンドル（図形全体なら −1）、押した位置（論理座標）。
+    /// </summary>
     sealed class Drag(int index, Shape original, int handleIndex, Point2 start)
     {
         public int Index { get; } = index;
         public Shape Original { get; } = original;
         public Point2 Start { get; } = start;
-        public Shape Current { get; set; } = original;
-        public bool HasMoved { get; set; }
+        public Shape Current { get; set; } = original;      // 表示中の図形（直前の有効な状態）
+        public bool HasMoved { get; set; }                  // しきい値を超えて動いたか。一度超えたら、戻ってもドラッグのまま
         public bool HasChanged => !ReferenceEquals(Current, Original);
 
         // ハンドルのドラッグは、つかんだ位置とハンドルのずれを保って動かす。ハンドル以外は図形全体を動かす

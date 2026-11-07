@@ -34,6 +34,7 @@ public sealed class SettingsStorage(string path)
         SafeFile.WriteAllText(path, JsonSerializer.Serialize(settings, JsonRules.Options));
     }
 
+    // 読めない・不正な設定は null（呼び出し側が退避して既定値にする）。I/O の例外は伝える
     AppSettings? ReadValidSettings()
     {
         try {

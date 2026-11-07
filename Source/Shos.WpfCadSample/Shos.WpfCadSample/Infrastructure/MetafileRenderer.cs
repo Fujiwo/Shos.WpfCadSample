@@ -22,6 +22,7 @@ public static class MetafileRenderer
     public static Metafile CreateMetafile(IReadOnlyList<Shape> shapes)
     {
         var frame = ExportFrame.For(shapes);
+        // EMF の基準のデバイスは画面。枠はピクセル単位で、出力範囲の大きさにする
         using var reference = Graphics.FromHwnd(IntPtr.Zero);
         var referenceHdc = reference.GetHdc();
         Metafile metafile;
@@ -55,6 +56,7 @@ public static class MetafileRenderer
     static void Draw(Graphics graphics, IReadOnlyList<Shape> shapes, ExportFrame frame)
     {
         graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        // 座標の単位をピクセルにし、CreatePath で変換した座標をそのまま使う
         graphics.PageUnit = GraphicsUnit.Pixel;
         foreach (var shape in shapes) {
             using var path = CreatePath(shape.CreateOutline(), frame);

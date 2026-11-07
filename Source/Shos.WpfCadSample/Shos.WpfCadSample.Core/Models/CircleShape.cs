@@ -2,10 +2,16 @@
 
 namespace Shos.WpfCadSample.Models;
 
+/// <summary>
+/// 円。中心と円周上の 1 点で定める（半径ではなく点で持つと、ハンドルの移動と平行移動を点の操作だけで表せる）。
+/// </summary>
 public sealed record CircleShape(ShapeId Id, ShapeAttributes Attributes, Point2 Center, Point2 PointOnCircle) : Shape(Id, Attributes)
 {
     public override ShapeKind Kind => ShapeKind.Circle;
 
+    /// <summary>
+    /// 半径（論理単位）。保存せず、2 点から毎回求める。
+    /// </summary>
     public double Radius => Center.DistanceTo(PointOnCircle);
 
     public override IReadOnlyList<Point2> HandlePoints => [Center, PointOnCircle];
@@ -25,5 +31,6 @@ public sealed record CircleShape(ShapeId Id, ShapeAttributes Attributes, Point2 
 
     protected override IEnumerable<Point2> DefinitionPoints => [Center, PointOnCircle];
 
+    // 中心と円周上の点が一致すると、半径 0 の円になるため除く
     protected override bool SatisfiesKindConstraints() => Radius > 0;
 }

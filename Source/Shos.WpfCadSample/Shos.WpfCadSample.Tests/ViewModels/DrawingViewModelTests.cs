@@ -48,9 +48,11 @@ public class DrawingViewModelTests
         AddLine(100, 100, 300, 200);
         Assert.Empty(view.Handles);
 
+        // 線上をクリックして選択する。ハンドルは画面座標で、論理 (100, 100) は画面 (100, 600) になる
         Click(200, 150);
 
         Assert.Equal([new HandleItem(100, 600), new HandleItem(300, 500)], view.Handles);
+        // 何もない位置のクリックで選択を解除する
         Click(800, 600);
         Assert.Empty(view.Handles);
     }
@@ -64,6 +66,7 @@ public class DrawingViewModelTests
 
         view.ZoomCommand.Execute(new ZoomRequest(Screen(100, 100), 1));    // 始点の位置で拡大
 
+        // 拡大の中心にした始点は画面上で動かず、終点は新しい Transform の位置へ動く
         Assert.Equal(new HandleItem(100, 600), view.Handles[0]);
         var end = view.Transform.ToScreen(new Point2(300, 200));
         Assert.Equal(new HandleItem(end.X, end.Y), view.Handles[1]);
@@ -77,6 +80,7 @@ public class DrawingViewModelTests
         Pointer(PointerAction.Down, 200, 100);
         Pointer(PointerAction.Move, 220, 150);
 
+        // 線上を (20, 50) だけドラッグし、線分は Y = 150（画面 550）へ移る
         Assert.Equal([new HandleItem(120, 550), new HandleItem(320, 550)], view.Handles);
     }
 
@@ -91,6 +95,7 @@ public class DrawingViewModelTests
         Assert.Equal(new Rect2(0, 0, 1000, 700), viewport.Overview);
         Pointer(PointerAction.Up, 1500, 100);
 
+        // 1,300 だけ右へ動かした線分は X = 1,400〜1,600。全体図は、論理領域とその外接矩形の和になる
         Assert.Equal(new Rect2(0, 0, 1600, 700), viewport.Overview);
         Assert.Equal("Zoom: 100%", view.ZoomText);     // 全体図の表示中は、新しい全体図に合わせ直す
         Assert.Equal(viewport.Transform, view.Transform);
@@ -111,6 +116,7 @@ public class DrawingViewModelTests
     [Fact]
     public void SetViewSize_RefitsOverview()
     {
+        // 論理領域 1000 × 700 を、半分の大きさのビューに収める
         view.SetViewSizeCommand.Execute(new ViewSize(500, 350));
 
         Assert.Equal(0.5, view.Transform.Scale, 1e-9);
@@ -131,6 +137,7 @@ public class DrawingViewModelTests
     [Fact]
     public void CursorText_ShowsLogicalCoordinatesAndClearsWhenLeaving()
     {
+        // 論理座標を、小数第 1 位に丸めて表示する
         Pointer(PointerAction.Move, 123.44, 56.66);
         Assert.Equal("X: 123.4  Y: 56.7", view.CursorText);
 
@@ -144,6 +151,7 @@ public class DrawingViewModelTests
     {
         Assert.Equal("Zoom: 100%", view.ZoomText);
 
+        // ホイール 1 ノッチで 1.2 倍（仮定 A-7）
         view.ZoomCommand.Execute(new ZoomRequest(Screen(500, 350), 1));
 
         Assert.Equal("Zoom: 120%", view.ZoomText);
@@ -186,6 +194,8 @@ public class DrawingViewModelTests
         Assert.Empty(view.InputShapes);
     }
 
+    // 1 回のスクロールは画面上 50 px（仮定 A-18）で、論理座標では 50 ÷ Scale。
+    // 全体図の表示中は動かないため、先に拡大する
     [Fact]
     public void Scroll_MovesFiftyPixelsWhileZoomed()
     {
@@ -230,6 +240,7 @@ public class DrawingViewModelTests
     public void LogicalArea_IsFixedLogicalAreaOfViewport()
         => Assert.Equal(new Rect2(0, 0, 1000, 700), view.LogicalArea);
 
+    // New・Open の後：拡大中・選択中の状態から、新しい全体図の表示（100%）に戻し、選択を解除する（仕様 5.8）
     [Fact]
     public void ResetForNewDocument_ShowsOverviewAndClearsSelection()
     {

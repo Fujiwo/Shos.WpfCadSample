@@ -26,6 +26,7 @@ public sealed class ClipboardService : IClipboardService
     public void SetShapesText(string text)
         => Run(() => Clipboard.SetData(shapesFormat, new MemoryStream(Encoding.UTF8.GetBytes(text))));
 
+    // 独自形式がない、または他のアプリが別の型で置いたデータなら null
     public string? GetShapesText()
         => Run(() => Clipboard.GetData(shapesFormat) is MemoryStream stream ? Encoding.UTF8.GetString(stream.ToArray()) : null);
 
@@ -54,6 +55,7 @@ public sealed class ClipboardService : IClipboardService
         return metafile.GetHenhmetafile();
     }
 
+    // OnLoad で読み切ってから凍結する（ストリームを閉じた後も使え、クリップボードへ渡せる画像にするため）
     static BitmapSource CreateBitmapSource(byte[] png)
     {
         using var stream = new MemoryStream(png);
@@ -63,6 +65,7 @@ public sealed class ClipboardService : IClipboardService
         return frame;
     }
 
+    // クリップボードを開くウィンドウ。メインウィンドウがなければ、所有者なし（IntPtr.Zero）で開く
     static IntPtr OwnerWindowHandle()
         => Application.Current?.MainWindow is { } window ? new WindowInteropHelper(window).Handle : IntPtr.Zero;
 

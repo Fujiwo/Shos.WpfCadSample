@@ -8,6 +8,9 @@ namespace Shos.WpfCadSample.Serialization;
 /// </summary>
 public static class ClipboardShapes
 {
+    /// <summary>
+    /// 形式の識別子（JSON の <c>format</c>）。ドキュメントの形式と区別する。
+    /// </summary>
     public const string Format = "Shos.WpfCadSample.Clipboard";
 
     public static string ToText(Shape shape) => ShapesJson.Write(Format, [shape]);

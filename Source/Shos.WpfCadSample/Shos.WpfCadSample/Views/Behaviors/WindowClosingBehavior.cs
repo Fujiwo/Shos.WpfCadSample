@@ -10,6 +10,9 @@ namespace Shos.WpfCadSample.Views.Behaviors;
 /// </summary>
 public static class WindowClosingBehavior
 {
+    /// <summary>
+    /// 閉じる流れを任せる <see cref="MainViewModel"/>（メインウィンドウの DataContext をバインドする）。
+    /// </summary>
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.RegisterAttached("ViewModel", typeof(MainViewModel), typeof(WindowClosingBehavior), new(null, OnViewModelChanged));
 

@@ -9,6 +9,7 @@ public readonly record struct ViewTransform(double Scale, double TranslateX, dou
     public Point2 ToScreen(Point2 logical)
         => new(TranslateX + Scale * logical.X, TranslateY - Scale * logical.Y);
 
+    // ToScreen の逆変換。Scale は正である前提（Viewport が保証する）
     public Point2 ToLogical(Point2 screen)
         => new((screen.X - TranslateX) / Scale, (TranslateY - screen.Y) / Scale);
 }

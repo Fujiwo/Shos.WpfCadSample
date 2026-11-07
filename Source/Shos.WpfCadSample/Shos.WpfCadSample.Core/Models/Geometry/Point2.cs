@@ -21,6 +21,7 @@ public readonly record struct Point2(double X, double Y)
 
     public double DistanceTo(Point2 other) => (other - this).Length;
 
+    // 点 − 点 = 変位、点 ± 変位 = 点。点どうしの和は意味を持たないため定義しない
     public static Vector2 operator -(Point2 end, Point2 start) => new(end.X - start.X, end.Y - start.Y);
     public static Point2 operator +(Point2 point, Vector2 offset) => new(point.X + offset.X, point.Y + offset.Y);
     public static Point2 operator -(Point2 point, Vector2 offset) => new(point.X - offset.X, point.Y - offset.Y);

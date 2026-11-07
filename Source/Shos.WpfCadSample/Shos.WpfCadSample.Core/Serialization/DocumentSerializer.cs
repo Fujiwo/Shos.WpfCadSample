@@ -7,6 +7,9 @@ namespace Shos.WpfCadSample.Serialization;
 /// </summary>
 public static class DocumentSerializer
 {
+    /// <summary>
+    /// 形式の識別子（JSON の <c>format</c>）。拡張子が汎用の .json のため、ほかの JSON と区別する（仕様 6.4）。
+    /// </summary>
     public const string Format = "Shos.WpfCadSample.Document";
 
     public static string Serialize(IEnumerable<Shape> shapes) => ShapesJson.Write(Format, shapes);

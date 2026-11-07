@@ -50,12 +50,13 @@ public class ClipboardShapesTests
     [InlineData("")]
     public void FromText_RejectsTextThatIsNotJson(string text) => AssertInvalid(text);
 
-    // T-SER-15
+    // T-SER-15：ドキュメントの JSON は構造が似ていても、識別子が異なるため受け付けない
     [Fact]
     public void FromText_RejectsDocumentFormat()
         => AssertInvalid(Clipboard(validLine, format: "\"Shos.WpfCadSample.Document\""));
 
-    // T-SER-15（T-SER-08〜11 と同じ検証）
+    // T-SER-15（T-SER-08〜11 と同じ検証）。順に：未知の種類、必須項目 end の欠落、色が #RRGGBB でない、
+    // 太さが範囲外、座標が数値でない、2 点が一致
     [Theory]
     [InlineData("""{ "type": "triangle", "points": [], "attributes": { "color": "#000000", "thickness": 1, "lineStyle": "Solid" } }""")]
     [InlineData("""{ "type": "line", "start": { "x": 0, "y": 0 }, "attributes": { "color": "#000000", "thickness": 1, "lineStyle": "Solid" } }""")]
@@ -71,6 +72,7 @@ public class ClipboardShapesTests
     [InlineData("-3")]
     public void FromText_RejectsVersionBelowOne(string version) => AssertInvalid(Clipboard(validLine, version: version));
 
+    // 新しいバージョンは、不正（Invalid）と区別して報告する
     [Fact]
     public void FromText_NewerVersion_IsReported()
         => Assert.Equal(DocumentFormatError.NewerVersion,

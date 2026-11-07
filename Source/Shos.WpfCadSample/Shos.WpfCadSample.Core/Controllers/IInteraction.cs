@@ -10,6 +10,9 @@ interface IInteraction
     /// </summary>
     bool IsActive { get; }
 
+    /// <summary>
+    /// 論理座標へ変換済みのマウス操作を 1 つ解釈する。
+    /// </summary>
     void Handle(PointerInput input);
 
     /// <summary>

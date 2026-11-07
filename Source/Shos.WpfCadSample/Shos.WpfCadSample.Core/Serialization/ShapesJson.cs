@@ -8,6 +8,9 @@ namespace Shos.WpfCadSample.Serialization;
 /// </summary>
 static class ShapesJson
 {
+    /// <summary>
+    /// 書き出す形式のバージョン。これより新しいバージョンは読み込まない。
+    /// </summary>
     public const int CurrentVersion = 1;
 
     public static string Write(string format, IEnumerable<Shape> shapes)
@@ -28,6 +31,7 @@ static class ShapesJson
         return [.. file.Shapes.Select(shape => shape with { Id = ShapeId.New() })];
     }
 
+    // 構文と型の誤りを、すべて DocumentFormatException（Invalid）にまとめる
     static DocumentFile Parse(string format, string text)
     {
         try {

@@ -18,6 +18,9 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
     bool isHexValid = true;
     bool isThicknessValid = true;
 
+    /// <summary>
+    /// 線種の選択肢（コンボボックスの項目）。
+    /// </summary>
     public static IReadOnlyList<LineStyle> LineStyles { get; } = Enum.GetValues<LineStyle>();
 
     /// <summary>
@@ -25,6 +28,7 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
     /// </summary>
     public ShapeAttributes Attributes => attributes;
 
+    // RGB スライダーの各成分（0〜255）。編集すると、16 進の表示と色見本も連動する（仕様 4.5）
     public byte Red {
         get => attributes.Color.R;
         set => ApplyColor(attributes.Color with { R = value });
@@ -73,11 +77,17 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
         set => Apply(attributes with { LineStyle = value });
     }
 
+    /// <summary>
+    /// 16 進の入力が有効か。偽のとき、View は入力欄を検証エラーの見た目で示す（仕様 5.4）。
+    /// </summary>
     public bool IsHexValid {
         get => isHexValid;
         private set => SetProperty(ref isHexValid, value);
     }
 
+    /// <summary>
+    /// 太さの入力が有効か。偽のとき、View は入力欄を検証エラーの見た目で示す（仕様 5.4）。
+    /// </summary>
     public bool IsThicknessValid {
         get => isThicknessValid;
         private set => SetProperty(ref isThicknessValid, value);
@@ -110,6 +120,7 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
         IsHexValid = true;
     }
 
+    // 値が変わったときだけ反映して通知する（同じ値の再設定で、編集を記録させないため）
     bool Apply(ShapeAttributes newAttributes)
     {
         if (newAttributes == attributes)
@@ -119,6 +130,7 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
         return true;
     }
 
+    // 属性から求める表示用のプロパティを、まとめて通知する。入力中の文字列（Hex、ThicknessText）は変えない
     void SetAttributes(ShapeAttributes newAttributes)
     {
         attributes = newAttributes;
@@ -139,9 +151,11 @@ public sealed class AttributeEditModel(Action<ShapeAttributes> changed) : Observ
         IsThicknessValid = true;
     }
 
+    // 範囲の判定は ShapeAttributes.IsValid に任せる（太さの制約を 1 か所に保つ。仕様 A-6）
     static bool TryParseThickness(string text, out double thickness)
         => double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out thickness) &&
            (ShapeAttributes.Default with { Thickness = thickness }).IsValid();
 
+    // カルチャーに左右されない表記（小数点は常に「.」）で、小数 1〜3 桁にする
     static string FormatThickness(double thickness) => thickness.ToString("0.0##", CultureInfo.InvariantCulture);
 }

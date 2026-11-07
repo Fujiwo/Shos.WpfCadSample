@@ -11,6 +11,9 @@ namespace Shos.WpfCadSample.Views.Behaviors;
 /// </summary>
 public static class EditCommit
 {
+    /// <summary>
+    /// 編集の完了時に実行するコマンド（引数なし）。
+    /// </summary>
     public static readonly DependencyProperty CommandProperty =
         DependencyProperty.RegisterAttached("Command", typeof(ICommand), typeof(EditCommit), new(null, OnCommandChanged));
 
@@ -24,6 +27,7 @@ public static class EditCommit
             return;     // イベントの購読は、最初に設定されたときに 1 回だけ
         switch (target) {
             case Slider slider:
+                // つまみのドラッグ、トラックのクリック、キー操作の、それぞれの終わりを完了とする
                 slider.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler((_, _) => Commit(slider)));
                 slider.PreviewMouseLeftButtonUp += (_, _) => Commit(slider);
                 slider.KeyUp += (_, _) => Commit(slider);

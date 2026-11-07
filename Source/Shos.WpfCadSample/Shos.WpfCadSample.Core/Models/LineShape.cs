@@ -2,6 +2,9 @@
 
 namespace Shos.WpfCadSample.Models;
 
+/// <summary>
+/// 線分。ハンドルは始点（0）と終点（1）。
+/// </summary>
 public sealed record LineShape(ShapeId Id, ShapeAttributes Attributes, Point2 Start, Point2 End) : Shape(Id, Attributes)
 {
     public override ShapeKind Kind => ShapeKind.Line;
@@ -20,5 +23,6 @@ public sealed record LineShape(ShapeId Id, ShapeAttributes Attributes, Point2 St
 
     protected override IEnumerable<Point2> DefinitionPoints => [Start, End];
 
+    // 始点と終点が一致すると、長さ 0 の線分になるため除く
     protected override bool SatisfiesKindConstraints() => Start != End;
 }

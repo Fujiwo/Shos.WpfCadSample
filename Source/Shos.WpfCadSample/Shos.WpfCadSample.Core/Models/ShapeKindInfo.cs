@@ -66,8 +66,9 @@ public static class ShapeKindInfo
         if (points.Count == 0)
             return point.IsWithinLimits();
         if (IsFixedTwoPoint(kind) && points.Count >= 2)
-            return false;
+            return false;   // 2 点で確定する種類に、3 点目は加えられない
 
+        // 制約は属性によらないため、判定用の図形は既定属性で作る
         return Create(kind, [.. points, point], ShapeAttributes.Default).SatisfiesConstraints();
     }
 }

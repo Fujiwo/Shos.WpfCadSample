@@ -17,7 +17,7 @@ public class Point2Tests
     // T-GEO-04
     [Theory]
     [InlineData(0.0, 0.0, true)]
-    [InlineData(-1e300, 1e300, true)]
+    [InlineData(-1e300, 1e300, true)]   // 座標の範囲外でも有限（範囲の判定は IsWithinLimits の役目）
     [InlineData(double.NaN, 0.0, false)]
     [InlineData(0.0, double.NaN, false)]
     [InlineData(double.PositiveInfinity, 0.0, false)]

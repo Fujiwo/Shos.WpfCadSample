@@ -22,5 +22,6 @@ public readonly record struct RgbColor(byte R, byte G, byte B)
         return true;
     }
 
+    // start から 2 文字を、1 つの色成分（00～FF）として読む
     static byte Component(string text, int start) => Convert.ToByte(text.Substring(start, 2), 16);
 }

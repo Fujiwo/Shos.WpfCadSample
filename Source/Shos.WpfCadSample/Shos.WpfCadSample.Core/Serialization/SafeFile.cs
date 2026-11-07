@@ -12,6 +12,7 @@ static class SafeFile
     public static void WriteAllText(string path, string text)
     {
         var fullPath = Path.GetFullPath(path);
+        // 同じフォルダーに置くのは、置き換え（File.Replace）が同じボリューム内でしかできないため。名前は衝突しないよう GUID を含める
         var temporaryPath = Path.Combine(Path.GetDirectoryName(fullPath)!, $"{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
         try {
             File.WriteAllText(temporaryPath, text);
@@ -20,7 +21,7 @@ static class SafeFile
             else
                 File.Move(temporaryPath, fullPath);
         } finally {
-            DeleteIfExists(temporaryPath);
+            DeleteIfExists(temporaryPath);  // 成功時は移動済みで存在しない。失敗時の一時ファイルを残さない
         }
     }
 

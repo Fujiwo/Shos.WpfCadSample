@@ -12,6 +12,7 @@ public sealed partial class PropertiesViewModel : ObservableObject
 {
     readonly Drawing drawing;
     readonly EditorController editor;
+    // 表示中の選択図形。同じ図形の同じ属性なら表示を読み直さない（入力中の文字列を保つため）
     ShapeId? shownId;
 
     public PropertiesViewModel(Drawing drawing, EditorController editor)
@@ -25,6 +26,9 @@ public sealed partial class PropertiesViewModel : ObservableObject
         editor.Committed += (_, _) => Refresh();
     }
 
+    /// <summary>
+    /// 図形を選択しているか。偽のとき、View は「Selected Shape」の区画を空欄にして無効にする（仕様 4.5）。
+    /// </summary>
     [ObservableProperty]
     public partial bool HasSelection { get; private set; }
 
@@ -34,6 +38,9 @@ public sealed partial class PropertiesViewModel : ObservableObject
     [ObservableProperty]
     public partial string ShapeTypeName { get; private set; } = "";
 
+    /// <summary>
+    /// 選択図形の属性。編集中は記録せずに図形へ反映し、<see cref="CommitEditCommand"/> で 1 回の Undo 単位にする（設計書 DD-3）。
+    /// </summary>
     public AttributeEditModel SelectedAttributes { get; }
 
     /// <summary>
@@ -73,6 +80,7 @@ public sealed partial class PropertiesViewModel : ObservableObject
         shownId = shape?.Id;
     }
 
+    // 種類の表示名（2 語の名前は空白で区切る）
     static string DisplayName(ShapeKind kind) => kind switch {
         ShapeKind.OpenCurve => "Open Curve",
         ShapeKind.ClosedCurve => "Closed Curve",

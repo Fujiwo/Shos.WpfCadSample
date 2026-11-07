@@ -109,6 +109,7 @@ public class DrawingTests
         var drawing = DrawingWith(original);
         var final = original.Translate(new Vector2(30, 0));
 
+        // ドラッグと同じ手順：表示だけを更新し、確定の前に元へ戻してから、元 → 最終の置き換えを 1 回だけ記録する
         foreach (var step in Enumerable.Range(1, 3))
             drawing.PreviewReplace(0, original.Translate(new Vector2(step * 10, 0)));
         drawing.RestoreOriginal(0, original);
@@ -181,6 +182,7 @@ public class DrawingTests
         drawing.Undo();
         Shape[] loaded = [NewLine(7), NewLine(8), NewLine(9)];
 
+        // Open・New による入れ替えは編集ではないため、Committed を発生させない
         var committed = CountCommitted(drawing, () => drawing.Load(loaded));
 
         Assert.Equal(loaded, drawing.Shapes);
@@ -203,6 +205,7 @@ public class DrawingTests
         drawing.MarkSaved();
         Assert.False(drawing.IsModified);
 
+        // 保存した後に Undo すると、保存した内容とは異なる状態になる
         drawing.Add(NewLine(2));
         drawing.MarkSaved();
         drawing.Undo();

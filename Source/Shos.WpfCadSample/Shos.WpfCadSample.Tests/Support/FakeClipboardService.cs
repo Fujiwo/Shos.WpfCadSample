@@ -8,9 +8,17 @@ namespace Shos.WpfCadSample.Tests.Support;
 /// </summary>
 sealed class FakeClipboardService : IClipboardService
 {
+    /// <summary>
+    /// クリップボードにある独自形式のテキスト。null なら、図形の内容はない。
+    /// </summary>
     public string? ShapesText { get; set; }
+
+    /// <summary>
+    /// true にすると、すべての操作が <see cref="ClipboardOperationException"/> を投げる（ほかのアプリケーションが使用中の状態）。
+    /// </summary>
     public bool Fails { get; set; }
 
+    // Copy as Metafile / Copy as Image で出力した図形の記録
     public List<IReadOnlyList<Shape>> Metafiles { get; } = [];
     public List<IReadOnlyList<Shape>> Images { get; } = [];
 

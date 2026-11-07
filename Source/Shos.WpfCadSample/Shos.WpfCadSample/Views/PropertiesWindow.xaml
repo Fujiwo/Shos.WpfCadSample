@@ -21,12 +21,16 @@
         behaviors:Shortcuts.Source="{StaticResource MenuShortcuts}"
         behaviors:CommandEvents.Activated="{Binding RefreshClipboardStateCommand}">
     <Window.Resources>
+        <!-- ウィンドウの振る舞い（上の属性）：WindowVisibilityBehavior は表示状態との連動と、閉じる操作の非表示化、
+             WindowPlacementBehavior は配置の復元と保存、Shortcuts.Source はメインウィンドウと同じショートカット（仕様 A-25）、
+             CommandEvents.Activated は Paste の有効状態の更新。DataContext は MainViewModel にし、ショートカットのコマンドを同じパスで解決する -->
         <converters:RgbColorToBrushConverter x:Key="RgbColorToBrush" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
         <!-- 不正な入力は反映せず、入力部品を検証エラーの見た目で示す（仕様 5.4） -->
         <Style x:Key="InvalidInput" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
             <Style.Triggers>
+                <!-- Tag に入力の有効性（IsHexValid など）をバインドし、False のときに見た目を変える -->
                 <Trigger Property="Tag">
                     <Trigger.Value>
                         <system:Boolean>False</system:Boolean>
@@ -41,6 +45,7 @@
         <!-- 属性の編集部品：色（見本、16 進、RGB スライダー）、太さ、線種。「Selected Shape」と「Defaults for New Shapes」で共有する -->
         <DataTemplate x:Key="AttributeEditor" DataType="{x:Type viewModels:AttributeEditModel}">
             <Grid>
+                <!-- 列：見出し、入力部品、スライダーの値 -->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -67,10 +72,12 @@
                         <Setter Property="IsSnapToTickEnabled" Value="True" />
                         <Setter Property="TickFrequency" Value="1" />
                         <Setter Property="VerticalAlignment" Value="Center" />
+                        <!-- この DataTemplate の DataContext は AttributeEditModel のため、確定のコマンドはウィンドウの DataContext（MainViewModel）からたどる -->
                         <Setter Property="behaviors:EditCommit.Command" Value="{Binding DataContext.Properties.CommitEditCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                     </Style>
                 </Grid.Resources>
 
+                <!-- 色：見本と 16 進の入力。入力のたびに反映し（UpdateSourceTrigger=PropertyChanged）、RGB と即時に連動させる（仕様 4.5） -->
                 <TextBlock Grid.Row="0" Text="Color" />
                 <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
                     <Border Width="24" Height="24" CornerRadius="4" Margin="0,0,8,0" BorderThickness="1"
@@ -81,6 +88,7 @@
                              behaviors:EditCommit.Command="{Binding DataContext.Properties.CommitEditCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                 </StackPanel>
 
+                <!-- RGB スライダー（0〜255）と、その値 -->
                 <TextBlock Grid.Row="1" Text="R" HorizontalAlignment="Right" />
                 <Slider Grid.Row="1" Grid.Column="1" Value="{Binding Red}" />
                 <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Red}" HorizontalAlignment="Right" Margin="0" />
@@ -91,12 +99,14 @@
                 <Slider Grid.Row="3" Grid.Column="1" Value="{Binding Blue}" />
                 <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Blue}" HorizontalAlignment="Right" Margin="0" />
 
+                <!-- 太さ（論理単位。範囲は仕様 A-6） -->
                 <TextBlock Grid.Row="4" Text="Thickness" />
                 <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4" Style="{StaticResource InvalidInput}"
                          materialDesign:HintAssist.Hint="0.5 - 50"
                          Text="{Binding ThicknessText, UpdateSourceTrigger=PropertyChanged}" Tag="{Binding IsThicknessValid}"
                          behaviors:EditCommit.Command="{Binding DataContext.Properties.CommitEditCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
 
+                <!-- 線種：列挙名をそのまま表示し、DashDot だけ表示名を Dash-Dot にする（仕様 4.5） -->
                 <TextBlock Grid.Row="5" Text="Line style" />
                 <ComboBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,4"
                           ItemsSource="{x:Static viewModels:AttributeEditModel.LineStyles}" SelectedItem="{Binding LineStyle}"
@@ -131,6 +141,7 @@
                 </StackPanel>
             </materialDesign:Card>
 
+            <!-- 新規図形の既定属性は、常に編集できる（Undo の対象ではない。仕様 4.5） -->
             <materialDesign:Card Padding="12">
                 <StackPanel>
                     <TextBlock Text="Defaults for New Shapes" Style="{StaticResource MaterialDesignTitleSmallTextBlock}" Margin="0,0,0,8" />

@@ -6,6 +6,7 @@
              xmlns:behaviors="clr-namespace:Shos.WpfCadSample.Views.Behaviors"
              StartupUri="Views/MainWindow.xaml" ShutdownMode="OnMainWindowClose">
     <Application.Resources>
+        <!-- ShutdownMode="OnMainWindowClose"：メインウィンドウを閉じたら、属性ウィンドウの状態にかかわらず終了する -->
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Material Design 3、Light（設計書 DD-9） -->
@@ -13,6 +14,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- 起動時の組み立て。各ウィンドウは、ここから DataContext（MainViewModel）を得る -->
             <infrastructure:CompositionRoot x:Key="CompositionRoot" />
 
             <!-- メニューのショートカット（仕様 4.2。Alt+F4 を除く）。メインウィンドウと属性ウィンドウが共有する（仕様 4.5、A-25） -->

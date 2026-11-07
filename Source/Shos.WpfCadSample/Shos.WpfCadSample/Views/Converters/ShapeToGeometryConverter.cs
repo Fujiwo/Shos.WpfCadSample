@@ -31,6 +31,7 @@ public sealed class ShapeToGeometryConverter : IValueConverter
         var geometry = new StreamGeometry();
         using (var context = geometry.Open()) {
             foreach (var figure in outline.Figures) {
+                // 図形は塗りつぶさない（仕様 A-17）
                 context.BeginFigure(ToRelative(figure.Start), isFilled: false, isClosed: figure.IsClosed);
                 foreach (var segment in figure.Segments) {
                     switch (segment) {
@@ -44,6 +45,7 @@ public sealed class ShapeToGeometryConverter : IValueConverter
                 }
             }
         }
+        // 凍結して変更の追跡を省く（図形は不変のため、ジオメトリも変わらない）
         geometry.Freeze();
         return geometry;
     }

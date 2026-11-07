@@ -140,6 +140,7 @@ public class PropertiesViewModelTests
 
         model.Green = 0x80;
 
+        // 不正な 16 進は色に反映されていないため、既定の黒の G だけを変えた値になる
         Assert.Equal("#008000", model.Hex);
         Assert.True(model.IsHexValid);
     }
@@ -159,6 +160,7 @@ public class PropertiesViewModelTests
         Assert.False(model.IsHexValid);
         Assert.Equal(ShapeAttributes.Default, model.Attributes);
         Assert.Equal(ShapeAttributes.Default, editor.DefaultAttributes);
+        // 確定すると、表示を直前の有効値に戻す
         properties.CommitEditCommand.Execute(null);
         Assert.Equal("#000000", model.Hex);
         Assert.True(model.IsHexValid);
@@ -187,7 +189,7 @@ public class PropertiesViewModelTests
     [Theory]
     [InlineData("0.5", 0.5)]
     [InlineData("50", 50.0)]
-    [InlineData(" 3.25 ", 3.25)]
+    [InlineData(" 3.25 ", 3.25)]    // 前後の空白は許す
     public void ValidThickness_IsApplied(string text, double expected)
     {
         properties.DefaultAttributes.ThicknessText = text;
@@ -228,8 +230,9 @@ public class PropertiesViewModelTests
     {
         drawing.Add(new OpenCurveShape(ShapeId.New(), ShapeAttributes.Default, [new(100, 100), new(200, 150), new(300, 100)]));
 
-        ClickAt(300, 100);
+        ClickAt(300, 100);      // 曲線の終点（通過点）の上
 
+        // 列挙の名前 OpenCurve ではなく、語を空白で区切った表示名
         Assert.Equal("Open Curve", properties.ShapeTypeName);
     }
 }

@@ -24,6 +24,7 @@
             <Setter Property="Stroke" Value="{Binding Attributes.Color, Converter={StaticResource RgbColorToBrush}}" />
             <Setter Property="StrokeThickness" Value="{Binding Attributes.Thickness}" />
             <Setter Property="StrokeDashArray" Value="{Binding Attributes.LineStyle, Converter={StaticResource LineStyleToDashes}}" />
+            <!-- 角の形は、EMF・画像の出力（LineJoin.Round）とそろえる -->
             <Setter Property="StrokeLineJoin" Value="Round" />
         </Style>
 
@@ -102,7 +103,7 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <!-- ⑤ 入力を受ける面（マウス、ホイール、描画領域の大きさ）。カーソルの形は仕様 4.3 -->
+        <!-- ⑤ 入力を受ける面（マウス、ホイール、描画領域の大きさ）。最前面に置き、図形の上でもマウスを受ける。カーソルの形は仕様 4.3 -->
         <views:DrawingSurface PointerCommand="{Binding PointerCommand}" PointerLeaveCommand="{Binding PointerLeaveCommand}"
                               ZoomCommand="{Binding ZoomCommand}" ViewSizeCommand="{Binding SetViewSizeCommand}"
                               Cursor="{Binding Cursor, Converter={StaticResource PointerCursorToCursor}}" />

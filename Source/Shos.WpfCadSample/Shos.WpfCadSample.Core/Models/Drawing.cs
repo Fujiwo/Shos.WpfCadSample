@@ -13,6 +13,7 @@ public sealed class Drawing
 
     readonly UndoRedoObservableCollection<Shape> shapes = new(maximumUndoTimes);
 
+    // 外へは読み取り専用の包みだけを渡し、履歴を迂回した変更をさせない
     public Drawing() => Shapes = new(shapes.List);
 
     /// <summary>
@@ -33,6 +34,9 @@ public sealed class Drawing
     /// </summary>
     public event EventHandler? Committed;
 
+    /// <summary>
+    /// 図形を最上位（一覧の末尾）に加える。Undo の対象として記録する。
+    /// </summary>
     public void Add(Shape shape)
     {
         ArgumentNullException.ThrowIfNull(shape);
@@ -46,6 +50,9 @@ public sealed class Drawing
         OnCommitted();
     }
 
+    /// <summary>
+    /// <paramref name="index"/> の図形を置き換える（移動・変形・属性の変更）。Undo の対象として記録する。
+    /// </summary>
     public void Replace(int index, Shape shape)
     {
         ArgumentNullException.ThrowIfNull(shape);
@@ -84,6 +91,7 @@ public sealed class Drawing
     /// </summary>
     public void Load(IEnumerable<Shape> loadedShapes)
     {
+        // 読み込みは Undo の対象にしない。記録を止めて入れ替え、残った履歴も消す
         using (new UndoRedoList<Shape, ObservableCollection<Shape>>.DisabledUndoScope(shapes)) {
             shapes.Clear();
             foreach (var shape in loadedShapes)
@@ -93,10 +101,13 @@ public sealed class Drawing
         IsModified = false;
     }
 
+    /// <summary>
+    /// 保存できたときに呼び、未変更とする。履歴は残す（保存後も Undo できる）。
+    /// </summary>
     public void MarkSaved() => IsModified = false;
 
     /// <summary>
-    /// 識別子が同じ図形の添字。なければ −1。
+    /// 識別子が同じ図形の添字。なければ −1。図形は置き換えで別のインスタンスになるため、参照ではなく識別子で探す。
     /// </summary>
     public int IndexOf(ShapeId id)
     {

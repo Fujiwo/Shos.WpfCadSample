@@ -10,9 +10,15 @@ namespace Shos.WpfCadSample.Views.Behaviors;
 /// </summary>
 public static class CommandEvents
 {
+    /// <summary>
+    /// ウィンドウがアクティブになったときに実行するコマンド。
+    /// </summary>
     public static readonly DependencyProperty ActivatedProperty =
         DependencyProperty.RegisterAttached("Activated", typeof(ICommand), typeof(CommandEvents), new(null, OnActivatedChanged));
 
+    /// <summary>
+    /// メニューを開いたときに実行するコマンド（その下のサブメニューを開いたときは除く）。
+    /// </summary>
     public static readonly DependencyProperty SubmenuOpenedProperty =
         DependencyProperty.RegisterAttached("SubmenuOpened", typeof(ICommand), typeof(CommandEvents), new(null, OnSubmenuOpenedChanged));
 
@@ -24,6 +30,7 @@ public static class CommandEvents
 
     public static void SetSubmenuOpened(MenuItem menuItem, ICommand? value) => menuItem.SetValue(SubmenuOpenedProperty, value);
 
+    // 購読は最初に設定されたときの 1 回だけ。実行時に、その時点のコマンドを読む（バインドの更新に追従する）
     static void OnActivatedChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
     {
         if (target is Window window && e.OldValue is null)

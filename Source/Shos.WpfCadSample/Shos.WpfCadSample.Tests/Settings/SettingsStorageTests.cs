@@ -23,6 +23,7 @@ public sealed class SettingsStorageTests : IDisposable
 
     public void Dispose() => folder.Dispose();
 
+    // 既定値と異なる値（負の位置・小数・最大化・非表示・既定でない属性）。往復で値が失われないことを確かめる
     static readonly AppSettings custom = new(
         1,
         new WindowPlacement(-1500.5, 20, 1024, 768, IsMaximized: true),
@@ -38,6 +39,7 @@ public sealed class SettingsStorageTests : IDisposable
         }
         """;
 
+    // 破損したファイルは退避して既定値で続ける：元のファイルはなくなり、退避ファイルに同じ内容が残る
     void AssertDamagedFileIsBackedUp(string content)
     {
         File.WriteAllText(path, content);
@@ -92,7 +94,7 @@ public sealed class SettingsStorageTests : IDisposable
     [Theory]
     [InlineData("{ not json")]
     [InlineData("")]
-    [InlineData("null")]
+    [InlineData("null")]    // JSON としては正しいが、設定にならない
     public void Load_DamagedFile_BacksUpAndReturnsDefault(string content) => AssertDamagedFileIsBackedUp(content);
 
     // T-SET-04
@@ -119,7 +121,7 @@ public sealed class SettingsStorageTests : IDisposable
         Assert.Contains("could not be saved", result.Warning);
     }
 
-    // T-SET-06
+    // T-SET-06：有効な JSON の 1 か所だけを不正な値に置き換え、項目ごとの検証が働くことを確かめる
     [Theory]
     [InlineData("\"thickness\": 2", "\"thickness\": 0.1")]
     [InlineData("\"#FF0000\"", "\"red\"")]
@@ -142,6 +144,7 @@ public sealed class SettingsStorageTests : IDisposable
     public void Load_UnsupportedVersion_IsTreatedAsDamaged(string version)
         => AssertDamagedFileIsBackedUp(validJson.Replace("\"version\": 1", $"\"version\": {version}"));
 
+    // 保存の失敗は例外で呼び出し側に伝え、元のファイルの内容は変わらない
     [Fact]
     public void Save_WhenTargetIsReadOnly_Throws()
     {

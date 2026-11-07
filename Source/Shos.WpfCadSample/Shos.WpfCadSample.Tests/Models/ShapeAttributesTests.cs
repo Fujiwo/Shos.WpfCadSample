@@ -48,7 +48,7 @@ public class ShapeAttributesTests
     public void TryParse_RejectsInvalidText(string? text)
         => Assert.False(RgbColor.TryParse(text, out _));
 
-    // T-ATT-03
+    // T-ATT-03：太さの範囲は 0.5〜50（両端を含む。仮定 A-6）。境界とそのすぐ外側を確かめる
     [Theory]
     [InlineData(0.5, true)]
     [InlineData(50.0, true)]
@@ -60,7 +60,7 @@ public class ShapeAttributesTests
     public void IsValid_ChecksThicknessRange(double thickness, bool expected)
         => Assert.Equal(expected, (ShapeAttributes.Default with { Thickness = thickness }).IsValid());
 
-    // T-ATT-03
+    // T-ATT-03：列挙型の変数には定義外の値も入りうるため、それも拒否する
     [Fact]
     public void IsValid_RejectsUndefinedLineStyle()
         => Assert.False((ShapeAttributes.Default with { LineStyle = (LineStyle)99 }).IsValid());
@@ -74,7 +74,7 @@ public class ShapeAttributesTests
         Assert.Equal(LineStyle.Solid, ShapeAttributes.Default.LineStyle);
     }
 
-    // T-ATT-05
+    // T-ATT-05：値は太さを単位とする長さ（WPF の破線と同じ扱い）。そのため、間隔は太さに比例する（仮定 A-6）
     [Theory]
     [InlineData(LineStyle.Solid, new double[0])]
     [InlineData(LineStyle.Dash, new[] { 4.0, 2.0 })]

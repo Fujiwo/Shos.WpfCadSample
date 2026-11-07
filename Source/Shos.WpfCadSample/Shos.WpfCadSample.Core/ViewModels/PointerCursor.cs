@@ -5,7 +5,7 @@
 /// </summary>
 public enum PointerCursor
 {
-    Arrow,
-    Cross,
-    Move
+    Arrow,  // Select（ハンドルの外）
+    Cross,  // 描画ツール
+    Move    // Select のハンドルの上と、ドラッグ中
 }

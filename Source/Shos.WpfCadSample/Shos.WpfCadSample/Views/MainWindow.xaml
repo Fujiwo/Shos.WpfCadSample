@@ -18,6 +18,8 @@
         behaviors:WindowPlacementBehavior.DefaultPlacement="{Binding MainWindow, Source={x:Static settings:AppSettings.Default}}"
         behaviors:Shortcuts.Source="{StaticResource MenuShortcuts}"
         behaviors:CommandEvents.Activated="{Binding RefreshClipboardStateCommand}">
+    <!-- ウィンドウの振る舞い（上の属性）：WindowClosingBehavior は閉じる前の保存確認、WindowPlacementBehavior は配置の復元と保存、
+         Shortcuts.Source はメニューのショートカット、CommandEvents.Activated は Paste の有効状態の更新 -->
     <!-- 属性ウィンドウ（モードレス）。メインウィンドウの表示後に、その所有者にする -->
     <behaviors:WindowVisibilityBehavior.OwnedWindow>
         <views:PropertiesWindow />
@@ -43,6 +45,7 @@
     </Window.Resources>
 
     <DockPanel>
+        <!-- メニュー（仕様 4.2）。InputGestureText は表示だけで、キーの割り当ては Shortcuts.Source が行う -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" InputGestureText="Ctrl+N" Command="{Binding NewCommand}" />
@@ -52,6 +55,7 @@
                 <Separator />
                 <MenuItem Header="E_xit" InputGestureText="Alt+F4" Command="{Binding ExitCommand}" />
             </MenuItem>
+            <!-- Edit を開くたびに、クリップボードの内容に合わせて Paste の有効状態を更新する -->
             <MenuItem Header="_Edit" behaviors:CommandEvents.SubmenuOpened="{Binding RefreshClipboardStateCommand}">
                 <MenuItem Header="_Undo" InputGestureText="Ctrl+Z" Command="{Binding UndoCommand}" />
                 <MenuItem Header="_Redo" InputGestureText="Ctrl+Y" Command="{Binding RedoCommand}" />
@@ -64,11 +68,13 @@
                 <MenuItem Header="Copy as _Image" Command="{Binding CopyImageCommand}" />
             </MenuItem>
             <MenuItem Header="_View">
+                <!-- 表示状態はコマンドで切り替える。チェックは表示状態を映すだけ（OneWay） -->
                 <MenuItem Header="_Properties Window" InputGestureText="F4" Command="{Binding TogglePropertiesCommand}"
                           IsChecked="{Binding IsPropertiesWindowVisible, Mode=OneWay}" />
             </MenuItem>
         </Menu>
 
+        <!-- ツールバー：ツールボタン（排他。ツールは ToolSelection.Tool で指定）と Undo / Redo（仕様 4.2） -->
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar ClipToBounds="False">
                 <RadioButton Style="{StaticResource ToolButton}" ToolTip="Select" behaviors:ToolSelection.Tool="Select">
@@ -96,6 +102,7 @@
                     <materialDesign:PackIcon Kind="VectorEllipse" />
                 </RadioButton>
                 <Separator />
+                <!-- Edit メニューと同じコマンドにして、有効状態もそろえる（仕様 4.2） -->
                 <Button ToolTip="Undo (Ctrl+Z)" Command="{Binding UndoCommand}">
                     <materialDesign:PackIcon Kind="Undo" />
                 </Button>
@@ -105,6 +112,7 @@
             </ToolBar>
         </ToolBarTray>
 
+        <!-- 状態表示（仕様 4.4）：左から操作案内、カーソルの座標、拡大率。右の 2 つを右端に寄せ、残りの幅を操作案内に充てる -->
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -118,6 +126,7 @@
             <StatusBarItem Content="{Binding Drawing.StatusText}" />
         </StatusBar>
 
+        <!-- 描画領域：DockPanel の最後の子として、残りの領域を埋める -->
         <views:DrawingView DataContext="{Binding Drawing}" />
     </DockPanel>
 </Window>

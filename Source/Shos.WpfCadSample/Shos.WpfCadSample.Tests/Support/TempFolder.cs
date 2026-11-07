@@ -5,6 +5,7 @@
 /// </summary>
 sealed class TempFolder : IDisposable
 {
+    // 並行して動くテストどうしで衝突しないよう、フォルダー名に GUID を使う
     public TempFolder()
     {
         Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Shos.WpfCadSample.Tests", Guid.NewGuid().ToString("N"));
@@ -22,6 +23,7 @@ sealed class TempFolder : IDisposable
 
     public void Dispose()
     {
+        // 読み取り専用のファイルがあると、フォルダーごとの削除が失敗するため、先に属性を戻す
         foreach (var file in Directory.EnumerateFiles(Path, "*", SearchOption.AllDirectories))
             File.SetAttributes(file, FileAttributes.Normal);
         Directory.Delete(Path, recursive: true);

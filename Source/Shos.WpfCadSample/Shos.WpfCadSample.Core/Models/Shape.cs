@@ -40,6 +40,9 @@ public abstract record Shape([property: JsonIgnore] ShapeId Id, ShapeAttributes 
     /// </summary>
     public abstract Shape MoveHandle(int index, Point2 to);
 
+    /// <summary>
+    /// すべての定義点を <paramref name="delta"/> だけ平行移動した図形。制約の判定はしない。
+    /// </summary>
     public abstract Shape Translate(Vector2 delta);
 
     /// <summary>
@@ -49,6 +52,9 @@ public abstract record Shape([property: JsonIgnore] ShapeId Id, ShapeAttributes 
     public bool SatisfiesConstraints()
         => DefinitionPoints.All(point => point.IsWithinLimits()) && SatisfiesKindConstraints() && CreateOutline().IsFinite();
 
+    /// <summary>
+    /// 図形として受け入れられるか：最小点数・制約・属性をすべて満たす。読み込み・貼り付け・入力と編集の確定で使う。
+    /// </summary>
     public bool IsValid() => HasMinimumPoints && SatisfiesConstraints() && Attributes.IsValid();
 
     /// <summary>
@@ -61,8 +67,10 @@ public abstract record Shape([property: JsonIgnore] ShapeId Id, ShapeAttributes 
     /// </summary>
     protected abstract bool SatisfiesKindConstraints();
 
+    // 点の数が型で決まる図形（線分・円・矩形）は、常に満たす。点列の図形だけが上書きする
     protected virtual bool HasMinimumPoints => true;
 
+    // ハンドルの添字が範囲外なのは呼び出し側の誤り。制約違反（IsValid）とは区別し、例外にする
     protected static void ThrowIfNotHandleIndex(int index, int handleCount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);

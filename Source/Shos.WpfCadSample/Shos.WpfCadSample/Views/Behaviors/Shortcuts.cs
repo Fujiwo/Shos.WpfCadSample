@@ -40,6 +40,7 @@ public static class Shortcuts
             return;
         foreach (var shortcut in shortcuts) {
             var binding = new KeyBinding { Key = shortcut.Key, Modifiers = shortcut.Modifiers };
+            // パスでバインドするため、コマンドは要素の DataContext（MainViewModel）から解決される
             BindingOperations.SetBinding(binding, InputBinding.CommandProperty, new Binding(shortcut.Command));
             element.InputBindings.Add(binding);
         }

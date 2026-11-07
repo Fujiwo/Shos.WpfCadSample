@@ -22,11 +22,13 @@ static class NativeClipboard
         }
         try {
             if (!EmptyClipboard() || SetClipboardData(enhancedMetafileFormat, enhancedMetafile) == IntPtr.Zero) {
+                // エラー番号は、DeleteEnhMetaFile が上書きする前に読む
                 var error = Marshal.GetLastPInvokeError();
                 DeleteEnhMetaFile(enhancedMetafile);
                 throw new Win32Exception(error);
             }
         } finally {
+            // 開いたクリップボードは、成否にかかわらず閉じる（開いたままだと、他のアプリが使えない）
             CloseClipboard();
         }
     }

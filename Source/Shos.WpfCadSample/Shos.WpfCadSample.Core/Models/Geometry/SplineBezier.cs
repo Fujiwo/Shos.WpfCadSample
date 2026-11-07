@@ -39,6 +39,7 @@ public static class SplineBezier
     static Vector2[] OpenTangents(IReadOnlyList<Point2> points)
     {
         var last = points.Count - 1;
+        // 両端の行は自然スプラインの境界条件（係数 2）、内側の行は係数 4。右辺の添字は端で範囲内に収める
         var diagonal = Enumerable.Range(0, points.Count).Select(index => index == 0 || index == last ? 2.0 : 4.0).ToArray();
         var rhs = Enumerable.Range(0, points.Count)
                             .Select(index => (points[Math.Min(index + 1, last)] - points[Math.Max(index - 1, 0)]) * 3)
@@ -58,6 +59,7 @@ public static class SplineBezier
 
     static OutlineFigure Figure(IReadOnlyList<Point2> points, Vector2[] tangents, bool isClosed)
     {
+        // 閉じた曲線は、最後の通過点から最初の通過点へ戻る区間も作る
         var segmentCount = isClosed ? points.Count : points.Count - 1;
         var segments = Enumerable.Range(0, segmentCount).Select(index => {
             var next = (index + 1) % points.Count;
@@ -98,6 +100,7 @@ public static class SplineBezier
         // A = B + u·vᵀ（u = (γ, 0, …, 0, 1)、v = (1, 0, …, 0, 1/γ)）とし、三重対角の B について 2 回解く。
         public static Vector2[] SolveCyclic(int count, double diagonalValue, Vector2[] rhs)
         {
+            // γ = −(対角の値) とすると、B の対角が大きく保たれ、消去が安定する
             var gamma = -diagonalValue;
             var diagonal = Enumerable.Repeat(diagonalValue, count).ToArray();
             diagonal[0] -= gamma;
@@ -108,6 +111,7 @@ public static class SplineBezier
             var u = Enumerable.Range(0, count).Select(index => index == 0 ? gamma : index == count - 1 ? 1.0 : 0.0);
             var z = Solve(diagonal, [.. u.Select(value => new Vector2(value, 0))]).Select(value => value.X).ToArray();
 
+            // x = y − (v·y) / (1 + v·z) · z
             var factor = (y[0] + y[count - 1] / gamma) / (1 + z[0] + z[count - 1] / gamma);
             return [.. y.Select((value, index) => value - factor * z[index])];
         }

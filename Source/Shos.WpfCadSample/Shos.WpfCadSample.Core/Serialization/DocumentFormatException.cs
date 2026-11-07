@@ -6,6 +6,9 @@
 public sealed class DocumentFormatException(DocumentFormatError error, string reason, Exception? innerException = null)
     : Exception(reason, innerException)
 {
+    /// <summary>
+    /// 読み込めない理由の種類（表示する文言を変えるため）。
+    /// </summary>
     public DocumentFormatError Error { get; } = error;
 
     /// <summary>

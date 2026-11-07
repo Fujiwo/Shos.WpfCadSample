@@ -61,6 +61,7 @@ public class ShapeHitTesterTests
     [Fact]
     public void HitShape_ReturnsTopmostOfOverlappingShapes()
     {
+        // 添字 0〜2 の線は (50, 50) を通り、添字 3 は通らない。重なりでは後に描いた（最前面の）図形を選ぶ
         Shape[] shapes = [Line(new(0, 0), new(100, 100)), Line(new(0, 100), new(100, 0)), Line(new(50, 0), new(50, 100)), Line(new(0, 0), new(10, 0))];
 
         Assert.Equal(2, ShapeHitTester.HitShape(shapes, new(50, 50), tolerance));
@@ -94,6 +95,7 @@ public class ShapeHitTesterTests
     [Fact]
     public void HitHandle_ReturnsHandleWithinTolerance()
     {
+        // ハンドルの添字は、角 (0, 0)、(100, 0)、(100, 60)、(0, 60) の順
         var rectangle = new RectangleShape(ShapeId.New(), attributes, new(0, 0), new(100, 60));
 
         Assert.Equal(2, ShapeHitTester.HitHandle(rectangle, new(103, 64), tolerance));     // 距離 5（境界上）
@@ -106,6 +108,7 @@ public class ShapeHitTesterTests
     [Fact]
     public void HitHandle_ReturnsNearestOfSeveralCloseHandles()
     {
+        // ハンドルの間隔 3 は許容範囲 5 より狭く、許容範囲内に複数のハンドルがある。そのうち最も近いものを選ぶ
         var polyline = new PolylineShape(ShapeId.New(), attributes, [new(0, 0), new(3, 0), new(6, 0)]);
 
         Assert.Equal(1, ShapeHitTester.HitHandle(polyline, new(2, 1), tolerance));

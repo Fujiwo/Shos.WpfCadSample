@@ -9,6 +9,7 @@ public class ViewTransformTests
 {
     const double tolerance = 1e-9;
 
+    // 論理座標は Y 上向き、画面座標は Y 下向きのため、Y は TranslateY から引く
     [Fact]
     public void ToScreen_ScalesTranslatesAndFlipsY()
     {
@@ -30,6 +31,7 @@ public class ViewTransformTests
 
         foreach (var logical in logicalPoints) {
             var roundTripped = transform.ToLogical(transform.ToScreen(logical));
+            // 丸め誤差は値の大きさに比例するため、座標の大きさに応じた相対誤差で比べる（0 付近は絶対誤差）
             Assert.Equal(logical.X, roundTripped.X, Math.Abs(logical.X) * tolerance + tolerance);
             Assert.Equal(logical.Y, roundTripped.Y, Math.Abs(logical.Y) * tolerance + tolerance);
         }

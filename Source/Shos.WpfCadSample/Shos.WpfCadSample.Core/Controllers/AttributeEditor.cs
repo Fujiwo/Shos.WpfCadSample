@@ -7,14 +7,19 @@ namespace Shos.WpfCadSample.Controllers;
 /// </summary>
 sealed class AttributeEditor(Drawing drawing)
 {
+    // 編集中の図形の添字と、編集を始める前の図形。編集中でなければ null
     (int Index, Shape Original)? editing;
 
+    /// <summary>
+    /// 図形の属性を、記録せずに変えて表示する。最初の呼び出しで、元の図形を覚える。図形がなければ何もしない。
+    /// </summary>
     public void Preview(ShapeId id, ShapeAttributes attributes)
     {
         var index = drawing.IndexOf(id);
         if (index < 0)
             return;
         editing ??= (index, drawing.Shapes[index]);
+        // 表示中の図形ではなく元の図形から作る（属性だけを変え、ほかは元のまま保つ）
         drawing.PreviewReplace(index, editing.Value.Original with { Attributes = attributes });
     }
 
@@ -27,6 +32,7 @@ sealed class AttributeEditor(Drawing drawing)
             return;
         var edited = drawing.Shapes[current.Index];
         editing = null;
+        // 元へ戻してから記録すると、Undo で編集前の属性へ戻る（設計書 R-7）
         drawing.RestoreOriginal(current.Index, current.Original);
         if (edited.Attributes != current.Original.Attributes)
             drawing.Replace(current.Index, edited);

@@ -16,7 +16,7 @@ public sealed class DocumentStorageTests : IDisposable
 
     static Shape[] OneLine() => [new LineShape(ShapeId.New(), ShapeAttributes.Default, new(0, 0), new(10, 10))];
 
-    // T-STO-01
+    // T-STO-01：保存は一時ファイルへ書いてから置き換えるため、一時ファイルが残らないことも確かめる
     [Fact]
     public void SaveThenLoad_RoundTripsAndLeavesNoTemporaryFile()
     {
@@ -50,6 +50,7 @@ public sealed class DocumentStorageTests : IDisposable
         storage.Save(path, DocumentSerializerTests.AllKinds());
         var original = File.ReadAllText(path);
 
+        // 共有なしで開き、ほかのアプリケーションがファイルを排他で開いている状態を作る
         using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
             Assert.ThrowsAny<IOException>(() => storage.Save(path, OneLine()));
 
@@ -79,7 +80,7 @@ public sealed class DocumentStorageTests : IDisposable
         Assert.Equal(expected, Assert.Throws<DocumentFormatException>(() => storage.Load(path)).Error);
     }
 
-    // T-STO-07
+    // T-STO-07：読み取り専用のファイルへの書き込みは IOException の派生ではない例外になるため、T-STO-03 とは別に確かめる
     [Fact]
     public void Save_OverReadOnlyFile_ThrowsUnauthorizedAccessAndKeepsOriginal()
     {

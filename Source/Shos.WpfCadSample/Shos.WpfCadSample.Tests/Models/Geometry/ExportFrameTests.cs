@@ -24,6 +24,8 @@ public class ExportFrameTests
 
         var area = ExportFrame.For([line, circle]).Area;
 
+        // 線分 (0, 0)〜(100, 0) を太さの半分 1 だけ広げた -1〜101 × -1〜1 と、
+        // 半径 10 の円の外接矩形 190〜210 × 40〜60 を太さの半分 3 だけ広げた 187〜213 × 37〜63 の和
         Assert.Equal(-1.0, area.Left, 1e-9);
         Assert.Equal(-1.0, area.Bottom, 1e-9);
         Assert.Equal(213.0, area.Right, 1e-9);
@@ -32,10 +34,10 @@ public class ExportFrameTests
 
     // T-EXP-02
     [Theory]
-    [InlineData(10_000.0, 1.0)]
+    [InlineData(10_000.0, 1.0)]         // 長辺がちょうど上限
     [InlineData(1.0, 10_000.0)]
-    [InlineData(2_000.0, 2_000.0)]
-    [InlineData(123.4, 56.7)]
+    [InlineData(2_000.0, 2_000.0)]      // 画素数がちょうど上限（4,000,000）
+    [InlineData(123.4, 56.7)]           // 端数は切り上げて 124 × 57 px
     public void Scale_IsOneWhenWithinLimits(double width, double height)
     {
         var frame = ExportFrame.For([ShapeWithArea(width, height)]);

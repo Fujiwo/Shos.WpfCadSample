@@ -17,6 +17,9 @@ public sealed class CompositionRoot
         MainViewModel.LoadSettings();
     }
 
+    /// <summary>
+    /// アプリケーションで 1 つの <see cref="ViewModels.MainViewModel"/>。メインウィンドウと属性ウィンドウが共有する。
+    /// </summary>
     public MainViewModel MainViewModel { get; }
 
     // %APPDATA%\Shos.WpfCadSample\settings.json（仕様 5.9）

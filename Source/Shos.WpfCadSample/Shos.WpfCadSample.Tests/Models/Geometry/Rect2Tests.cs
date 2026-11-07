@@ -40,6 +40,7 @@ public class Rect2Tests
     public void Contains_IsTrueInsideAndOnTheEdges(double x, double y)
         => Assert.True(new Rect2(0, 0, 100, 100).Contains(new Point2(x, y)));
 
+    // 各辺のすぐ外側（0.001 だけ外）。辺の上を含む判定が、外側まで広がっていないことを確かめる
     [Theory]
     [InlineData(-0.001, 50.0)]
     [InlineData(100.001, 50.0)]

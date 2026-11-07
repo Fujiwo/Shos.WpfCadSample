@@ -19,9 +19,15 @@ public static class ToolSelection
 {
     static readonly EnumEqualsConverter enumEquals = new();
 
+    /// <summary>
+    /// このボタンが選ぶツール。
+    /// </summary>
     public static readonly DependencyProperty ToolProperty =
         DependencyProperty.RegisterAttached("Tool", typeof(Tool?), typeof(ToolSelection), new(null, OnToolChanged));   // 既定値と同じツールの指定でも、変更として扱われるよう null を既定にする
 
+    /// <summary>
+    /// 現在のツール。ボタンの選択状態（IsChecked）を決める比較の元になる。
+    /// </summary>
     public static readonly DependencyProperty CurrentToolProperty =
         DependencyProperty.RegisterAttached("CurrentTool", typeof(Tool), typeof(ToolSelection), new(Tool.Select));
 
@@ -38,6 +44,7 @@ public static class ToolSelection
         if (target is not RadioButton button || e.NewValue is not Tool tool)
             return;
         button.CommandParameter = tool;
+        // 選択の変更はコマンドで行うため、IsChecked からは書き戻さない（OneWay）
         button.SetBinding(ToggleButton.IsCheckedProperty, new Binding {
             Path = new PropertyPath(CurrentToolProperty),
             RelativeSource = RelativeSource.Self,

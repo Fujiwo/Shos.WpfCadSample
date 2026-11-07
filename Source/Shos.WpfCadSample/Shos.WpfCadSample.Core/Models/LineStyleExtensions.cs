@@ -1,7 +1,11 @@
 ﻿namespace Shos.WpfCadSample.Models;
 
+/// <summary>
+/// 線種の拡張メンバー。線種と破線のパターンの対応は、ここだけに置く。
+/// </summary>
 public static class LineStyleExtensions
 {
+    // 描画のたびに配列を作らないよう、パターンは共有する（戻り値は読み取り専用の型で公開する）
     static readonly double[] solid = [];
     static readonly double[] dash = [4, 2];
     static readonly double[] dot = [1, 2];

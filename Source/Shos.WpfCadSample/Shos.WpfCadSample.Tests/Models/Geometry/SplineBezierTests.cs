@@ -13,6 +13,7 @@ public class SplineBezierTests(ITestOutputHelper output)
     const double tolerance = 1e-9;
     const double solvedTolerance = 1e-7;    // 連立方程式の解を含む値
 
+    // 1 つのベジェ区間と、その両端（t = 0、t = 1）での 1 階・2 階微分
     readonly record struct Bezier(Point2 P0, Point2 C1, Point2 C2, Point2 P3)
     {
         public Vector2 FirstDerivativeAtStart => (C1 - P0) * 3;
@@ -35,7 +36,7 @@ public class SplineBezierTests(ITestOutputHelper output)
         return [.. beziers];
     }
 
-    // 決定的な（種を固定した）通過点。隣り合う点は一致しない
+    // 決定的な（種を固定した）通過点。隣り合う点は一致しない（X が点ごとに 20 以上増える）
     static Point2[] SamplePoints(int count, int seed = 1)
     {
         var random = new Random(seed);
@@ -123,6 +124,7 @@ public class SplineBezierTests(ITestOutputHelper output)
     [Fact]
     public void Open_WithTwoPoints_IsStraightLineWithControlPointsAtThirds()
     {
+        // 2 点では接線が線分の向きで一定になり、制御点は線分を 3 等分する点になる
         Point2 start = new(10, 20), end = new(40, 80);
 
         var bezier = Beziers(SplineBezier.Open([start, end])).Single();
@@ -150,6 +152,8 @@ public class SplineBezierTests(ITestOutputHelper output)
     public void Open_TangentsMatchNaiveGaussianElimination()
     {
         Point2[] points = [new(0, 0), new(100, 250), new(300, 120), new(420, 400)];
+        // 通過点 P(i) での接線 D(i) の連立方程式（自然スプライン）：
+        // 両端は 2D(0) + D(1) = 3(P(1) − P(0)) など、内側は D(i−1) + 4D(i) + D(i+1) = 3(P(i+1) − P(i−1))
         double[,] matrix = {
             { 2, 1, 0, 0 },
             { 1, 4, 1, 0 },
@@ -171,6 +175,7 @@ public class SplineBezierTests(ITestOutputHelper output)
     public void Closed_TangentsMatchNaiveGaussianElimination()
     {
         Point2[] points = [new(0, 0), new(100, 250), new(300, 120), new(420, 400)];
+        // 周期スプライン：すべての点で D(i−1) + 4D(i) + D(i+1) = 3(P(i+1) − P(i−1))（添字は 4 で巡回する）
         double[,] matrix = {
             { 4, 1, 0, 1 },
             { 1, 4, 1, 0 },
@@ -182,6 +187,7 @@ public class SplineBezierTests(ITestOutputHelper output)
         AssertTangentsMatch(GaussianElimination.Solve(matrix, rhs), Beziers(SplineBezier.Closed(points)));
     }
 
+    // 区間 i の始点の接線は D(i)、終点の接線は D(i+1)（閉じた曲線では、最後の区間の終点が D(0)）
     static void AssertTangentsMatch(Vector2[] expectedTangents, Bezier[] beziers)
     {
         foreach (var (bezier, index) in beziers.Select((bezier, index) => (bezier, index))) {

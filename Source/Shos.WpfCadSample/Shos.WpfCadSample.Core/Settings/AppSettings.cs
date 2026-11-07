@@ -7,6 +7,9 @@ namespace Shos.WpfCadSample.Settings;
 /// </summary>
 public sealed record AppSettings(int Version, WindowPlacement MainWindow, PropertiesWindowSettings PropertiesWindow, ShapeAttributes DefaultAttributes)
 {
+    /// <summary>
+    /// 書き出す設定のバージョン。これより新しい設定は不正とみなし、既定値を使う。
+    /// </summary>
     public const int CurrentVersion = 1;
 
     /// <summary>

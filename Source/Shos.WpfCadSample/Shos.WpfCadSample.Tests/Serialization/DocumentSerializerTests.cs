@@ -26,6 +26,7 @@ public class DocumentSerializerTests
         Assert.False(string.IsNullOrWhiteSpace(exception.Reason));
     }
 
+    // 7 種の図形を 1 つずつ。属性は、色・線種と太さの境界（0.5、50）を図形ごとに変えている
     public static Shape[] AllKinds() => [
         new LineShape(ShapeId.New(), ShapeAttributes.Default, new(10, 20), new(110, 20)),
         new CircleShape(ShapeId.New(), new(new RgbColor(255, 0, 0), 2, LineStyle.Dash), new(50, 50), new(80, 90)),
@@ -112,7 +113,7 @@ public class DocumentSerializerTests
         Assert.All(first, shape => Assert.NotEqual(default, shape.Id));
     }
 
-    // T-SER-05
+    // T-SER-05：10 進の表記で丸めると戻らない値も、許容誤差なしで元の double と一致する
     [Theory]
     [InlineData(0.1)]
     [InlineData(1.0 / 3)]
@@ -177,7 +178,7 @@ public class DocumentSerializerTests
     [MemberData(nameof(DocumentsWithUnknownKindOrMissingItem))]
     public void Deserialize_RejectsUnknownKindOrMissingItem(string text) => AssertInvalid(text);
 
-    // T-SER-09
+    // T-SER-09：順に、未知の線種、線種が数値、色名、色の桁数不足、色が数値、太さが下限未満、上限超え
     [Theory]
     [InlineData("""{ "color": "#000000", "thickness": 1, "lineStyle": "Wavy" }""")]
     [InlineData("""{ "color": "#000000", "thickness": 1, "lineStyle": 1 }""")]
@@ -189,7 +190,7 @@ public class DocumentSerializerTests
     public void Deserialize_RejectsInvalidAttributes(string attributes)
         => AssertInvalid(Document(Line("""{ "x": 0, "y": 0 }""", """{ "x": 1, "y": 1 }""", attributes)));
 
-    // T-SER-10
+    // T-SER-10：1e999 は JSON の数値としては正しいが、double では無限大になる。"NaN" は文字列で、数値ではない
     [Theory]
     [InlineData("""{ "x": "0", "y": 0 }""")]
     [InlineData("""{ "x": 0, "y": null }""")]
@@ -200,7 +201,8 @@ public class DocumentSerializerTests
     public void Deserialize_RejectsNonNumericOrNonFiniteCoordinate(string point)
         => AssertInvalid(Document(Line(point, """{ "x": 1, "y": 1 }""")));
 
-    // T-SER-11
+    // T-SER-11：順に、最小点数の不足（多角形 2 点、開いた曲線 1 点、折れ線 0 点）、線分の 2 点の一致、半径 0、
+    // 幅 0、隣り合う点の一致、閉じた曲線の最後と最初の一致
     public static TheoryData<string> DocumentsViolatingShapeConstraints => [
         Document("""{ "type": "polygon", "points": [ { "x": 0, "y": 0 }, { "x": 1, "y": 1 } ], "attributes": """ + validAttributes + " }"),
         Document("""{ "type": "openCurve", "points": [ { "x": 0, "y": 0 } ], "attributes": """ + validAttributes + " }"),
@@ -217,7 +219,7 @@ public class DocumentSerializerTests
     [MemberData(nameof(DocumentsViolatingShapeConstraints))]
     public void Deserialize_RejectsShapeViolatingConstraints(string text) => AssertInvalid(text);
 
-    // T-SER-12
+    // T-SER-12：不正な図形を有効な図形で挟み、途中までの図形を返さないことを確かめる
     [Fact]
     public void Deserialize_RejectsWholeDocumentIfAnyShapeIsInvalid()
         => AssertInvalid(Document(string.Join(", ", validLine, Line("""{ "x": 3, "y": 3 }""", """{ "x": 3, "y": 3 }"""), validLine)));
@@ -232,7 +234,7 @@ public class DocumentSerializerTests
         Assert.All(shapes, shape => Assert.True(shape.IsValid()));
     }
 
-    // T-SER-13
+    // T-SER-13：図形が不正でも、先にバージョンを判定する。新しいバージョンで保存したファイルであることを伝えるため
     [Theory]
     [InlineData("2")]
     [InlineData("100")]

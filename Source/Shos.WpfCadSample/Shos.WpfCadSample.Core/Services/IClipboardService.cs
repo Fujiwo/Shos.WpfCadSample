@@ -12,6 +12,9 @@ public interface IClipboardService
     /// </summary>
     bool ContainsShapes { get; }
 
+    /// <summary>
+    /// 独自形式のテキストを置く（クリップボードの以前の内容は消える）。
+    /// </summary>
     void SetShapesText(string text);
 
     /// <summary>
@@ -19,7 +22,13 @@ public interface IClipboardService
     /// </summary>
     string? GetShapesText();
 
+    /// <summary>
+    /// 図形をメタファイル（ベクター）としてクリップボードへ置く（ほかのアプリケーションへの貼り付けのため）。
+    /// </summary>
     void CopyAsMetafile(IReadOnlyList<Shape> shapes);
 
+    /// <summary>
+    /// 図形をビットマップ画像としてクリップボードへ置く。
+    /// </summary>
     void CopyAsImage(IReadOnlyList<Shape> shapes);
 }

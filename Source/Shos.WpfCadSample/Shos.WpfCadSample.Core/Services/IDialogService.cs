@@ -15,9 +15,18 @@ public interface IDialogService
     /// </summary>
     string? ShowSaveFileDialog(string suggestedName);
 
+    /// <summary>
+    /// 未保存の変更を保存するかを尋ねる（<paramref name="name"/> はドキュメントの表示名）。
+    /// </summary>
     SaveChangesAnswer AskSaveChanges(string name);
 
+    /// <summary>
+    /// 操作の失敗を表示する（文言は英語）。
+    /// </summary>
     void ShowError(string title, string message);
 
+    /// <summary>
+    /// 操作は続けられるが、利用者に知らせることを表示する（設定の読み込みの失敗など）。
+    /// </summary>
     void ShowWarning(string message);
 }

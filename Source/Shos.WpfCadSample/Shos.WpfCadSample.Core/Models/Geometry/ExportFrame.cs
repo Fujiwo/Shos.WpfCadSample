@@ -6,8 +6,8 @@
 /// </summary>
 public sealed record ExportFrame(Rect2 Area, double Scale, int PixelWidth, int PixelHeight)
 {
-    public const int MaxPixelSide = 10_000;
-    public const int MaxPixelCount = 4_000_000;
+    public const int MaxPixelSide = 10_000;     // 各辺のピクセル数の上限（仕様 A-24）
+    public const int MaxPixelCount = 4_000_000; // 画素数の上限（仕様 A-24）
 
     // 浮動小数点の丸めで切り上げが上限を超えたときに、縮尺をわずかに下げる比
     const double roundingMargin = 1 - 1e-12;
@@ -32,6 +32,7 @@ public sealed record ExportFrame(Rect2 Area, double Scale, int PixelWidth, int P
         if (Fits(width, height, 1))
             return 1;
 
+        // 2 つの上限から見積もった縮尺から始め、切り上げの誤差で収まらない場合だけ、わずかずつ下げる
         var scale = Math.Min(MaxPixelSide / Math.Max(width, height), PixelCountScale(width, height));
         while (!Fits(width, height, scale))
             scale *= roundingMargin;
@@ -41,6 +42,7 @@ public sealed record ExportFrame(Rect2 Area, double Scale, int PixelWidth, int P
     // 切り上げで各辺が 1 px 未満増えることを見込み、(w·s + 1)(h·s + 1) ≤ MaxPixelCount を満たす最大の s
     static double PixelCountScale(double width, double height)
     {
+        // 展開すると w·h·s² + (w + h)·s + 1 − MaxPixelCount ≤ 0。2 次方程式の正の根を解の公式で求める
         double a = width * height, b = width + height, c = 1.0 - MaxPixelCount;
         return (-b + Math.Sqrt(b * b - 4 * a * c)) / (2 * a);
     }

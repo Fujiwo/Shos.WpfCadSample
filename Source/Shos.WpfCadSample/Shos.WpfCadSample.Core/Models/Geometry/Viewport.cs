@@ -45,6 +45,7 @@ public sealed class Viewport
 
     public double ZoomPercent => Scale / FitScale * 100;
 
+    // Center が画面の中央（viewWidth / 2, viewHeight / 2）に来る平行移動。Y は上下が反転するため符号が逆になる
     public ViewTransform Transform => new(Scale, viewWidth / 2 - Scale * Center.X, viewHeight / 2 + Scale * Center.Y);
 
     double MaxScale => FitScale * maxZoomRatio;
@@ -83,6 +84,7 @@ public sealed class Viewport
     {
         var anchor = Transform.ToLogical(screenPoint);
         Scale = Math.Clamp(Scale * Math.Pow(zoomStepRatio, notches), FitScale, MaxScale);
+        // 新しい縮尺で anchor が同じ画面位置に来るよう、中心を逆算する（ToScreen(anchor) = screenPoint を Center について解く）
         Center = new(anchor.X - (screenPoint.X - viewWidth / 2) / Scale,
                      anchor.Y + (screenPoint.Y - viewHeight / 2) / Scale);
         KeepVisibleRangeInsideOverview();
@@ -93,6 +95,7 @@ public sealed class Viewport
     /// </summary>
     public void Scroll(double dxPixels, double dyPixels)
     {
+        // 画面の下向きは論理座標の Y の負の向きのため、Y だけ符号を反転する
         Center = new(Center.X + dxPixels / Scale, Center.Y - dyPixels / Scale);
         KeepVisibleRangeInsideOverview();
     }

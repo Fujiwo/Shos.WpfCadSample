@@ -13,6 +13,9 @@ public sealed record ShapeAttributes(RgbColor Color, double Thickness, LineStyle
     /// </summary>
     public static ShapeAttributes Default { get; } = new(new RgbColor(0, 0, 0), 1.0, LineStyle.Solid);
 
+    /// <summary>
+    /// 線の太さが範囲内で、線種が定義済みの値か。列挙型の変数には未定義の数値も入りうるため、防御として線種も確かめる。
+    /// </summary>
     public bool IsValid()
         => Thickness is >= MinThickness and <= MaxThickness && Enum.IsDefined(LineStyle);
 }

@@ -57,6 +57,7 @@ public sealed record CubicBezierSegment(Point2 Control1, Point2 Control2, Point2
     /// </summary>
     internal override IEnumerable<Segment2> Flatten(Point2 start, double tolerance)
     {
+        // 再帰の代わりにスタックを使い、始点側から順に線分を返す
         var pending = new Stack<(Bezier Part, int Depth)>();
         pending.Push((new(start, Control1, Control2, End), 0));
         while (pending.TryPop(out var item)) {
@@ -71,6 +72,7 @@ public sealed record CubicBezierSegment(Point2 Control1, Point2 Control2, Point2
         }
     }
 
+    // 分割の途中の部分曲線（始点・制御点 2 つ・終点）
     readonly record struct Bezier(Point2 P0, Point2 C1, Point2 C2, Point2 P3)
     {
         public Segment2 Chord => new(P0, P3);
@@ -78,6 +80,7 @@ public sealed record CubicBezierSegment(Point2 Control1, Point2 Control2, Point2
         public bool IsFlat(double tolerance)
             => Chord.DistanceTo(C1) <= tolerance && Chord.DistanceTo(C2) <= tolerance;
 
+        // t = 1/2 で 2 つに分ける（de Casteljau：隣り合う点の中点を 3 段とる）
         public (Bezier First, Bezier Second) Split()
         {
             var p01 = Midpoint(P0, C1);

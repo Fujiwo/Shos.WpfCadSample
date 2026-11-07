@@ -10,9 +10,15 @@ namespace Shos.WpfCadSample.Views.Behaviors;
 /// </summary>
 public static class WindowVisibilityBehavior
 {
+    /// <summary>
+    /// メインウィンドウが所有する属性ウィンドウ。
+    /// </summary>
     public static readonly DependencyProperty OwnedWindowProperty =
         DependencyProperty.RegisterAttached("OwnedWindow", typeof(Window), typeof(WindowVisibilityBehavior), new(null, OnOwnedWindowChanged));
 
+    /// <summary>
+    /// 属性ウィンドウを表示するか（既定で双方向のバインド。閉じる操作で偽を書き戻す）。
+    /// </summary>
     public static readonly DependencyProperty IsShownProperty =
         DependencyProperty.RegisterAttached("IsShown", typeof(bool), typeof(WindowVisibilityBehavior),
                                             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnIsShownChanged));

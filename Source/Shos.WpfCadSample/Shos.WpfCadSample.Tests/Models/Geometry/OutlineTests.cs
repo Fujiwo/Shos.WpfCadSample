@@ -147,7 +147,7 @@ public class OutlineTests
         Assert.Equal(Math.Sqrt(1 + 25), Single(Polyline(false, square)).DistanceTo(nearClosingEdge, 0.01), tolerance);
     }
 
-    // T-OUT-03
+    // T-OUT-03：曲線の頂点 (50, 75) の真上 5 の点。制御点までではなく、曲線までを測る
     [Fact]
     public void DistanceTo_Curve_IsMeasuredToTheCurve()
         => Assert.Equal(5.0, Single(arch).DistanceTo(new(50, 80), 1e-4), 1e-3);
@@ -167,6 +167,7 @@ public class OutlineTests
         Assert.Equal(4, circle.Segments.Count);
         Assert.All(circle.Segments, segment => Assert.IsType<CubicBezierSegment>(segment));
         Assert.Equal(circle.Start, circle.Segments[^1].End);
+        // 4 本の 3 次ベジェによる円の近似は、半径の誤差が理論上約 0.027% のため、0.03% を上限にする
         Assert.All(DenseSamples(circle, 500), point => Assert.Equal(radius, point.DistanceTo(center), radius * 0.0003));
     }
 }

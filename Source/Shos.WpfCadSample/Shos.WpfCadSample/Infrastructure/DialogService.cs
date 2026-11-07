@@ -10,6 +10,7 @@ namespace Shos.WpfCadSample.Infrastructure;
 /// </summary>
 public sealed class DialogService : IDialogService
 {
+    // フィルターは CAD documents (*.json)（仕様 4.6）
     const string fileFilter = $"CAD documents (*{MainViewModel.DocumentExtension})|*{MainViewModel.DocumentExtension}";
 
     public string? ShowOpenFileDialog()
@@ -24,6 +25,7 @@ public sealed class DialogService : IDialogService
         return dialog.ShowDialog(Owner()) == true ? dialog.FileName : null;
     }
 
+    // Yes / No 以外（Cancel、閉じるボタン）は、操作の中止として扱う
     public SaveChangesAnswer AskSaveChanges(string name)
         => Show($"Save changes to \"{name}\"?", MainViewModel.ApplicationName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question) switch {
             MessageBoxResult.Yes => SaveChangesAnswer.Yes,

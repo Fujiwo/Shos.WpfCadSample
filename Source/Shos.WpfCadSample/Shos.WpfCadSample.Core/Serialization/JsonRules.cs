@@ -16,8 +16,8 @@ static class JsonRules
 {
     public static JsonSerializerOptions Options { get; } = new() {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        RespectNullableAnnotations = true,
-        AllowOutOfOrderMetadataProperties = true,
+        RespectNullableAnnotations = true,          // null 非許容の項目に null があれば不正とする
+        AllowOutOfOrderMetadataProperties = true,   // 判別子 type が図形の項目の先頭になくても読む
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter<LineStyle>(allowIntegerValues: false), new RgbColorJsonConverter() },
         TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { ExcludeDerivedProperties, RequireAllProperties } }

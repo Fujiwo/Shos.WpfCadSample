@@ -31,10 +31,11 @@ public static class ShapeHitTester
                            .Select((handle, index) => (Index: index, Distance: handle.DistanceTo(point)))
                            .Where(candidate => candidate.Distance <= tolerance)
                            .OrderBy(candidate => candidate.Distance)
-                           .FirstOrDefault((Index: -1, Distance: 0.0));
+                           .FirstOrDefault((Index: -1, Distance: 0.0));  // 候補がなければ添字 −1
         return nearest.Index;
     }
 
+    // 曲線の近似の誤差は許容範囲の 5% にとどまるため、判定の結果にほぼ影響しない
     static bool IsOnLine(Shape shape, Point2 point, double tolerance)
         => shape.CreateOutline().DistanceTo(point, tolerance * flatteningRatio) <= shape.Attributes.Thickness / 2 + tolerance;
 }

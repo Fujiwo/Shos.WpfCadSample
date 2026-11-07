@@ -25,11 +25,14 @@ public sealed class DrawingSurface : Control
 
     public static readonly DependencyProperty ViewSizeProperty = viewSizePropertyKey.DependencyProperty;
 
+    // 自分でキャプチャを解放している間か（そのときのキャプチャの喪失は、操作の途切れではない）
     bool isReleasingCapture;
 
+    // 外観は、Themes\Generic.xaml から読まれる既定のスタイルで決める
     static DrawingSurface()
         => DefaultStyleKeyProperty.OverrideMetadata(typeof(DrawingSurface), new FrameworkPropertyMetadata(typeof(DrawingSurface)));
 
+    // 大きさが変わるたびに伝え、全体図を計算し直させる（仕様 5.6）
     public DrawingSurface() => SizeChanged += (_, e) => OnViewSizeChanged(new(e.NewSize.Width, e.NewSize.Height));
 
     /// <summary>
@@ -108,6 +111,7 @@ public sealed class DrawingSurface : Control
             Send(PointerAction.CaptureLost, e);
     }
 
+    // キャプチャ中（ドラッグ中）は、外へ出ても操作が続くため、離れたとはみなさない
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
@@ -121,6 +125,7 @@ public sealed class DrawingSurface : Control
         base.OnMouseWheel(e);
         if (!Keyboard.Modifiers.HasFlag(ModifierKeys.Control) || e.Delta == 0)
             return;
+        // 高精度のホイールは 1 回の通知が 1 ノッチに満たないことがあるため、最低 1 ノッチとして扱う
         var notches = Math.Sign(e.Delta) * Math.Max(1, Math.Abs(e.Delta) / wheelDeltaPerNotch);
         Execute(ZoomCommand, new ZoomRequest(ScreenPoint(e), notches));
         e.Handled = true;
@@ -135,6 +140,7 @@ public sealed class DrawingSurface : Control
     void Send(PointerAction action, MouseEventArgs e, int clickCount = 1)
         => Execute(PointerCommand, new PointerEvent(action, ScreenPoint(e), clickCount, Modifiers()));
 
+    // 描画領域の左上を原点とする画面座標（px、Y 下向き）
     Point2 ScreenPoint(MouseEventArgs e)
     {
         var position = e.GetPosition(this);

@@ -13,6 +13,7 @@ public sealed record OutlineFigure(Point2 Start, IReadOnlyList<OutlineSegment> S
     /// </summary>
     public static OutlineFigure Circle(Point2 center, double radius)
     {
+        // 0°・90°・180°・270° の単位ベクトル。隣り合う 2 軸の間を 1 本のベジェで結ぶ（制御点は各端の接線方向）
         Vector2[] axes = [new(1, 0), new(0, 1), new(-1, 0), new(0, -1)];
         var segments = axes.Select((from, index) => {
             var to = axes[(index + 1) % axes.Length];
@@ -37,11 +38,13 @@ public sealed record OutlineFigure(Point2 Start, IReadOnlyList<OutlineSegment> S
             foreach (var line in segment.Flatten(start, tolerance))
                 yield return line;
 
+        // 閉じる辺。最後の区間が始点で終わっている（円など）ときは、長さ 0 の辺を足さない
         var end = Segments.Count == 0 ? Start : Segments[^1].End;
         if (IsClosed && end != Start)
             yield return new(end, Start);
     }
 
+    // 区間は終点しか持たないため、始点（直前の区間の終点）と組にして渡す
     IEnumerable<(OutlineSegment Segment, Point2 Start)> SegmentsWithStart()
         => Segments.Select((segment, index) => (segment, index == 0 ? Start : Segments[index - 1].End));
 }

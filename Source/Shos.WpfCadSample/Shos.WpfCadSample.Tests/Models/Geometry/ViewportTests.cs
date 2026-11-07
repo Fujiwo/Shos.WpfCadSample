@@ -56,7 +56,7 @@ public class ViewportTests
     [Theory]
     [InlineData(2000.0, 700.0, 1.0)]   // 横長のビュー：高さで決まる
     [InlineData(500.0, 700.0, 0.5)]    // 縦長のビュー：幅で決まる
-    [InlineData(300.0, 300.0, 0.3)]
+    [InlineData(300.0, 300.0, 0.3)]    // 正方形のビュー：論理領域が横長のため、幅で決まる
     public void FitScale_FitsOverviewAndCentersIt(double viewWidth, double viewHeight, double expectedFitScale)
     {
         var viewport = new Viewport();
@@ -149,7 +149,7 @@ public class ViewportTests
     public void Scroll_WhileZoomed_ConvertsPixelsToLogicalUnits()
     {
         var viewport = StandardViewport();
-        viewport.ZoomAt(viewCenter, 2);
+        viewport.ZoomAt(viewCenter, 2);                 // Scale = 1.2² = 1.44
         var before = viewport.Center;
 
         viewport.Scroll(50, 0);
@@ -285,6 +285,7 @@ public class ViewportTests
 
         viewport.UpdateOverview(null);                              // 全体図 0〜1000
 
+        // 縮尺は新しい FitScale 以上なので保ち、外にはみ出した表示範囲だけを全体図の内側へ寄せる
         Assert.Equal(scale, viewport.Scale, tolerance);
         Assert.Equal(1000.0, VisibleRange(viewport).Right, tolerance);
     }
@@ -342,7 +343,7 @@ public class ViewportTests
 
         viewport.UpdateOverview(new Rect2(500, 0, 2000, 700));      // FitScale が半分になる
 
-        Assert.Equal(240.0, viewport.ZoomPercent, tolerance);
+        Assert.Equal(240.0, viewport.ZoomPercent, tolerance);   // Scale 1.2 ÷ FitScale 0.5
     }
 
     // T-VPT-15

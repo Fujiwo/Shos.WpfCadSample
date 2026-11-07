@@ -37,10 +37,14 @@ public sealed partial class MainViewModel : ObservableObject
     readonly IClipboardService clipboard;
     readonly DocumentStorage documentStorage;
     readonly SettingsStorage settingsStorage;
+    // 編集の状態（入力中・ドラッグ中、選択、履歴、クリップボード）で、有効状態が変わるコマンド
     readonly IRelayCommand[] stateDependentCommands;
 
+    // 開いている文書のパス。一度も保存していない新規の文書は null
     string? documentPath;
+    // クリップボードに独自形式があるか（Paste の有効状態）。RefreshClipboardState で更新する
     bool clipboardHasShapes;
+    // 直前に貼り付けたテキストと、続けて貼り付けた回数（ずらし量の累積に使う。仕様 5.7）
     string? lastPastedText;
     int pasteCount;
 
@@ -61,8 +65,14 @@ public sealed partial class MainViewModel : ObservableObject
         editor.Committed += (_, _) => OnDocumentChanged();
     }
 
+    /// <summary>
+    /// 描画領域とツールの状態。
+    /// </summary>
     public DrawingViewModel Drawing { get; }
 
+    /// <summary>
+    /// 属性ウィンドウの状態。
+    /// </summary>
     public PropertiesViewModel Properties { get; }
 
     /// <summary>
@@ -70,6 +80,9 @@ public sealed partial class MainViewModel : ObservableObject
     /// </summary>
     public string Title => $"{DocumentName}{(document.IsModified ? "*" : "")} - {ApplicationName}";
 
+    /// <summary>
+    /// 属性ウィンドウを表示しているか（View > Properties Window、F4）。終了時に設定へ保存する（仕様 4.5、5.9）。
+    /// </summary>
     [ObservableProperty]
     public partial bool IsPropertiesWindowVisible { get; set; } = AppSettings.Default.PropertiesWindow.IsVisible;
 
@@ -90,6 +103,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     string DocumentName => documentPath is null ? untitledName : Path.GetFileName(documentPath);
 
+    // 入力中・ドラッグ中（コマンドを制限する状態。仕様 5.10）
     bool IsBusy => editor.IsInputInProgress || editor.IsDragging;
 
     /// <summary>
@@ -231,6 +245,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
+        // 前回と同じ内容なら回数を重ね、違えば 1 回目からにする
         var repeat = text == lastPastedText ? pasteCount + 1 : 1;
         if (!editor.Paste(shape, repeat)) {
             dialogs.ShowError("Paste", "The shape was not pasted because, after the offset, it would be outside the allowed coordinate range or violate the shape constraints.");
@@ -302,6 +317,7 @@ public sealed partial class MainViewModel : ObservableObject
         };
     }
 
+    // 保存先が決まっていなければ Save As と同じ（仕様 4.2）。戻り値は、保存できたか
     bool SaveDocument() => documentPath is { } path ? SaveDocumentTo(path) : SaveDocumentAs();
 
     bool SaveDocumentAs()
@@ -324,6 +340,7 @@ public sealed partial class MainViewModel : ObservableObject
         return true;
     }
 
+    // New・Open：文書を置き換え（履歴は消える）、選択と表示を初期状態に戻す
     void ReplaceDocument(IReadOnlyList<Shape> shapes, string? path)
     {
         document.Load(shapes);

@@ -15,7 +15,7 @@ public sealed class EditorController
     readonly Viewport viewport;
     readonly SelectInteraction selectInteraction;
     readonly AttributeEditor attributeEditor;
-    DrawInteraction? drawInteraction;
+    DrawInteraction? drawInteraction;   // 描画ツールのときだけある。Select ツールでは null
     ShapeAttributes defaultAttributes = ShapeAttributes.Default;
 
     public EditorController(Drawing drawing, Viewport viewport)
@@ -30,6 +30,9 @@ public sealed class EditorController
 
     public Tool Tool { get; private set; } = Tool.Select;
 
+    /// <summary>
+    /// 選択中の図形の識別子。選択がなければ null。選択は高々 1 個（仕様 5.3）。
+    /// </summary>
     public ShapeId? SelectedId { get; private set; }
 
     /// <summary>
@@ -42,8 +45,14 @@ public sealed class EditorController
     /// </summary>
     public string StatusMessage { get; private set; }
 
+    /// <summary>
+    /// 描画ツールで、図形の点を入力中か。
+    /// </summary>
     public bool IsInputInProgress => drawInteraction?.IsActive == true;
 
+    /// <summary>
+    /// Select ツールで、図形またはハンドルをドラッグ中か。
+    /// </summary>
     public bool IsDragging => selectInteraction.IsActive;
 
     /// <summary>
@@ -58,6 +67,9 @@ public sealed class EditorController
         }
     }
 
+    /// <summary>
+    /// ツール・選択・入力中の図形・状態表示など、表示に関わる状態が変わったかもしれないときに発生する。
+    /// </summary>
     public event EventHandler? StateChanged;
 
     /// <summary>
@@ -115,12 +127,15 @@ public sealed class EditorController
         OnStateChanged();
     }
 
+    /// <summary>
+    /// 選択中の図形を削除する。選択がないとき、および入力中・ドラッグ中は何もしない。
+    /// </summary>
     public void DeleteSelected()
     {
         var index = SelectedIndex();
         if (IsBusy || index < 0)
             return;
-        Select(null);
+        Select(null);           // 削除の Committed の時点で、選択が消えた図形を指さないようにする
         drawing.RemoveAt(index);
         OnStateChanged();
     }
@@ -129,7 +144,7 @@ public sealed class EditorController
     {
         if (IsBusy || !drawing.CanUndo)
             return;
-        attributeEditor.Cancel();
+        attributeEditor.Cancel();   // 確定していない表示だけの属性を戻してから、履歴をたどる
         drawing.Undo();
         OnStateChanged();
     }

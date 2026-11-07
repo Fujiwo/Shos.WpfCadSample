@@ -51,6 +51,7 @@ public class EditorControllerTests
         Assert.Equal(shape.Id, editor.SelectedId);
     }
 
+    // 途中の位置を経由して動かす（ドラッグ中の更新も通す）
     void Drag(double fromX, double fromY, double toX, double toY)
     {
         Down(fromX, fromY);
@@ -112,6 +113,8 @@ public class EditorControllerTests
         Assert.Equal(ShapeAttributes.Default, shape.Attributes);
     }
 
+    // T-EDC-01〜03 の補足：2 点目をダブルクリックすると、2 点目のクリックで確定した後に、2 回目の Down（ClickCount = 2）が届く。
+    // それを新しい入力の確定として扱わず、点数不足の状態表示を出さない（Reviews/20261107-source-code-review.md の指摘の回帰テスト）
     [Theory]
     [InlineData(Tool.Line)]
     [InlineData(Tool.Circle)]
@@ -155,6 +158,7 @@ public class EditorControllerTests
         editor.SetTool(tool);
         var guidance = editor.StatusMessage;
 
+        // ダブルクリックの位置も 1 点に数え、合計 pointCount 点（最小点数より 1 少ない）で確定する
         foreach (var index in Enumerable.Range(0, pointCount - 1))
             Click(index * 50, 0);
         DoubleClick((pointCount - 1) * 50, 0);
@@ -173,7 +177,7 @@ public class EditorControllerTests
         editor.SetTool(Tool.Polyline);
         Click(10, 10);
 
-        Click(10, 10);
+        Click(10, 10);      // 直前の点と同じ位置
 
         Assert.True(editor.IsInputInProgress);
         DoubleClick(50, 20);
@@ -209,7 +213,7 @@ public class EditorControllerTests
         Click(0, 0);
         Click(50, 0);
 
-        Click(0, 0);
+        Click(0, 0);        // 最初の点と同じ位置：最後に置くと、閉じる辺の長さが 0 になる
 
         DoubleClick(25, 40);
         Assert.Equal([new(0, 0), new(50, 0), new(25, 40)], Assert.Single(drawing.Shapes).HandlePoints);
@@ -328,7 +332,8 @@ public class EditorControllerTests
 
     // T-EDC-14
     public static TheoryData<Shape, int, Point2[]> HandleDrags => new() {
-        // 図形、動かすハンドル、ハンドルを (+20, +10) 動かした後のハンドルの位置
+        // 図形、動かすハンドル、ハンドルを (+20, +10) 動かした後のハンドルの位置。
+        // 円は、中心（添字 0）を動かすと全体が移動し、円周上の点（添字 1）を動かすと半径が変わる
         { new LineShape(ShapeId.New(), ShapeAttributes.Default, new(100, 100), new(300, 100)), 1, [new(100, 100), new(320, 110)] },
         { new CircleShape(ShapeId.New(), ShapeAttributes.Default, new(200, 200), new(260, 200)), 0, [new(220, 210), new(280, 210)] },
         { new CircleShape(ShapeId.New(), ShapeAttributes.Default, new(200, 200), new(260, 200)), 1, [new(200, 200), new(280, 210)] },
@@ -478,6 +483,7 @@ public class EditorControllerTests
         var circle = new CircleShape(ShapeId.New(), ShapeAttributes.Default, new(200, 200), new(260, 200));
         drawing.Add(circle);
         Select(circle);
+        // 円周上の点を中心に重ねる（半径 0）。違反する位置は反映せず、Up でも元の図形のまま
         Down(260, 200);
         Move(200, 200);
         Up(200, 200);
@@ -625,6 +631,7 @@ public class EditorControllerTests
         Up(2_000_000, 100);
         Assert.Equal([new(100, 100), new(400, 100)], drawing.Shapes[0].HandlePoints);
 
+        // 全体移動：50 動かした状態から範囲外へ動かすと、50 動かした状態に留まる
         Down(200, 100);
         Move(250, 100);
         Move(1_999_800, 100);                           // 全体移動で範囲外
@@ -639,6 +646,7 @@ public class EditorControllerTests
         var existing = AddLine(0, 0, 10, 10);
         var before = UndoDepth();
         Select(existing);
+        // 貼り付けのずれ（X + 10）で、始点の X が上限 1,000,000 を超える
         var nearLimit = new LineShape(ShapeId.New(), ShapeAttributes.Default, new(999_995, 0), new(999_990, 50));
 
         Assert.False(editor.Paste(nearLimit, 1));
@@ -654,6 +662,7 @@ public class EditorControllerTests
     {
         editor.SetTool(Tool.Circle);
 
+        // 貼り付けのずれ（Y − 10）で、始点の Y が下限 −1,000,000 を超える
         Assert.False(editor.Paste(new LineShape(ShapeId.New(), ShapeAttributes.Default, new(0, -999_995), new(5, 0)), 1));
 
         Assert.Equal(Tool.Circle, editor.Tool);
@@ -764,7 +773,7 @@ public class EditorControllerTests
         Down(200, 100);
         Move(250, 120);
         Assert.True(editor.IsDragging);
-        var preview = drawing.Shapes[1];
+        var preview = drawing.Shapes[1];                // ドラッグ中の表示の図形
 
         editor.Undo();
         editor.Redo();
@@ -839,7 +848,7 @@ public class EditorControllerTests
         Assert.Equal(before, UndoDepth());
     }
 
-    // T-EDC-29
+    // T-EDC-29：論理座標は Y 上向きのため、右下へのずれは (X + 10·repeat, Y − 10·repeat)
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
@@ -882,6 +891,7 @@ public class EditorControllerTests
         Assert.NotEqual(drawing.Shapes[0].Id, drawing.Shapes[1].Id);
     }
 
+    // ツールの切り替え・点の追加・プレビューの更新を、それぞれ View へ知らせる
     [Fact]
     public void StateChanged_IsRaisedByPointerInput()
     {

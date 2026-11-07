@@ -57,6 +57,7 @@ public sealed class MainViewModelTests : IDisposable
         Assert.NotEmpty(main.Drawing.InputShapes);
     }
 
+    // 既存のファイル：論理領域の外（X = 2,000）まで伸びる線分 1 本。開いた後の全体図の変化も確かめられる
     string SaveExistingFile(string name)
     {
         var path = folder.Combine(name);
@@ -64,6 +65,7 @@ public sealed class MainViewModelTests : IDisposable
         return path;
     }
 
+    // 3 ノッチ拡大し、全体図の表示（100%）から外す
     void ZoomIn() => main.Drawing.ZoomCommand.Execute(new ZoomRequest(Screen(500, 350), 3));
 
     static bool CanExecute(System.Windows.Input.ICommand command) => command.CanExecute(null);
@@ -136,6 +138,7 @@ public sealed class MainViewModelTests : IDisposable
     public void NewOpenAndClose_CancelInputBeforeAskingToSave()
     {
         DrawLine(100, 100, 200, 200);
+        // 保存確認を表示した時点の、入力中の図形の数を記録する
         var inputShapesWhenAsked = new List<int>();
         dialogs.AskingSaveChanges = () => inputShapesWhenAsked.Add(main.Drawing.InputShapes.Count);
         dialogs.SaveChangesAnswer = SaveChangesAnswer.Cancel;
@@ -235,6 +238,7 @@ public sealed class MainViewModelTests : IDisposable
     [Fact]
     public void SaveAs_KeepsJsonExtensionAndSuggestsCurrentName()
     {
+        // 大文字の .JSON も拡張子として認め、.json を付け足さない。2 回目の提案名は、現在のファイル名
         dialogs.SavePath = folder.Combine("first.JSON");
         main.SaveAsCommand.Execute(null);
         Assert.True(File.Exists(folder.Combine("first.JSON")));
@@ -288,7 +292,7 @@ public sealed class MainViewModelTests : IDisposable
         dialogs.SaveChangesAnswer = SaveChangesAnswer.Cancel;
 
         Assert.False(main.TryClose());
-        Assert.False(File.Exists(SettingsPath));
+        Assert.False(File.Exists(SettingsPath));    // 閉じないため、設定も保存しない
     }
 
     // T-VM-09
@@ -296,6 +300,7 @@ public sealed class MainViewModelTests : IDisposable
     public void Paste_InvalidClipboardData_ShowsErrorAndKeepsDocument()
     {
         clipboard.ShapesText = "{ not valid }";
+        // Paste の有効状態は、RefreshClipboardState で調べたときのクリップボードに従う（View がアクティブ化などで呼ぶ）
         main.RefreshClipboardStateCommand.Execute(null);
 
         main.PasteCommand.Execute(null);
@@ -325,6 +330,7 @@ public sealed class MainViewModelTests : IDisposable
     [Fact]
     public void Paste_ClipboardReadFailure_IsShown()
     {
+        // 有効状態の確認までは成功させ、貼り付けの読み取りで失敗させる
         clipboard.ShapesText = ClipboardShapes.ToText(new LineShape(ShapeId.New(), ShapeAttributes.Default, new(0, 0), new(1, 1)));
         main.RefreshClipboardStateCommand.Execute(null);
         clipboard.Fails = true;
@@ -397,6 +403,7 @@ public sealed class MainViewModelTests : IDisposable
     [Fact]
     public void LoadSettings_UnreadableFile_ShowsWarningAndUsesDefaults()
     {
+        // 既定値と異なる設定を保存しておき、読めなかったときに既定値が使われることを区別できるようにする
         new SettingsStorage(SettingsPath).Save(AppSettings.Default with { MainWindow = new WindowPlacement(1, 2, 300, 200, false) });
 
         using (new FileStream(SettingsPath, FileMode.Open, FileAccess.Read, FileShare.None))
@@ -484,6 +491,8 @@ public sealed class MainViewModelTests : IDisposable
         main.CopyCommand.Execute(null);
         main.PasteCommand.Execute(null);
 
+        // 同じ内容は 10 ずつずれを重ねる（110、120、130）。内容が変わると 1 回目に戻る（500 + 10）。
+        // Copy の後も 1 回目に戻る（コピーした 510 + 10）
         Assert.Equal([110.0, 120.0, 130.0, 510.0, 520.0], main.Drawing.Shapes.Select(shape => shape.HandlePoints[0].X));
     }
 
@@ -497,6 +506,7 @@ public sealed class MainViewModelTests : IDisposable
 
         main.ExitCommand.Execute(null);
 
+        // 保存確認と設定の保存は、閉じるときの TryClose が行う（設計書 6.5）
         Assert.Equal(1, requested);
         Assert.Empty(dialogs.Calls);
         Assert.False(File.Exists(SettingsPath));
@@ -558,10 +568,12 @@ public sealed class MainViewModelTests : IDisposable
         dialogs.SavePath = null;
         dialogs.OpenPath = SaveExistingFile("other.json");
 
+        // 保存確認で Yes を選び、続く Save As のダイアログをキャンセルする（SavePath = null）
         main.NewCommand.Execute(null);
         main.OpenCommand.Execute(null);
         var closed = main.TryClose();
 
+        // どの操作も中止され、Open のファイル選択も表示されない
         Assert.False(closed);
         Assert.Single(main.Drawing.Shapes);
         Assert.Equal(new Point2(200, 200), main.Drawing.Shapes[0].HandlePoints[1]);
@@ -599,6 +611,7 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.Empty(main.Drawing.Shapes);
         Assert.Equal("Zoom: 100%", main.Drawing.ZoomText);
+        // 線分で広がっていた全体図が論理領域に戻り、ビュー 1000 × 700 にちょうど収まる
         Assert.Equal(1.0, main.Drawing.Transform.Scale, 1e-9);
         Assert.Empty(main.Drawing.Handles);
         Assert.Equal("Untitled - WPF CAD Sample", main.Title);
@@ -609,6 +622,7 @@ public sealed class MainViewModelTests : IDisposable
     [Fact]
     public void Paste_BeyondCoordinateLimit_ShowsError()
     {
+        // 貼り付けのずれ（X + 10）で、始点の X が 1,000,005 になり、上限 1,000,000 を超える
         clipboard.ShapesText = ClipboardShapes.ToText(new LineShape(ShapeId.New(), ShapeAttributes.Default, new(999_995, 0), new(999_990, 50)));
         main.RefreshClipboardStateCommand.Execute(null);
 

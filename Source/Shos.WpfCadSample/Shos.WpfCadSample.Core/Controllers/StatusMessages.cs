@@ -11,6 +11,9 @@ static class StatusMessages
     public const string PointRejected = "The point cannot be added here because the shape would be invalid.";
     public const string InvalidShape = "The shape is invalid and was not added.";
 
+    /// <summary>
+    /// ツールの操作案内。ツールを選んだときと、クリックしたときに表示する。
+    /// </summary>
     public static string Guidance(Tool tool) => tool switch {
         Tool.Select => "Click a shape to select it. Drag a shape or a handle to edit it.",
         Tool.Line => "Line: click the start point, then the end point. Press Esc to cancel.",
@@ -26,6 +29,7 @@ static class StatusMessages
     public static string TooFewPoints(ShapeKind kind)
         => $"A {Name(kind)} needs at least {ShapeKindInfo.MinPoints(kind)} points. The input was canceled.";
 
+    // 文中に置く図形の名前（小文字。複合語は空白で区切る）
     static string Name(ShapeKind kind) => kind switch {
         ShapeKind.OpenCurve => "open curve",
         ShapeKind.ClosedCurve => "closed curve",

@@ -11,6 +11,9 @@ namespace Shos.WpfCadSample.Views.Behaviors;
 /// </summary>
 public static class WindowPlacementBehavior
 {
+    /// <summary>
+    /// ウィンドウの配置。表示の直前に読み、変わるたびに書き戻す（既定で双方向のバインド）。
+    /// </summary>
     public static readonly DependencyProperty PlacementProperty =
         DependencyProperty.RegisterAttached("Placement", typeof(WindowPlacement), typeof(WindowPlacementBehavior),
                                             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnPlacementChanged));
@@ -21,6 +24,7 @@ public static class WindowPlacementBehavior
     public static readonly DependencyProperty DefaultPlacementProperty =
         DependencyProperty.RegisterAttached("DefaultPlacement", typeof(WindowPlacement), typeof(WindowPlacementBehavior));
 
+    // イベントの購読を 1 回にするための印
     static readonly DependencyProperty isAttachedProperty =
         DependencyProperty.RegisterAttached("IsAttached", typeof(bool), typeof(WindowPlacementBehavior));
 

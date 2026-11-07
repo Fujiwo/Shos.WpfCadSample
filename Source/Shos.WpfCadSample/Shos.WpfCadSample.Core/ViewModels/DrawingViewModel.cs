@@ -32,6 +32,9 @@ public sealed partial class DrawingViewModel : ObservableObject
         RefreshState();
     }
 
+    /// <summary>
+    /// 描画する図形（追加順。後から追加した図形ほど上に描く。仕様 4.3）。
+    /// </summary>
     public ReadOnlyObservableCollection<Shape> Shapes => drawing.Shapes;
 
     /// <summary>
@@ -44,8 +47,14 @@ public sealed partial class DrawingViewModel : ObservableObject
     /// </summary>
     public ObservableCollection<Shape> InputShapes { get; } = [];
 
+    /// <summary>
+    /// 選択図形のハンドル（画面座標）。選択がなければ空。
+    /// </summary>
     public ObservableCollection<HandleItem> Handles { get; } = [];
 
+    /// <summary>
+    /// 論理座標から画面座標へのビュー変換。図形の層全体に掛ける（設計書 DD-4）。
+    /// </summary>
     [ObservableProperty]
     public partial ViewTransform Transform { get; private set; }
 
@@ -58,6 +67,9 @@ public sealed partial class DrawingViewModel : ObservableObject
     [ObservableProperty]
     public partial PointerCursor Cursor { get; private set; }
 
+    /// <summary>
+    /// 状態表示の左：現在のツールと操作案内（仕様 4.4）。
+    /// </summary>
     [ObservableProperty]
     public partial string StatusText { get; private set; } = "";
 
@@ -67,6 +79,9 @@ public sealed partial class DrawingViewModel : ObservableObject
     [ObservableProperty]
     public partial string CursorText { get; private set; } = "";
 
+    /// <summary>
+    /// 状態表示の右：拡大率（全体図を 100% とする。仕様 4.4）。
+    /// </summary>
     [ObservableProperty]
     public partial string ZoomText { get; private set; } = "";
 
@@ -91,6 +106,7 @@ public sealed partial class DrawingViewModel : ObservableObject
     {
         if (pointerEvent.Action is PointerAction.Move or PointerAction.Down)
             CursorText = FormatCursor(viewport.Transform.ToLogical(pointerEvent.ScreenPoint));
+        // ハンドルの上かどうかでカーソルの形を決めるため、位置を覚えておく
         pointerPoint = pointerEvent.ScreenPoint;
         editor.HandlePointer(pointerEvent);
         RefreshCursor();
@@ -154,6 +170,7 @@ public sealed partial class DrawingViewModel : ObservableObject
         RefreshHandles();
     }
 
+    // ハンドルは画面座標で置くため、ビュー変換が変わるたびに置き直す
     void RefreshView()
     {
         Transform = viewport.Transform;
@@ -166,6 +183,7 @@ public sealed partial class DrawingViewModel : ObservableObject
                   : editor.IsDragging || (pointerPoint is { } point && editor.IsOverHandle(point)) ? PointerCursor.Move
                   : PointerCursor.Arrow;
 
+    // 同じ図形のままなら置き換えない（コレクションの変更による、不要な再描画を避ける）
     void SyncInputShapes()
     {
         if (InputShapes.FirstOrDefault() == editor.InputShape)
