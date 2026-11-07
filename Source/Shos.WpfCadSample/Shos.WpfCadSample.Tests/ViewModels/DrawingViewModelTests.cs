@@ -200,6 +200,11 @@ public class DrawingViewModelTests
         Assert.Equal(viewport.Transform, view.Transform);
     }
 
+    // I-8：描画領域の論理領域の枠（設計書 5.7 の層①）が使う
+    [Fact]
+    public void LogicalArea_IsFixedLogicalAreaOfViewport()
+        => Assert.Equal(new Rect2(0, 0, 1000, 700), view.LogicalArea);
+
     [Fact]
     public void ResetForNewDocument_ShowsOverviewAndClearsSelection()
     {

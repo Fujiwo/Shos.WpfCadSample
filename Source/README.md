@@ -30,6 +30,7 @@ Source\Shos.WpfCadSample\
 ├─ Shos.WpfCadSample\           … net10.0-windows（WPF）
 │   ├─ App.xaml                  … Shos.WpfCadSample.App（ルート namespace 直下の唯一の型）
 │   ├─ Views\                   … Shos.WpfCadSample.Views
+│   │   └─ Converters\          … Shos.WpfCadSample.Views.Converters
 │   └─ Infrastructure\          … Shos.WpfCadSample.Infrastructure
 └─ Shos.WpfCadSample.Tests\     … net10.0。xUnit。Core を参照
     ├─ Architecture\            … Shos.WpfCadSample.Tests.Architecture
@@ -107,3 +108,8 @@ Source\Shos.WpfCadSample\
 | I-7 | EMF・画像の座標の変換 | 論理座標から出力のピクセル座標への変換（Y の反転、範囲への平行移動、縮尺）を倍精度で計算してから GDI+ に渡し、GDI+ の変換行列は使わない。線の太さも同じ縮尺にする | 座標が大きいとき（±1,000,000）に、GDI+ の単精度の変換行列で生じる誤差を避けるため |
 | I-7 | Win32 の呼び出し | `NativeClipboard` は `DllImport` を使う | `LibraryImport` は unsafe のコンパイル（`AllowUnsafeBlocks`）を要するため、プロジェクトの設定を変えずに済む方を選んだ |
 | I-7 | ダイアログの親 | アクティブなウィンドウ（属性ウィンドウを含む）を親にし、なければメインウィンドウ。エラーのタイトルは `<操作名> - WPF CAD Sample` | 属性ウィンドウのショートカットから実行した操作でも、ダイアログがそのウィンドウの前に出るようにするため |
+| I-8 | 論理領域の枠 | `DrawingViewModel.LogicalArea`（`Viewport.LogicalArea` をそのまま返す）を追加し、`Rect2ToRectConverter` で `RectangleGeometry` にする。ビュー変換は `Path` ではなくジオメトリに掛け、線の太さは 1 px | 論理領域の大きさを XAML に重複して書かないため。変換を `Path` に掛けると線も拡大されるため、拡大率に左右されない薄い線（仕様 4.3）にするには、ジオメトリに掛ける必要がある |
+| I-8 | Material Design 3 のスタイル（R-3） | `MaterialDesign3.Defaults.xaml` の暗黙のスタイル（メニュー、ツールバー、ステータスバー、ボタン）に加えて、ウィンドウに `MaterialDesignWindow`、ツールボタンに `MaterialDesignToolRadioButton` を明示する。描画領域の自作の部分は、テーマのブラシ（枠は `MaterialDesign.Brush.Separator.Background`、ハンドルは `MaterialDesign.Brush.Primary` の線と `MaterialDesign.Brush.Background` の塗り）を `DynamicResource` で参照する | 5.4.0 のパッケージ（`MaterialDesignThemes.Wpf.dll`）に含まれるキーを、2026-11-07 に確認した。ツールボタンは、選択状態を Material Design の見た目で示すため（仕様 4.2） |
+| I-8 | ツールバーのアイコン | `PackIcon` の `CursorDefault`（Select）、`VectorLine`、`CircleOutline`、`RectangleOutline`、`VectorPolyline`、`VectorPolygon`、`VectorCurve`（Open Curve）、`VectorEllipse`（Closed Curve）、`Undo`、`Redo` | 図形の形が分かるもの。5.4.0 の `PackIconKind` にあることを確認した |
+| I-8 | 起動時の組み立て | `CompositionRoot` は、コンストラクターで `MainViewModel` を作り、`LoadSettings()` を呼ぶ。設定のパスは `%APPDATA%\Shos.WpfCadSample\settings.json` | `App.xaml` のリソースとして作られる時点（`MainWindow` が `DataContext` を得る前）に、設定を反映しておくため |
+| I-8 | ショートカットの表示 | メニューの項目に、ショートカットを `InputGestureText` で表示する。キーの割り当て（`InputBindings`）は I-9 で行う | 実装計画書の分担（キー操作は I-9）に従うため |

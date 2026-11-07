@@ -3,9 +3,110 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:models="clr-namespace:Shos.WpfCadSample.Models;assembly=Shos.WpfCadSample.Core"
+        xmlns:viewModels="clr-namespace:Shos.WpfCadSample.ViewModels;assembly=Shos.WpfCadSample.Core"
+        xmlns:views="clr-namespace:Shos.WpfCadSample.Views"
+        xmlns:converters="clr-namespace:Shos.WpfCadSample.Views.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
+        DataContext="{Binding MainViewModel, Source={StaticResource CompositionRoot}}"
+        Style="{StaticResource MaterialDesignWindow}"
+        Title="{Binding Title}" Width="1000" Height="700">
+    <Window.Resources>
+        <converters:EnumEqualsConverter x:Key="EnumEquals" />
 
-    </Grid>
+        <!-- ツールボタン：常にいずれか 1 つが選ばれた状態（仕様 4.2）。選択はコマンドで変え、表示は CurrentTool に従う -->
+        <Style x:Key="ToolButton" TargetType="RadioButton" BasedOn="{StaticResource MaterialDesignToolRadioButton}">
+            <Setter Property="GroupName" Value="Tools" />
+            <Setter Property="Command" Value="{Binding Drawing.SelectToolCommand}" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" InputGestureText="Ctrl+N" Command="{Binding NewCommand}" />
+                <MenuItem Header="_Open..." InputGestureText="Ctrl+O" Command="{Binding OpenCommand}" />
+                <MenuItem Header="_Save" InputGestureText="Ctrl+S" Command="{Binding SaveCommand}" />
+                <MenuItem Header="Save _As..." InputGestureText="Ctrl+Shift+S" Command="{Binding SaveAsCommand}" />
+                <Separator />
+                <MenuItem Header="E_xit" InputGestureText="Alt+F4" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" InputGestureText="Ctrl+Z" Command="{Binding UndoCommand}" />
+                <MenuItem Header="_Redo" InputGestureText="Ctrl+Y" Command="{Binding RedoCommand}" />
+                <Separator />
+                <MenuItem Header="_Copy" InputGestureText="Ctrl+C" Command="{Binding CopyCommand}" />
+                <MenuItem Header="_Paste" InputGestureText="Ctrl+V" Command="{Binding PasteCommand}" />
+                <MenuItem Header="_Delete" InputGestureText="Del" Command="{Binding DeleteCommand}" />
+                <Separator />
+                <MenuItem Header="Copy as _Metafile" Command="{Binding CopyMetafileCommand}" />
+                <MenuItem Header="Copy as _Image" Command="{Binding CopyImageCommand}" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Properties Window" InputGestureText="F4" Command="{Binding TogglePropertiesCommand}"
+                          IsChecked="{Binding IsPropertiesWindowVisible, Mode=OneWay}" />
+            </MenuItem>
+        </Menu>
+
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar ClipToBounds="False">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Select" CommandParameter="{x:Static models:Tool.Select}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Select}}">
+                    <materialDesign:PackIcon Kind="CursorDefault" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Line" CommandParameter="{x:Static models:Tool.Line}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Line}}">
+                    <materialDesign:PackIcon Kind="VectorLine" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Circle" CommandParameter="{x:Static models:Tool.Circle}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Circle}}">
+                    <materialDesign:PackIcon Kind="CircleOutline" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Rectangle" CommandParameter="{x:Static models:Tool.Rectangle}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Rectangle}}">
+                    <materialDesign:PackIcon Kind="RectangleOutline" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polyline" CommandParameter="{x:Static models:Tool.Polyline}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Polyline}}">
+                    <materialDesign:PackIcon Kind="VectorPolyline" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polygon" CommandParameter="{x:Static models:Tool.Polygon}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Polygon}}">
+                    <materialDesign:PackIcon Kind="VectorPolygon" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Open Curve" CommandParameter="{x:Static models:Tool.OpenCurve}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.OpenCurve}}">
+                    <materialDesign:PackIcon Kind="VectorCurve" />
+                </RadioButton>
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Closed Curve" CommandParameter="{x:Static models:Tool.ClosedCurve}"
+                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.ClosedCurve}}">
+                    <materialDesign:PackIcon Kind="VectorEllipse" />
+                </RadioButton>
+                <Separator />
+                <Button ToolTip="Undo (Ctrl+Z)" Command="{Binding UndoCommand}">
+                    <materialDesign:PackIcon Kind="Undo" />
+                </Button>
+                <Button ToolTip="Redo (Ctrl+Y)" Command="{Binding RedoCommand}">
+                    <materialDesign:PackIcon Kind="Redo" />
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel />
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem DockPanel.Dock="Right" MinWidth="100" Content="{Binding Drawing.ZoomText}" />
+            <Separator DockPanel.Dock="Right" />
+            <StatusBarItem DockPanel.Dock="Right" MinWidth="180" Content="{Binding Drawing.CursorText}" />
+            <Separator DockPanel.Dock="Right" />
+            <StatusBarItem Content="{Binding Drawing.StatusText}" />
+        </StatusBar>
+
+        <views:DrawingView DataContext="{Binding Drawing}" />
+    </DockPanel>
 </Window>

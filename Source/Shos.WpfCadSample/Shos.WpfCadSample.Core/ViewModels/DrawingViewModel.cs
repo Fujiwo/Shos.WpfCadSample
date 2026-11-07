@@ -34,6 +34,11 @@ public sealed partial class DrawingViewModel : ObservableObject
     public ReadOnlyObservableCollection<Shape> Shapes => drawing.Shapes;
 
     /// <summary>
+    /// 論理領域（固定）。描画領域は、この外形を枠線で示す（仕様 4.3）。
+    /// </summary>
+    public Rect2 LogicalArea => viewport.LogicalArea;
+
+    /// <summary>
     /// 入力中の図形（0 または 1 個）。
     /// </summary>
     public ObservableCollection<Shape> InputShapes { get; } = [];
