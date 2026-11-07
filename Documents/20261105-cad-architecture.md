@@ -313,6 +313,7 @@ classDiagram
         +Redo()
         +Paste(Shape shape, int repeat) bool
         +Reset()
+        +IsOverHandle(Point2 screenPoint) bool
         +PreviewAttributes(ShapeAttributes)
         +CommitAttributes()
     }
@@ -336,6 +337,7 @@ classDiagram
   - 入力中は `Undo` / `Redo` / `Paste` を、ドラッグ中は `Undo` / `Redo` / `Paste` / `DeleteSelected` と、`MainViewModel` の Copy / Copy as Metafile / Copy as Image を実行しない（無効）。入力中の Copy as Metafile / Copy as Image は実行でき、入力中の図形を含めない（仕様 5.10）。`IsInputInProgress` / `IsDragging` を `ViewModels` が `CanExecute` に使う。
   - `Paste(shape, repeat)` は、図形に新しい `ShapeId` を付け、(X + 10·`repeat`, Y − 10·`repeat`) だけずらして配置し（仕様 5.7）、`IsValid()` で再検証してから `Drawing.Add` し、`true` を返す。オフセット適用後に制約または座標の範囲に違反するなら、追加せずに `false` を返す（エラーの表示は `MainViewModel` が行う。予期できる入力の不正のため、例外にはしない。8.2）。成功時はツールを Select に切り替えて貼り付けた図形を選択する。`repeat`（1、2、…）の決定は `MainViewModel` の責務とする（5.4）。
   - `Drawing.Committed` を購読する唯一の型である。受けたら、選択中の `ShapeId` が存在すれば維持し、存在しなければ解除し（仕様 5.5）、その後に自身の `Committed` を発生させる。`ViewModels` は `EditorController.Committed` だけを購読するため、選択の補正が先に終わっていることが保証される。
+  - `IsOverHandle(screenPoint)`：Select ツールで、画面上の点が選択中の図形のハンドルの上（`Down` のハンドルの判定と同じ許容範囲）にあるか。カーソルの形（仕様 4.3）のために `DrawingViewModel` が使う。判定は `SelectInteraction` に置き、ハンドルの当たり判定を 1 か所にする。
   - `Reset()`：入力中の図形とドラッグを取り消し、選択を解除する（Open・New でドキュメントを置き換えたとき。`Drawing.Load` は `Committed` を発生させないため、選択の補正はこの操作で行う）。
   - 状態の変化は `StateChanged`、ドキュメントの確定的な変更は `Committed` で通知する。
 - `DrawInteraction`（描画ツール）：
@@ -377,6 +379,7 @@ classDiagram
         +ObservableCollection~HandleItem~ Handles
         +ViewTransform Transform
         +Tool CurrentTool
+        +PointerCursor Cursor
         +string StatusText
         +string CursorText
         +string ZoomText
@@ -394,6 +397,7 @@ classDiagram
         +CommitEditCommand
     }
     class HandleItem { <<record>> +double X +double Y }
+    class PointerCursor { <<enum>> Arrow Cross Move }
     class AttributeEditModel { +byte Red +byte Green +byte Blue +string Hex +double Thickness +LineStyle LineStyle }
     MainViewModel --> DrawingViewModel
     MainViewModel --> PropertiesViewModel
@@ -424,6 +428,7 @@ classDiagram
   - `CancelInput()`：`EditorController.Cancel()` で入力中の図形を取り消す。
   - `ResetForNewDocument()`：`EditorController.Reset()`（入力の取り消しと選択の解除）の後、新しい図形の外接矩形で `Viewport.UpdateOverview` を呼んでから `Viewport.Reset()` で全体図の表示にし、`Handles` を更新する（仕様 5.8。拡大中でも全体図に戻す点が、`Committed` での補正と異なる）。
   - ホイール・キー（`Ctrl+矢印`）・`Esc` は、コマンドで受ける。
+  - `Cursor`：描画領域のカーソルの種類（仕様 4.3）。描画ツールでは `Cross`、Select ツールでは、ドラッグ中、または `EditorController.IsOverHandle` が真（ハンドルの上）のとき `Move`、それ以外は `Arrow`。ツールの変更とマウスの操作で更新する。WPF の `Cursor` への変換は `Views` のコンバーターが行う。
 - `PropertiesViewModel`：属性ウィンドウの状態。選択図形の属性（選択がなければ空欄・無効）と、新規図形の既定属性を、それぞれ `AttributeEditModel`（RGB のスライダー、16 進、太さ、線種。いずれかを編集すると他も連動する）で扱う。不正な入力は、直前の有効値へ戻す（仕様 5.4）。既定属性は `EditorController.DefaultAttributes` に反映し、設定に保存する対象にする。
 
 ### 5.5 Services（UI に依存する機能の契約）
@@ -494,8 +499,8 @@ classDiagram
 | `MainWindow` | Window（`MaterialDesignWindow`） | メニュー、ツールバー、`DrawingView`、ステータスバーの配置と、`MainViewModel` へのバインド。ショートカットは `InputBindings`（`Ctrl+Z` など）。コードビハインドは `InitializeComponent()` のみ |
 | `PropertiesWindow` | Window（`MaterialDesignWindow`） | 属性ウィンドウ（モードレス）。`DataContext` は `MainViewModel` とし、内容は `Properties` にバインドする。「Selected Shape」と「Defaults for New Shapes」を Material Design のカード状の面で区切る。仕様 4.2 のショートカット（`Alt+F4` を除く）を、`MainWindow` と同じコマンドへの `InputBindings` として持つ（共有のリソースから定義し、二重に書かない）。テキストボックスは編集系キーを自身で処理する（仕様 5.4）。閉じる操作（`Alt+F4` を含む）は `WindowVisibilityBehavior` が取り消して非表示にする（仕様 4.5、A-25） |
 | `DrawingView` | UserControl | 描画領域。層：①論理領域の枠（`Path`）、②図形の `ItemsControl`（`ItemsPanel` は `Canvas`、`RenderTransform` に `Transform` を適用）、③入力中の図形の `ItemsControl`（同上）、④ハンドルの `ItemsControl`（`Canvas`、画面座標）、⑤入力を受ける `DrawingSurface` |
-| `DrawingSurface` | カスタムコントロール（`Themes\Generic.xaml` から、別ファイルの `Themes\DrawingSurface.xaml` を取り込む） | マウス・ホイールを `PointerEvent`（修飾キーは `PointerModifiers` へ変換）に変換して `PointerCommand`（依存関係プロパティ）へ渡す。ボタンを押したときにマウスキャプチャを取り、離したときに解放する。`Up` 以外でキャプチャを失った場合（`LostMouseCapture`）は `CaptureLost` を渡す（仕様 A-26）。`Ctrl+ホイール` はズーム用のコマンドへ。描画領域のサイズを `ViewSize`（依存関係プロパティ）として公開する。クリックで自分にフォーカスを移す。アプリケーションの判断は含まない |
-| コンバーター | `ShapeToGeometryConverter`、`RgbColorToBrushConverter`、`LineStyleToDashesConverter`、`ViewTransformToMatrixConverter`、`EnumEqualsConverter` | 型の変換のみ。`ShapeToGeometryConverter` は `Shape.CreateOutline()` を、図形の `Bounds` の左下を原点とする相対座標の `StreamGeometry` へ変換する |
+| `DrawingSurface` | カスタムコントロール（`Themes\Generic.xaml` から、別ファイルの `Themes\DrawingSurface.xaml` を取り込む） | マウス・ホイールを `PointerEvent`（修飾キーは `PointerModifiers` へ変換）に変換して `PointerCommand`（依存関係プロパティ）へ渡す。ボタンを押したときにマウスキャプチャを取り、離したときに解放する。`Up` 以外でキャプチャを失った場合（`LostMouseCapture`）は `CaptureLost` を渡す（仕様 A-26）。`Ctrl+ホイール` はズーム用のコマンドへ。描画領域のサイズを `ViewSize`（依存関係プロパティ）として公開する。`Cursor` は `DrawingViewModel.Cursor` を `PointerCursorToCursorConverter` でバインドする。クリックで自分にフォーカスを移す。アプリケーションの判断は含まない |
+| コンバーター | `ShapeToGeometryConverter`、`RgbColorToBrushConverter`、`LineStyleToDashesConverter`、`ViewTransformToMatrixConverter`、`EnumEqualsConverter`、`PointerCursorToCursorConverter` | 型の変換のみ。`ShapeToGeometryConverter` は `Shape.CreateOutline()` を、図形の `Bounds` の左下を原点とする相対座標の `StreamGeometry` へ変換する |
 | ビヘイビア（添付プロパティ） | `EditCommit`、`WindowPlacementBehavior`、`WindowClosingBehavior`、`WindowVisibilityBehavior` | `EditCommit`：スライダー（ドラッグ完了・キー操作）、テキストボックス（`Enter`、フォーカス移動）、リスト選択の完了時に、確定のコマンドを呼ぶ。`WindowPlacementBehavior`：`RestoreBounds` を使った配置の保存・復元（最大化時を含む）。`WindowClosingBehavior`：`CloseRequested` でメインウィンドウを閉じ、`Closing` で `TryClose()` を呼び、偽なら閉じるのを取り消す（6.5）。`WindowVisibilityBehavior`：属性ウィンドウの表示状態とバインドし、閉じる操作を非表示に変える |
 | `Infrastructure.CompositionRoot` | 起動時の組み立て | サービス、`Drawing`、`EditorController`、`Viewport`、各 ViewModel を作り、`MainViewModel` を公開する。`MainWindow` は `App.xaml` のリソースから `DataContext` を取得し、コードビハインドに起動時のコードを書かない。`StartupUri` で `MainWindow` を開く |
 | `Infrastructure.DialogService`、`ClipboardService`、`MetafileRenderer`、`NativeClipboard` | `Services` の実装 | 5.5 のとおり |
@@ -746,4 +751,6 @@ sequenceDiagram
 | 2026-11-07 | I-4 の開始時に、ドキュメントと設定の保存が同じ「一時ファイルへ書いてから置き換える」仕組みを要することから、ユーザーの選択（「共有し、依存を加える」）により、`Settings` → `Serialization`（安全な保存の補助だけ）の依存を加えた（3.3、5.6）。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-07 | 設定にも既定属性（色・線種）があり、ドキュメントと同じ JSON の規則を要するため、ユーザーの選択（「依存を広げる」）により、`Settings` が `Serialization` から使うものに JSON の規則を加えた（3.3、5.6）。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-07 | I-9 の開始時に、仕様 4.3 の「ハンドル上ではカーソルを移動の形にする」の実現方法が未定義と分かったため、ユーザーの選択（「Core に追加し、文書を再承認」）により、`EditorController.IsOverHandle`（5.3）、`DrawingViewModel.Cursor` と `PointerCursor`（5.4）、`DrawingSurface` の `Cursor` のバインドと `PointerCursorToCursorConverter`（5.7）を追加した。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |

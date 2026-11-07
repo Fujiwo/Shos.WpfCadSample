@@ -58,7 +58,7 @@ flowchart LR
 | I-6 | ViewModels と契約 | I-4、I-5 | `ViewModels`、`Services`（契約） | T-VM |
 | I-7 | Infrastructure | I-1、I-6 | `Infrastructure`（ダイアログ、クリップボード、EMF・画像の出力、Win32 呼び出し） | ビルドのみ（手動の M-12〜M-14 は I-9 で実施） |
 | I-8 | Views の基盤 | I-7 | `App.xaml`（Material Design 3）、`CompositionRoot`、`MainWindow`、`DrawingView`、コンバーター、図形の描画 | 手動（M-01、M-02） |
-| I-9 | Views の操作 | I-8 | `DrawingSurface`、入力とキー、`PropertiesWindow`、ビヘイビア | 手動（M-03〜M-20） |
+| I-9 | Views の操作 | I-8 | `DrawingSurface`、入力とキー、カーソルの形、`PropertiesWindow`、ビヘイビア | T-EDC-38、T-VM-29、手動（M-03〜M-20） |
 | I-10 | 仕上げ | I-9 | `Source\README.md`、警告ゼロ、構造の確認、スモークテスト | T-ARC、手動（M-21 ほか全項目） |
 
 - I-4 と I-5 は、どちらも I-3 の後に着手できる（互いに依存しない）。ただし、進め方は、一度に 1 段階を完了させる（9 章）。
@@ -220,12 +220,13 @@ flowchart LR
 
 - **作業**：
   - `DrawingSurface`（カスタムコントロール。`Themes\Generic.xaml` から別ファイル `Themes\DrawingSurface.xaml` を取り込む）：マウス・ホイールを `PointerEvent`（修飾キーは `PointerModifiers` へ変換）に変換して `PointerCommand` に渡す。ボタンを押したときにマウスキャプチャを取り、離したときに解放し、`Up` 以外でキャプチャを失った場合（`LostMouseCapture`）は `CaptureLost` を渡す（仕様 A-26）。`ViewSize` を公開する。クリックでフォーカスを得る。アプリケーションの判断は含まない。
+  - カーソルの形（仕様 4.3）：`EditorController.IsOverHandle` と `DrawingViewModel.Cursor`（`PointerCursor`）を、テスト T-EDC-38、T-VM-29 を先に書いて実装し、`DrawingSurface` の `Cursor` に `PointerCursorToCursorConverter` でバインドする（設計書 5.3、5.4、5.7）。
   - キー操作：`Delete`、`Esc`、`Ctrl+矢印`、`Ctrl+ホイール`、メニューのショートカット（`Ctrl+Z`、`Ctrl+Y`、`Ctrl+C`、`Ctrl+V`、`Ctrl+N`、`Ctrl+O`、`Ctrl+S`、`Ctrl+Shift+S`、`F4`）を、`InputBindings` とコマンドで定義する。テキスト入力部品にフォーカスがあるときは、その部品が編集系キーを処理する（仕様 5.4）。
   - `PropertiesWindow`：`DataContext` は `MainViewModel`。「Selected Shape」と「Defaults for New Shapes」の 2 区画（Material Design のカード状の面）、RGB スライダー・16 進・太さ・線種。仕様 4.2 のショートカット（`Alt+F4` を除く）を、`MainWindow` と共有のリソースから `InputBindings` として定義する。`Alt+F4` を含む閉じる操作は非表示に変える（仕様 4.5、A-25）。
   - ビヘイビア：`EditCommit`（スライダーのドラッグ完了、`Enter`、フォーカス移動、リスト選択で確定）、`WindowPlacementBehavior`（`RestoreBounds` を使った配置の保存・復元）、`WindowClosingBehavior`（`CloseRequested` でメインウィンドウを閉じ、`Closing` で `TryClose()` を呼び、偽なら閉じるのを取り消す。設計書 6.5）、`WindowVisibilityBehavior`（属性ウィンドウの表示状態と、閉じる操作の非表示への変換）。
   - クリップボード操作（Edit メニュー）と、設定の保存・復元（`WindowPlacementBehavior` など）を、画面から実行できるようにする。ファイル操作のメニューは I-8 でバインド済みで、この段階では M-18 などで動作を確認する。
 - **前提**：I-8。
-- **成果物**：`Views\*`（`DrawingSurface`、`PropertiesWindow`、`Behaviors`、`Themes`）。
+- **成果物**：`Views\*`（`DrawingSurface`、`PropertiesWindow`、`Behaviors`、`Themes`）。Core の `EditorController.IsOverHandle`、`DrawingViewModel.Cursor`、`PointerCursor` と、そのテスト。
 - **完了条件**：共通の完了条件に加えて、手動テスト M-03〜M-20（I-7 から移した M-12〜M-14 と、I-8 から移した性能の M-20 を含む）を実施し、合格する。M-20 で応答が目安（仕様 A-14）を超える場合は、R-10 の対応を取る。
 - **対応する要件**：F-02、F-04〜F-14（AC-01〜AC-03、AC-05〜AC-11、AC-13〜AC-17、AC-20、AC-21、AC-26〜AC-30、AC-32〜AC-35）。
 
@@ -339,3 +340,5 @@ Source\
 | 2026-11-06 | ユーザーが実装計画書とテスト計画書を一組で承認（状態を `承認済み` に更新） |
 | 2026-11-07 | 設計書の変更（`Tool` を `Controllers` から `Models` へ移す。ユーザーの選択）に合わせ、`Tool` の実装を I-5 から I-3 へ移した。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-07 | 設計書の変更（I-9 の開始時。カーソルの形。ユーザーの選択）に合わせ、I-9 の作業・成果物・テスト群に、`EditorController.IsOverHandle`、`DrawingViewModel.Cursor` と T-EDC-38、T-VM-29 を追加した。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが実装計画書・テスト計画書を、設計書とともに再承認（状態を `承認済み` に更新） |

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:infrastructure="clr-namespace:Shos.WpfCadSample.Infrastructure"
-             StartupUri="Views/MainWindow.xaml">
+             xmlns:behaviors="clr-namespace:Shos.WpfCadSample.Views.Behaviors"
+             StartupUri="Views/MainWindow.xaml" ShutdownMode="OnMainWindowClose">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,6 +14,20 @@
             </ResourceDictionary.MergedDictionaries>
 
             <infrastructure:CompositionRoot x:Key="CompositionRoot" />
+
+            <!-- メニューのショートカット（仕様 4.2。Alt+F4 を除く）。メインウィンドウと属性ウィンドウが共有する（仕様 4.5、A-25） -->
+            <behaviors:ShortcutCollection x:Key="MenuShortcuts">
+                <behaviors:Shortcut Key="N" Modifiers="Control" Command="NewCommand" />
+                <behaviors:Shortcut Key="O" Modifiers="Control" Command="OpenCommand" />
+                <behaviors:Shortcut Key="S" Modifiers="Control" Command="SaveCommand" />
+                <behaviors:Shortcut Key="S" Modifiers="Control+Shift" Command="SaveAsCommand" />
+                <behaviors:Shortcut Key="Z" Modifiers="Control" Command="UndoCommand" />
+                <behaviors:Shortcut Key="Y" Modifiers="Control" Command="RedoCommand" />
+                <behaviors:Shortcut Key="C" Modifiers="Control" Command="CopyCommand" />
+                <behaviors:Shortcut Key="V" Modifiers="Control" Command="PasteCommand" />
+                <behaviors:Shortcut Key="Delete" Command="DeleteCommand" />
+                <behaviors:Shortcut Key="F4" Command="TogglePropertiesCommand" />
+            </behaviors:ShortcutCollection>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

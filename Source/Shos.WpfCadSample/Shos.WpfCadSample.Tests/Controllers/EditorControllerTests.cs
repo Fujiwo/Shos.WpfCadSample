@@ -12,12 +12,12 @@ namespace Shos.WpfCadSample.Tests.Controllers;
 public class EditorControllerTests
 {
     readonly Drawing drawing = new();
+    readonly Viewport viewport = new();
     readonly EditorController editor;
     int recordedChanges;    // Drawing.Committed の回数（記録される変更の回数。数えても状態を変えない）
 
     public EditorControllerTests()
     {
-        var viewport = new Viewport();
         viewport.SetViewSize(1000, 700);
         editor = new EditorController(drawing, viewport);
         drawing.Committed += (_, _) => recordedChanges++;
@@ -661,6 +661,28 @@ public class EditorControllerTests
         Assert.False(editor.IsInputInProgress);
         Assert.Null(editor.InputShape);
         Assert.True(changes >= 2);
+    }
+
+    // T-EDC-38：ハンドルの許容範囲（画面上 6 px）内だけ真。拡大率に左右されない
+    [Fact]
+    public void IsOverHandle_IsTrueOnlyNearHandleOfSelectedShapeWithSelectTool()
+    {
+        var line = AddLine(100, 100, 300, 100);
+        Assert.False(editor.IsOverHandle(Screen(100, 100)));     // 選択なし
+
+        Select(line);
+        Assert.True(editor.IsOverHandle(Screen(100, 100)));
+        Assert.True(editor.IsOverHandle(Screen(105, 100)));
+        Assert.False(editor.IsOverHandle(Screen(107, 100)));
+        Assert.False(editor.IsOverHandle(Screen(200, 100)));     // 線の上（ハンドルではない）
+
+        viewport.ZoomAt(Screen(100, 100), 4);
+        var handle = viewport.Transform.ToScreen(new(300, 100));
+        Assert.True(editor.IsOverHandle(new(handle.X + 5, handle.Y)));
+        Assert.False(editor.IsOverHandle(new(handle.X + 7, handle.Y)));
+
+        editor.SetTool(Tool.Line);
+        Assert.False(editor.IsOverHandle(handle));               // 描画ツール（選択も解除される）
     }
 
     // ---- ツール・入力中の状態（仕様 5.10） ----

@@ -19,6 +19,7 @@ public sealed partial class DrawingViewModel : ObservableObject
     readonly Drawing drawing;
     readonly EditorController editor;
     readonly Viewport viewport;
+    Point2? pointerPoint;     // 描画領域の上のマウスの位置（画面座標）。外にあれば null
 
     public DrawingViewModel(Drawing drawing, EditorController editor, Viewport viewport)
     {
@@ -50,6 +51,12 @@ public sealed partial class DrawingViewModel : ObservableObject
 
     [ObservableProperty]
     public partial Tool CurrentTool { get; private set; }
+
+    /// <summary>
+    /// 描画領域のカーソルの種類：描画ツールは十字、Select はハンドルの上とドラッグ中に移動の形、それ以外は矢印（仕様 4.3）。
+    /// </summary>
+    [ObservableProperty]
+    public partial PointerCursor Cursor { get; private set; }
 
     [ObservableProperty]
     public partial string StatusText { get; private set; } = "";
@@ -84,11 +91,17 @@ public sealed partial class DrawingViewModel : ObservableObject
     {
         if (pointerEvent.Action is PointerAction.Move or PointerAction.Down)
             CursorText = FormatCursor(viewport.Transform.ToLogical(pointerEvent.ScreenPoint));
+        pointerPoint = pointerEvent.ScreenPoint;
         editor.HandlePointer(pointerEvent);
+        RefreshCursor();
     }
 
     [RelayCommand]
-    void PointerLeave() => CursorText = "";
+    void PointerLeave()
+    {
+        CursorText = "";
+        pointerPoint = null;
+    }
 
     [RelayCommand]
     void Cancel() => editor.Cancel();
@@ -136,6 +149,7 @@ public sealed partial class DrawingViewModel : ObservableObject
     {
         CurrentTool = editor.Tool;
         StatusText = editor.StatusMessage;
+        RefreshCursor();
         SyncInputShapes();
         RefreshHandles();
     }
@@ -146,6 +160,11 @@ public sealed partial class DrawingViewModel : ObservableObject
         ZoomText = string.Create(CultureInfo.InvariantCulture, $"Zoom: {viewport.ZoomPercent:0}%");
         RefreshHandles();
     }
+
+    void RefreshCursor()
+        => Cursor = editor.Tool != Tool.Select ? PointerCursor.Cross
+                  : editor.IsDragging || (pointerPoint is { } point && editor.IsOverHandle(point)) ? PointerCursor.Move
+                  : PointerCursor.Arrow;
 
     void SyncInputShapes()
     {

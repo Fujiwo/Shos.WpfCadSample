@@ -93,13 +93,18 @@ public sealed class EditorController
     /// </summary>
     public void HandlePointer(PointerEvent pointerEvent)
     {
-        var input = new PointerInput(pointerEvent.Action, viewport.Transform.ToLogical(pointerEvent.ScreenPoint),
-                                     pointerEvent.ClickCount, 1 / viewport.Scale);
+        var input = ToInput(pointerEvent);
         if (input.Action == PointerAction.Down)
             StatusMessage = StatusMessages.Guidance(Tool);   // 受け付けなかった理由は、次のクリックまで表示する
         CurrentInteraction.Handle(input);
         OnStateChanged();
     }
+
+    /// <summary>
+    /// Select ツールで、画面上の点が選択中の図形のハンドルの上にあるか（カーソルの形のため。仕様 4.3、設計書 5.3）。
+    /// </summary>
+    public bool IsOverHandle(Point2 screenPoint)
+        => Tool == Tool.Select && selectInteraction.IsOverHandle(ToInput(new(PointerAction.Move, screenPoint)));
 
     /// <summary>
     /// Esc：入力中の図形、ドラッグ、確定していない属性の編集を取り消す。
@@ -216,4 +221,8 @@ public sealed class EditorController
     }
 
     void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
+
+    // 画面座標の入力を論理座標へ変換し、許容範囲の換算に使う 1 px の長さを添える（設計書 5.3）
+    PointerInput ToInput(PointerEvent pointerEvent)
+        => new(pointerEvent.Action, viewport.Transform.ToLogical(pointerEvent.ScreenPoint), pointerEvent.ClickCount, 1 / viewport.Scale);
 }

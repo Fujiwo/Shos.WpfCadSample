@@ -30,7 +30,9 @@ Source\Shos.WpfCadSample\
 ├─ Shos.WpfCadSample\           … net10.0-windows（WPF）
 │   ├─ App.xaml                  … Shos.WpfCadSample.App（ルート namespace 直下の唯一の型）
 │   ├─ Views\                   … Shos.WpfCadSample.Views
+│   │   ├─ Behaviors\           … Shos.WpfCadSample.Views.Behaviors
 │   │   └─ Converters\          … Shos.WpfCadSample.Views.Converters
+│   ├─ Themes\                  … Generic.xaml と DrawingSurface.xaml（カスタムコントロールの既定のスタイル）
 │   └─ Infrastructure\          … Shos.WpfCadSample.Infrastructure
 └─ Shos.WpfCadSample.Tests\     … net10.0。xUnit。Core を参照
     ├─ Architecture\            … Shos.WpfCadSample.Tests.Architecture
@@ -113,3 +115,12 @@ Source\Shos.WpfCadSample\
 | I-8 | ツールバーのアイコン | `PackIcon` の `CursorDefault`（Select）、`VectorLine`、`CircleOutline`、`RectangleOutline`、`VectorPolyline`、`VectorPolygon`、`VectorCurve`（Open Curve）、`VectorEllipse`（Closed Curve）、`Undo`、`Redo` | 図形の形が分かるもの。5.4.0 の `PackIconKind` にあることを確認した |
 | I-8 | 起動時の組み立て | `CompositionRoot` は、コンストラクターで `MainViewModel` を作り、`LoadSettings()` を呼ぶ。設定のパスは `%APPDATA%\Shos.WpfCadSample\settings.json` | `App.xaml` のリソースとして作られる時点（`MainWindow` が `DataContext` を得る前）に、設定を反映しておくため |
 | I-8 | ショートカットの表示 | メニューの項目に、ショートカットを `InputGestureText` で表示する。キーの割り当て（`InputBindings`）は I-9 で行う | 実装計画書の分担（キー操作は I-9）に従うため |
+| I-9 | `Themes` の場所 | `Themes\Generic.xaml` と `Themes\DrawingSurface.xaml` は、`Views\` の下ではなく、プロジェクトの直下に置く | WPF がカスタムコントロールの既定のスタイルを探す場所が、アセンブリの `themes/generic.xaml` に決まっているため（実装計画書 I-9 の成果物の `Themes` を、この場所に置いた） |
+| I-9 | 描画領域の大きさの通知 | `DrawingSurface` は、読み取り専用の依存関係プロパティ `ViewSize` に加えて、大きさが変わるたびに `ViewSizeCommand`（`DrawingViewModel.SetViewSizeCommand` にバインド）を実行する | `DrawingViewModel` は大きさをコマンドで受け取るため（設計書 5.4）。マウスの入力（`PointerCommand`）と同じ形にそろえた |
+| I-9 | マウスの入力 | 左ボタンだけを扱う。ホイールのノッチ数は、移動量 ÷ 120 を 0 に切り捨てずに最低 1 とする | 仕様の操作は左ボタンだけで、右ボタンの機能は要件にないため。細かい移動量を送るタッチパッドでも、1 回の操作で拡大縮小するため |
+| I-9 | ショートカットの共有 | ショートカットを、`App.xaml` の `ShortcutCollection`（キー、修飾キー、コマンドへのパス）としてデータで定義し、添付プロパティ `Shortcuts.Source` が、ウィンドウごとに `KeyBinding` を作る。`Esc` と `Ctrl+矢印` は、メインウィンドウだけに直接定義する | `KeyBinding` は 1 つの要素にしか属せず、リソースとして 2 つのウィンドウで共有できないため。`Esc` と `Ctrl+矢印` は仕様 4.2 の表になく、属性ウィンドウでは働かない |
+| I-9 | Paste の有効状態の更新の契機 | 添付プロパティ `CommandEvents.Activated`（ウィンドウのアクティブ化）と `CommandEvents.SubmenuOpened`（Edit メニューを開いたとき）で、`RefreshClipboardStateCommand` を実行する | 設計書 5.4 の契機（R-5）を、コードビハインドを使わずに、イベントからコマンドへつなぐため |
+| I-9 | 属性ウィンドウの生成と所有者 | 属性ウィンドウは、メインウィンドウの添付プロパティ `WindowVisibilityBehavior.OwnedWindow` の値として XAML で作り、メインウィンドウの表示後に所有者にする。アプリケーションは `ShutdownMode="OnMainWindowClose"` | メインウィンドウの前面に表示するため（仕様 4.5）。非表示の属性ウィンドウが残っていても、メインウィンドウを閉じたらアプリケーションを終了させるため |
+| I-9 | ウィンドウの配置の書き戻し | 表示の直前に 1 回だけ配置を適用し、その後は、位置・サイズ・状態が変わるたびに `RestoreBounds` で `MainPlacement` / `PropertiesPlacement` へ書き戻す（最小化中は書き戻さない） | 閉じるときの `TryClose()`（設定の保存）より前に、配置が確実に ViewModel にある状態にするため。`Closing` のハンドラーの順序に頼らずに済む |
+| I-9 | 属性ウィンドウの編集部品 | 「Selected Shape」と「Defaults for New Shapes」は、同じ `DataTemplate` を使う。選択がないときは、区画を無効にして値の部品を隠す（空欄）。不正な入力は、テキストボックスを `MaterialDesign.Brush.ValidationError` の色で示す。線種の `DashDot` は `Dash-Dot` と表示する | 同じ編集部品を二重に書かないため。仕様 4.5 の「空欄で無効」と、仕様 5.4 の「無効状態の見た目」、仕様 4.5 の線種の表記に合わせた |
+| I-9 | カーソルの形 | `PointerCursor.Move` は `Cursors.SizeAll`、`Cross` は `Cursors.Cross`、`Arrow` は `Cursors.Arrow` | 仕様 4.3 の「移動を示す形状」に当たる、標準のカーソル |

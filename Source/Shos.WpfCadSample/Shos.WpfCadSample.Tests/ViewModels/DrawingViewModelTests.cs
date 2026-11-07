@@ -200,6 +200,31 @@ public class DrawingViewModelTests
         Assert.Equal(viewport.Transform, view.Transform);
     }
 
+    // T-VM-29：描画ツールは十字、Select はハンドルの上とドラッグ中に移動の形、それ以外は矢印（仕様 4.3）
+    [Fact]
+    public void Cursor_FollowsToolHandleAndDrag()
+    {
+        Assert.Equal(PointerCursor.Arrow, view.Cursor);
+        AddLine(100, 100, 300, 200);
+
+        view.SelectToolCommand.Execute(Tool.Line);
+        Assert.Equal(PointerCursor.Cross, view.Cursor);
+        view.SelectToolCommand.Execute(Tool.Select);
+        Assert.Equal(PointerCursor.Arrow, view.Cursor);
+
+        Click(200, 150);
+        Pointer(PointerAction.Move, 100, 100);
+        Assert.Equal(PointerCursor.Move, view.Cursor);
+        Pointer(PointerAction.Move, 200, 150);
+        Assert.Equal(PointerCursor.Arrow, view.Cursor);
+
+        Pointer(PointerAction.Down, 200, 150);
+        Pointer(PointerAction.Move, 250, 150);
+        Assert.Equal(PointerCursor.Move, view.Cursor);
+        Pointer(PointerAction.Up, 250, 150);
+        Assert.Equal(PointerCursor.Arrow, view.Cursor);
+    }
+
     // I-8：描画領域の論理領域の枠（設計書 5.7 の層①）が使う
     [Fact]
     public void LogicalArea_IsFixedLogicalAreaOfViewport()

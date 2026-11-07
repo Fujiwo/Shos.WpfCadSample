@@ -8,11 +8,32 @@
         xmlns:viewModels="clr-namespace:Shos.WpfCadSample.ViewModels;assembly=Shos.WpfCadSample.Core"
         xmlns:views="clr-namespace:Shos.WpfCadSample.Views"
         xmlns:converters="clr-namespace:Shos.WpfCadSample.Views.Converters"
+        xmlns:behaviors="clr-namespace:Shos.WpfCadSample.Views.Behaviors"
+        xmlns:settings="clr-namespace:Shos.WpfCadSample.Settings;assembly=Shos.WpfCadSample.Core"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         DataContext="{Binding MainViewModel, Source={StaticResource CompositionRoot}}"
         Style="{StaticResource MaterialDesignWindow}"
-        Title="{Binding Title}" Width="1000" Height="700">
+        Title="{Binding Title}" Width="1000" Height="700"
+        behaviors:WindowClosingBehavior.ViewModel="{Binding}"
+        behaviors:WindowPlacementBehavior.Placement="{Binding MainPlacement}"
+        behaviors:WindowPlacementBehavior.DefaultPlacement="{Binding MainWindow, Source={x:Static settings:AppSettings.Default}}"
+        behaviors:Shortcuts.Source="{StaticResource MenuShortcuts}"
+        behaviors:CommandEvents.Activated="{Binding RefreshClipboardStateCommand}">
+    <!-- 属性ウィンドウ（モードレス）。メインウィンドウの表示後に、その所有者にする -->
+    <behaviors:WindowVisibilityBehavior.OwnedWindow>
+        <views:PropertiesWindow />
+    </behaviors:WindowVisibilityBehavior.OwnedWindow>
+
+    <!-- 描画領域の操作のキー（仕様 5.2、5.6）。メニューのショートカットは Shortcuts.Source -->
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding Drawing.CancelCommand}" />
+        <KeyBinding Key="Left" Modifiers="Control" Command="{Binding Drawing.ScrollCommand}" CommandParameter="{x:Static viewModels:ScrollDirection.Left}" />
+        <KeyBinding Key="Right" Modifiers="Control" Command="{Binding Drawing.ScrollCommand}" CommandParameter="{x:Static viewModels:ScrollDirection.Right}" />
+        <KeyBinding Key="Up" Modifiers="Control" Command="{Binding Drawing.ScrollCommand}" CommandParameter="{x:Static viewModels:ScrollDirection.Up}" />
+        <KeyBinding Key="Down" Modifiers="Control" Command="{Binding Drawing.ScrollCommand}" CommandParameter="{x:Static viewModels:ScrollDirection.Down}" />
+    </Window.InputBindings>
+
     <Window.Resources>
         <converters:EnumEqualsConverter x:Key="EnumEquals" />
 
@@ -33,7 +54,7 @@
                 <Separator />
                 <MenuItem Header="E_xit" InputGestureText="Alt+F4" Command="{Binding ExitCommand}" />
             </MenuItem>
-            <MenuItem Header="_Edit">
+            <MenuItem Header="_Edit" behaviors:CommandEvents.SubmenuOpened="{Binding RefreshClipboardStateCommand}">
                 <MenuItem Header="_Undo" InputGestureText="Ctrl+Z" Command="{Binding UndoCommand}" />
                 <MenuItem Header="_Redo" InputGestureText="Ctrl+Y" Command="{Binding RedoCommand}" />
                 <Separator />

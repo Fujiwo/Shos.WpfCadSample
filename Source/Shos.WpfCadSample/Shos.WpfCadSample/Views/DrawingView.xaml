@@ -6,6 +6,7 @@
              xmlns:models="clr-namespace:Shos.WpfCadSample.Models;assembly=Shos.WpfCadSample.Core"
              xmlns:viewModels="clr-namespace:Shos.WpfCadSample.ViewModels;assembly=Shos.WpfCadSample.Core"
              xmlns:converters="clr-namespace:Shos.WpfCadSample.Views.Converters"
+             xmlns:views="clr-namespace:Shos.WpfCadSample.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance viewModels:DrawingViewModel}"
              d:DesignWidth="1000" d:DesignHeight="700">
@@ -15,6 +16,7 @@
         <converters:LineStyleToDashesConverter x:Key="LineStyleToDashes" />
         <converters:ViewTransformToMatrixConverter x:Key="ViewTransformToMatrix" />
         <converters:Rect2ToRectConverter x:Key="Rect2ToRect" />
+        <converters:PointerCursorToCursorConverter x:Key="PointerCursorToCursor" />
 
         <!-- 図形の線：色・太さ（論理座標）・線種は図形の属性から（仕様 3.4、4.0） -->
         <Style x:Key="ShapePath" TargetType="Path">
@@ -99,5 +101,10 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- ⑤ 入力を受ける面（マウス、ホイール、描画領域の大きさ）。カーソルの形は仕様 4.3 -->
+        <views:DrawingSurface PointerCommand="{Binding PointerCommand}" PointerLeaveCommand="{Binding PointerLeaveCommand}"
+                              ZoomCommand="{Binding ZoomCommand}" ViewSizeCommand="{Binding SetViewSizeCommand}"
+                              Cursor="{Binding Cursor, Converter={StaticResource PointerCursorToCursor}}" />
     </Grid>
 </UserControl>

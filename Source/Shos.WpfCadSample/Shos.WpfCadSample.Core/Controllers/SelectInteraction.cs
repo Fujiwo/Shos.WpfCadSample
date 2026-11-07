@@ -49,17 +49,29 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
         drag = null;
     }
 
+    /// <summary>
+    /// 選択中の図形のハンドルの上か（ドラッグを始めるときと同じ判定。カーソルの形のため）。
+    /// </summary>
+    public bool IsOverHandle(PointerInput input) => HitSelectedHandle(input).HandleIndex >= 0;
+
     // 判定の順序：選択中の図形のハンドル → 図形の線（上から順）→ 何もなければ選択の解除（仕様 5.3、A-9）
     void Begin(PointerInput input)
     {
         Cancel();
-        var index = selectedId() is { } id ? drawing.IndexOf(id) : -1;
-        var handleIndex = index >= 0 ? ShapeHitTester.HitHandle(drawing.Shapes[index], input.Point, input.Pixels(handleTolerancePixels)) : -1;
+        var (index, handleIndex) = HitSelectedHandle(input);
         if (handleIndex < 0) {
             index = ShapeHitTester.HitShape(drawing.Shapes, input.Point, input.Pixels(lineTolerancePixels));
             select(index >= 0 ? drawing.Shapes[index].Id : null);   // 未選択の図形なら選択して、そのまま移動する（仕様 A-4）
         }
         drag = index >= 0 ? new Drag(index, drawing.Shapes[index], handleIndex, input.Point) : null;
+    }
+
+    // 選択中の図形の添字（選択がなければ -1）と、その図形のハンドルの添字（ハンドルの上でなければ -1）
+    (int Index, int HandleIndex) HitSelectedHandle(PointerInput input)
+    {
+        var index = selectedId() is { } id ? drawing.IndexOf(id) : -1;
+        var handleIndex = index >= 0 ? ShapeHitTester.HitHandle(drawing.Shapes[index], input.Point, input.Pixels(handleTolerancePixels)) : -1;
+        return (index, handleIndex);
     }
 
     // 約 3 px 動くまではクリックとして扱う。制約に違反する位置へは動かさず、直前の有効な状態を保つ（仕様 A-23）
