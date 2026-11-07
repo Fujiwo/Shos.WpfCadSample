@@ -4,10 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:models="clr-namespace:Shos.WpfCadSample.Models;assembly=Shos.WpfCadSample.Core"
         xmlns:viewModels="clr-namespace:Shos.WpfCadSample.ViewModels;assembly=Shos.WpfCadSample.Core"
         xmlns:views="clr-namespace:Shos.WpfCadSample.Views"
-        xmlns:converters="clr-namespace:Shos.WpfCadSample.Views.Converters"
         xmlns:behaviors="clr-namespace:Shos.WpfCadSample.Views.Behaviors"
         xmlns:settings="clr-namespace:Shos.WpfCadSample.Settings;assembly=Shos.WpfCadSample.Core"
         mc:Ignorable="d"
@@ -35,12 +33,12 @@
     </Window.InputBindings>
 
     <Window.Resources>
-        <converters:EnumEqualsConverter x:Key="EnumEquals" />
-
-        <!-- ツールボタン：常にいずれか 1 つが選ばれた状態（仕様 4.2）。選択はコマンドで変え、表示は CurrentTool に従う -->
+        <!-- ツールボタン：常にいずれか 1 つが選ばれた状態（仕様 4.2）。選択はコマンドで変え、表示は CurrentTool に従う。
+             ボタンごとのツールは ToolSelection.Tool で指定する（CommandParameter と IsChecked の比較に使う） -->
         <Style x:Key="ToolButton" TargetType="RadioButton" BasedOn="{StaticResource MaterialDesignToolRadioButton}">
             <Setter Property="GroupName" Value="Tools" />
             <Setter Property="Command" Value="{Binding Drawing.SelectToolCommand}" />
+            <Setter Property="behaviors:ToolSelection.CurrentTool" Value="{Binding Drawing.CurrentTool}" />
         </Style>
     </Window.Resources>
 
@@ -73,36 +71,28 @@
 
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar ClipToBounds="False">
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Select" CommandParameter="{x:Static models:Tool.Select}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Select}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Select" behaviors:ToolSelection.Tool="Select">
                     <materialDesign:PackIcon Kind="CursorDefault" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Line" CommandParameter="{x:Static models:Tool.Line}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Line}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Line" behaviors:ToolSelection.Tool="Line">
                     <materialDesign:PackIcon Kind="VectorLine" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Circle" CommandParameter="{x:Static models:Tool.Circle}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Circle}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Circle" behaviors:ToolSelection.Tool="Circle">
                     <materialDesign:PackIcon Kind="CircleOutline" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Rectangle" CommandParameter="{x:Static models:Tool.Rectangle}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Rectangle}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Rectangle" behaviors:ToolSelection.Tool="Rectangle">
                     <materialDesign:PackIcon Kind="RectangleOutline" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polyline" CommandParameter="{x:Static models:Tool.Polyline}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Polyline}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polyline" behaviors:ToolSelection.Tool="Polyline">
                     <materialDesign:PackIcon Kind="VectorPolyline" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polygon" CommandParameter="{x:Static models:Tool.Polygon}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.Polygon}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Polygon" behaviors:ToolSelection.Tool="Polygon">
                     <materialDesign:PackIcon Kind="VectorPolygon" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Open Curve" CommandParameter="{x:Static models:Tool.OpenCurve}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.OpenCurve}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Open Curve" behaviors:ToolSelection.Tool="OpenCurve">
                     <materialDesign:PackIcon Kind="VectorCurve" />
                 </RadioButton>
-                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Closed Curve" CommandParameter="{x:Static models:Tool.ClosedCurve}"
-                             IsChecked="{Binding Drawing.CurrentTool, Mode=OneWay, Converter={StaticResource EnumEquals}, ConverterParameter={x:Static models:Tool.ClosedCurve}}">
+                <RadioButton Style="{StaticResource ToolButton}" ToolTip="Closed Curve" behaviors:ToolSelection.Tool="ClosedCurve">
                     <materialDesign:PackIcon Kind="VectorEllipse" />
                 </RadioButton>
                 <Separator />

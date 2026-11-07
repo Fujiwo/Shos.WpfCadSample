@@ -19,9 +19,17 @@ namespace Shos.WpfCadSample.ViewModels;
 /// </remarks>
 public sealed partial class MainViewModel : ObservableObject
 {
-    const string applicationName = "WPF CAD Sample";
+    /// <summary>
+    /// アプリケーションの名前。タイトルバーとメッセージボックスの見出しに使う（仕様 4.1、4.6）。
+    /// </summary>
+    public const string ApplicationName = "WPF CAD Sample";
+
+    /// <summary>
+    /// 文書のファイルの拡張子（仕様 5.8）。保存時の補完と、ファイルダイアログのフィルターに使う。
+    /// </summary>
+    public const string DocumentExtension = ".json";
+
     const string untitledName = "Untitled";
-    const string documentExtension = ".json";
 
     readonly Drawing document = new();
     readonly EditorController editor;
@@ -60,7 +68,7 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>
     /// <c>&lt;ファイル名または Untitled&gt;[*] - WPF CAD Sample</c>（仕様 4.1）。
     /// </summary>
-    public string Title => $"{DocumentName}{(document.IsModified ? "*" : "")} - {applicationName}";
+    public string Title => $"{DocumentName}{(document.IsModified ? "*" : "")} - {ApplicationName}";
 
     [ObservableProperty]
     public partial bool IsPropertiesWindowVisible { get; set; } = AppSettings.Default.PropertiesWindow.IsVisible;
@@ -298,7 +306,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     bool SaveDocumentAs()
     {
-        var suggestedName = documentPath is null ? untitledName + documentExtension : DocumentName;
+        var suggestedName = documentPath is null ? untitledName + DocumentExtension : DocumentName;
         return dialogs.ShowSaveFileDialog(suggestedName) is { } path && SaveDocumentTo(WithDocumentExtension(path));
     }
 
@@ -338,5 +346,5 @@ public sealed partial class MainViewModel : ObservableObject
 
     // 拡張子が .json でなければ補う（仕様 5.8）
     static string WithDocumentExtension(string path)
-        => Path.GetExtension(path).Equals(documentExtension, StringComparison.OrdinalIgnoreCase) ? path : path + documentExtension;
+        => Path.GetExtension(path).Equals(DocumentExtension, StringComparison.OrdinalIgnoreCase) ? path : path + DocumentExtension;
 }

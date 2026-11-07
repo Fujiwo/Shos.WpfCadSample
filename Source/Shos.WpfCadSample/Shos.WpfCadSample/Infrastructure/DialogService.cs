@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using Microsoft.Win32;
 using Shos.WpfCadSample.Services;
+using Shos.WpfCadSample.ViewModels;
 
 namespace Shos.WpfCadSample.Infrastructure;
 
@@ -9,34 +10,32 @@ namespace Shos.WpfCadSample.Infrastructure;
 /// </summary>
 public sealed class DialogService : IDialogService
 {
-    const string applicationName = "WPF CAD Sample";
-    const string fileFilter = "CAD documents (*.json)|*.json";
-    const string documentExtension = ".json";
+    const string fileFilter = $"CAD documents (*{MainViewModel.DocumentExtension})|*{MainViewModel.DocumentExtension}";
 
     public string? ShowOpenFileDialog()
     {
-        var dialog = new OpenFileDialog { Filter = fileFilter, DefaultExt = documentExtension, CheckFileExists = true };
+        var dialog = new OpenFileDialog { Filter = fileFilter, DefaultExt = MainViewModel.DocumentExtension, CheckFileExists = true };
         return dialog.ShowDialog(Owner()) == true ? dialog.FileName : null;
     }
 
     public string? ShowSaveFileDialog(string suggestedName)
     {
-        var dialog = new SaveFileDialog { Filter = fileFilter, DefaultExt = documentExtension, AddExtension = true, FileName = suggestedName, OverwritePrompt = true };
+        var dialog = new SaveFileDialog { Filter = fileFilter, DefaultExt = MainViewModel.DocumentExtension, AddExtension = true, FileName = suggestedName, OverwritePrompt = true };
         return dialog.ShowDialog(Owner()) == true ? dialog.FileName : null;
     }
 
     public SaveChangesAnswer AskSaveChanges(string name)
-        => Show($"Save changes to \"{name}\"?", applicationName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question) switch {
+        => Show($"Save changes to \"{name}\"?", MainViewModel.ApplicationName, MessageBoxButton.YesNoCancel, MessageBoxImage.Question) switch {
             MessageBoxResult.Yes => SaveChangesAnswer.Yes,
             MessageBoxResult.No => SaveChangesAnswer.No,
             _ => SaveChangesAnswer.Cancel
         };
 
     public void ShowError(string title, string message)
-        => Show(message, $"{title} - {applicationName}", MessageBoxButton.OK, MessageBoxImage.Error);
+        => Show(message, $"{title} - {MainViewModel.ApplicationName}", MessageBoxButton.OK, MessageBoxImage.Error);
 
     public void ShowWarning(string message)
-        => Show(message, applicationName, MessageBoxButton.OK, MessageBoxImage.Warning);
+        => Show(message, MainViewModel.ApplicationName, MessageBoxButton.OK, MessageBoxImage.Warning);
 
     static MessageBoxResult Show(string message, string caption, MessageBoxButton buttons, MessageBoxImage image)
         => Owner() is { } owner
