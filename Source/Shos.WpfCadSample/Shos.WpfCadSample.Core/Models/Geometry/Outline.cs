@@ -23,10 +23,16 @@ public sealed record Outline(IReadOnlyList<OutlineFigure> Figures)
     }
 
     /// <summary>
-    /// 点から線までの最短距離。曲線は <see cref="Flatten"/> の折れ線で測る。
+    /// 点から線までの最短距離。曲線は <see cref="Flatten"/> の折れ線で測る。区間が 1 つ以上必要（1 点だけの折れ線の中間表現では測れない）。
     /// </summary>
+    /// <exception cref="InvalidOperationException">区間がない。</exception>
     public double DistanceTo(Point2 point, double tolerance)
-        => Flatten(tolerance).Min(segment => segment.DistanceTo(point));
+    {
+        var segments = Flatten(tolerance).ToList();
+        if (segments.Count == 0)
+            throw new InvalidOperationException("The outline has no segments to measure the distance to.");
+        return segments.Min(segment => segment.DistanceTo(point));
+    }
 
     /// <summary>
     /// すべての点（始点、区間の終点、ベジェの制御点）が有限か。

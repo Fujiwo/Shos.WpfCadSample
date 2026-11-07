@@ -10,13 +10,18 @@ static class NativeClipboard
 {
     const uint enhancedMetafileFormat = 14;     // CF_ENHMETAFILE
 
+    // クリップボードは、ほかのプロセス（クリップボードの履歴、リモートデスクトップなど）が一瞬開いていることがある。
+    // WPF の Clipboard.SetDataObject の既定と同じく、100 ms おきに 10 回まで試す（独自形式・画像のコピーと振る舞いをそろえる）
+    const int openAttempts = 10;
+    static readonly TimeSpan openRetryDelay = TimeSpan.FromMilliseconds(100);
+
     /// <summary>
     /// クリップボードの内容を EMF に置き換える。成功するとクリップボードがハンドルを所有し、失敗するとハンドルを削除する。
     /// </summary>
-    /// <exception cref="Win32Exception">クリップボードを開けない（他のアプリが使用中など）、または書き込めない。</exception>
+    /// <exception cref="Win32Exception">再試行してもクリップボードを開けない（他のアプリが使用中など）、または書き込めない。</exception>
     public static void SetEnhancedMetafile(IntPtr ownerWindow, IntPtr enhancedMetafile)
     {
-        if (!OpenClipboard(ownerWindow)) {
+        if (!TryOpenClipboard(ownerWindow)) {
             DeleteEnhMetaFile(enhancedMetafile);
             throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
@@ -30,6 +35,18 @@ static class NativeClipboard
         } finally {
             // 開いたクリップボードは、成否にかかわらず閉じる（開いたままだと、他のアプリが使えない）
             CloseClipboard();
+        }
+    }
+
+    // 開けたか。失敗のエラー番号は、最後の OpenClipboard のもの（Thread.Sleep は上書きしない）
+    static bool TryOpenClipboard(IntPtr ownerWindow)
+    {
+        for (var attempt = 1; ; attempt++) {
+            if (OpenClipboard(ownerWindow))
+                return true;
+            if (attempt == openAttempts)
+                return false;
+            Thread.Sleep(openRetryDelay);
         }
     }
 

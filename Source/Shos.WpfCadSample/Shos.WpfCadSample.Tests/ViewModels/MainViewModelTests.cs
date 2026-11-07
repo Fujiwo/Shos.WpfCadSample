@@ -271,6 +271,21 @@ public sealed class MainViewModelTests : IDisposable
         Assert.Equal(ShapeAttributes.Default.Color, main.Drawing.Shapes[0].Attributes.Color);
     }
 
+    // T-VM-01 の補足：WPF の画面は、PropertyChanged を受けたときだけタイトルを読み直す。
+    // 保存で「*」が消えることを、値だけでなく通知でも確かめる（Reviews/20261107-source-code-review-2.md の指摘 7）
+    [Fact]
+    public void Save_NotifiesTitleChanged()
+    {
+        DrawLine(100, 100, 200, 200);
+        dialogs.SavePath = folder.Combine("drawing.json");
+        List<string?> changed = [];
+        main.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        main.SaveCommand.Execute(null);
+
+        Assert.Contains(nameof(MainViewModel.Title), changed);
+    }
+
     // T-VM-07
     [Fact]
     public void Save_FailureOnLockedFile_ShowsErrorAndKeepsModified()
@@ -375,6 +390,22 @@ public sealed class MainViewModelTests : IDisposable
 
         Assert.False(CanExecute(main.PasteCommand));
         Assert.Empty(dialogs.Errors);
+    }
+
+    // T-VM-11 の補足：WPF の画面は、CanExecuteChanged を受けたときだけ CanExecute を問い合わせ直す。
+    // Copy で Paste が有効になることを、値だけでなく通知でも確かめる（Reviews/20261107-source-code-review-2.md の指摘 7）
+    [Fact]
+    public void Copy_NotifiesPasteCanExecuteChanged()
+    {
+        DrawLine(100, 100, 200, 200);
+        Click(150, 150);
+        var notified = false;
+        main.PasteCommand.CanExecuteChanged += (_, _) => notified = true;
+
+        main.CopyCommand.Execute(null);
+
+        Assert.True(notified);
+        Assert.True(CanExecute(main.PasteCommand));
     }
 
     // T-VM-11

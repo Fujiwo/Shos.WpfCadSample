@@ -136,6 +136,12 @@ public class OutlineTests
     public void DistanceTo_LineSegment_IsShortestDistance(double x, double y, double expected)
         => Assert.Equal(expected, Single(Polyline(false, new(0, 0), new(10, 0))).DistanceTo(new(x, y), 0.01), tolerance);
 
+    // T-OUT-03 の補足：区間のない中間表現（1 点だけの折れ線）は、距離を測れないという前提条件の破れ
+    // （Reviews/20261107-source-code-review-2.md の指摘 11）
+    [Fact]
+    public void DistanceTo_WithoutSegments_Throws()
+        => Assert.Throws<InvalidOperationException>(() => Single(Polyline(false, new Point2(0, 0))).DistanceTo(new(1, 1), 0.01));
+
     // T-OUT-03
     [Fact]
     public void DistanceTo_ClosedFigure_IncludesClosingEdge()
