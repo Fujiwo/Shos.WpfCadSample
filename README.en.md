@@ -236,6 +236,12 @@ During a drag, the shape is replaced on every mouse move to update the display. 
 public void PreviewReplace(int index, Shape shape) => ReplaceWithoutRecording(index, shape);
 public void RestoreOriginal(int index, Shape original) => ReplaceWithoutRecording(index, original);
 
+public void CommitPreview(int index, Shape original, Shape final)
+{
+    RestoreOriginal(index, original);   // not recorded
+    Replace(index, final);              // recorded once
+}
+
 void ReplaceWithoutRecording(int index, Shape shape)
 {
     using (new UndoRedoList<Shape, ObservableCollection<Shape>>.DisabledUndoScope(shapes))
@@ -243,7 +249,7 @@ void ReplaceWithoutRecording(int index, Shape shape)
 }
 ```
 
-On release, the shape is **first restored to the original (not recorded), then replaced once with the final shape (recorded)**. That leaves exactly one operation in history: "original shape → final shape".
+On release, the shape is **first restored to the original (not recorded), then replaced once with the final shape (recorded)**. That leaves exactly one operation in history: "original shape → final shape". Getting this order wrong would break the Undo unit, so it lives in one place, `Drawing.CommitPreview`, and the callers (dragging and attribute editing) just say "commit".
 
 ```csharp
 // Controllers/SelectInteraction.cs
@@ -251,10 +257,8 @@ void Finish()
 {
     var finished = drag;
     drag = null;
-    if (finished is { HasChanged: true }) {
-        drawing.RestoreOriginal(finished.Index, finished.Original);
-        drawing.Replace(finished.Index, finished.Current);
-    }
+    if (finished is { HasChanged: true })
+        drawing.CommitPreview(finished.Index, finished.Original, finished.Current);
 }
 ```
 

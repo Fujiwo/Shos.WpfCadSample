@@ -10,7 +10,7 @@
   - 各指摘はコードで確かめた。指摘 1 と 4 は、一時的なテストを書いて Windows の `dotnet.exe test` で再現を確かめた。一時的なテストは削除済みで、リポジトリには残っていない。
   - 実機（Windows のクリップボード）でしか確かめられない点は、「要確認」と書いた。
 - 既知の指摘：[20261107-source-code-review.md](./20261107-source-code-review.md)（固定 2 点図形の終点のダブルクリック）は修正済みのため除いた。
-- 対応状況：指摘 1、2、4 を修正済み（2026-11-07）。指摘 5 は、ユーザーの判断（保存の前に確定する）に沿って修正済み（同日。テストは 677 件成功）。指摘 7、9、11、12 を修正し、指摘 10 は仕様書に仮定 A-30 を追加して対応した（同日。テストは 680 件成功。仕様書はレビュー待ち）。それぞれ、再現するテストを先に足して失敗を確かめてから直した。`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（675 件）。残る指摘 3、6、8 は、設計書の改訂を要するため未対応。
+- 対応状況：指摘 1、2、4 を修正済み（2026-11-07）。指摘 5 は、ユーザーの判断（保存の前に確定する）に沿って修正済み（同日。テストは 677 件成功）。指摘 7、9、11、12 を修正し、指摘 10 は仕様書に仮定 A-30 を追加して対応した（同日。テストは 680 件成功。仕様書は 2026-11-08 にユーザーが再承認）。指摘 3、6、8 は、設計書・実装計画書・テスト計画書を改訂してユーザーの承認を得てから修正した（2026-11-08。`EditorController.SelectedShape`、`Drawing.CommitPreview`、設計書 5.4 の記述とクラス図）。それぞれ、テストを先に足して失敗を確かめてから直した。`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（682 件）。すべての指摘に対応済み。
 
 ## 指摘の一覧
 

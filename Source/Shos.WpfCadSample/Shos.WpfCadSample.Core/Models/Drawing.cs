@@ -66,9 +66,19 @@ public sealed class Drawing
     public void PreviewReplace(int index, Shape shape) => ReplaceWithoutRecording(index, shape);
 
     /// <summary>
-    /// <see cref="PreviewReplace"/> の前の図形へ戻す（記録しない）。確定するときは、この後に <see cref="Replace"/> で 1 回だけ記録する。
+    /// <see cref="PreviewReplace"/> の前の図形へ戻す（記録しない）。プレビューを取り消すときに使う。確定するときは <see cref="CommitPreview"/> を使う。
     /// </summary>
     public void RestoreOriginal(int index, Shape original) => ReplaceWithoutRecording(index, original);
+
+    /// <summary>
+    /// <see cref="PreviewReplace"/> による表示を確定する。元の図形へ戻して（記録しない）から、最終の図形へ置き換えて 1 回だけ記録する。
+    /// </summary>
+    public void CommitPreview(int index, Shape original, Shape final)
+    {
+        // 元へ戻してから記録すると、履歴が「元 → 最終」の 1 回になり、Undo で元の図形へ戻る（設計書 DD-3、R-7）
+        RestoreOriginal(index, original);
+        Replace(index, final);
+    }
 
     public void Undo()
     {

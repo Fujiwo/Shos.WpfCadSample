@@ -7,7 +7,7 @@ namespace Shos.WpfCadSample.Controllers;
 /// Select ツールの入力：クリックでの選択と、ハンドル・図形全体のドラッグ（仕様 5.3、設計書 5.3、6.2）。
 /// ドラッグ中は記録せずに表示だけを更新し、マウスを離したときに 1 回だけ記録する（設計書 DD-3）。
 /// </summary>
-sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Action<ShapeId?> select) : IInteraction
+sealed class SelectInteraction(Drawing drawing, Func<int> selectedIndex, Action<ShapeId?> select) : IInteraction
 {
     // 画面上の大きさ（仕様 A-9）
     const double handleTolerancePixels = 6;     // ハンドルをつかめる距離
@@ -69,7 +69,7 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
     // 選択中の図形の添字（選択がなければ -1）と、その図形のハンドルの添字（ハンドルの上でなければ -1）
     (int Index, int HandleIndex) HitSelectedHandle(PointerInput input)
     {
-        var index = selectedId() is { } id ? drawing.IndexOf(id) : -1;
+        var index = selectedIndex();
         var handleIndex = index >= 0 ? ShapeHitTester.HitHandle(drawing.Shapes[index], input.Point, input.Pixels(handleTolerancePixels)) : -1;
         return (index, handleIndex);
     }
@@ -88,16 +88,14 @@ sealed class SelectInteraction(Drawing drawing, Func<ShapeId?> selectedId, Actio
         drag.Current = candidate;
     }
 
-    // 元の図形へ戻してから、最終の図形を 1 回だけ記録する（設計書 R-7）。
+    // 最終の図形を 1 回だけ記録する（設計書 DD-3）。
     // 記録の通知（Committed）の時点でドラッグが終わっているよう、先にドラッグを終える（全体図の更新はドラッグ中にしないため）
     void Finish()
     {
         var finished = drag;
         drag = null;
-        if (finished is { HasChanged: true }) {
-            drawing.RestoreOriginal(finished.Index, finished.Original);
-            drawing.Replace(finished.Index, finished.Current);
-        }
+        if (finished is { HasChanged: true })
+            drawing.CommitPreview(finished.Index, finished.Original, finished.Current);
     }
 
     /// <summary>

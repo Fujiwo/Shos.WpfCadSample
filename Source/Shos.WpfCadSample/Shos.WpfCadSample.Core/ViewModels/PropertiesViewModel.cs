@@ -10,14 +10,12 @@ namespace Shos.WpfCadSample.ViewModels;
 /// </summary>
 public sealed partial class PropertiesViewModel : ObservableObject
 {
-    readonly Drawing drawing;
     readonly EditorController editor;
     // 表示中の選択図形。同じ図形の同じ属性なら表示を読み直さない（入力中の文字列を保つため）
     ShapeId? shownId;
 
-    public PropertiesViewModel(Drawing drawing, EditorController editor)
+    public PropertiesViewModel(EditorController editor)
     {
-        this.drawing = drawing;
         this.editor = editor;
         SelectedAttributes = new(editor.PreviewAttributes);
         DefaultAttributes = new(attributes => editor.DefaultAttributes = attributes);
@@ -71,8 +69,7 @@ public sealed partial class PropertiesViewModel : ObservableObject
     // 選択の変更と、Undo / Redo による属性の変化に、表示を合わせる
     void Refresh()
     {
-        var index = editor.SelectedId is { } id ? drawing.IndexOf(id) : -1;
-        var shape = index >= 0 ? drawing.Shapes[index] : null;
+        var shape = editor.SelectedShape;
         HasSelection = shape is not null;
         ShapeTypeName = shape is null ? "" : DisplayName(shape.Kind);
         if (shape is not null && (shape.Id != shownId || shape.Attributes != SelectedAttributes.Attributes))

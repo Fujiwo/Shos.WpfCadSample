@@ -142,13 +142,13 @@ flowchart LR
 - **作業**：`Models` に、`ShapeId`、`RgbColor`、`LineStyle`、`ShapeAttributes`、`ShapeKind`、`Tool`（設計書 5.1。`ShapeKindInfo.FromTool` が使う）、`Shape`（抽象）と 7 種の図形（`LineShape`、`CircleShape`、`RectangleShape`、`PolylineShape`、`PolygonShape`、`OpenCurveShape`、`ClosedCurveShape`）、`ShapeKindInfo`、`Drawing` を実装し、`Models.Geometry` に `ShapeHitTester` を実装する（設計書 5.1、5.2）。
   - 図形は不変な `record`。`CreateOutline`、`HandlePoints`、`MoveHandle`、`Translate`、`SatisfiesConstraints`、`IsValid`、`Bounds` を `Shape` の多態で実装する（DD-12）。制約の判定（点の完全一致を含む。仕様 A-27）は `SatisfiesConstraints()` の 1 か所に置き、`IsValid()` は最小点数・`SatisfiesConstraints()`・`ShapeAttributes.IsValid()` を組み合わせる（設計書 5.1）。
   - `ShapeKindInfo` は、入力の規則（`FromTool`、`MinPoints`、`IsFixedTwoPoint`、`Create`）と、候補の図形を作って `SatisfiesConstraints()` で判定する `CanAppend` を持つ。制約の知識は持たない。
-  - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`Undo` / `Redo`（実行後に `IsModified = true` と `Committed`。仕様 A-11）、`CanUndo` / `CanRedo`、`Committed`、`IsModified`、`Load`、`MarkSaved`、`IndexOf` を実装する。
+  - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`CommitPreview`（元へ戻してから 1 回だけ記録。R-7）、`Undo` / `Redo`（実行後に `IsModified = true` と `Committed`。仕様 A-11）、`CanUndo` / `CanRedo`、`Committed`、`IsModified`、`Load`、`MarkSaved`、`IndexOf` を実装する。
   - `ShapeHitTester`：`HitShape` は中心線からの距離が「線の太さ ÷ 2 + 許容範囲」以内を線上とし（DA-7）、`HitHandle` は許容範囲内で最も近いハンドルを返す（仕様 5.3、A-9）。
   - `ExportFrame`：EMF・画像の出力範囲と縮尺（整数ピクセルに切り上げた各辺が 10,000 以下、画素数が 4,000,000 以下となるよう、縦横比を保って縮小する。仕様 A-10、A-24）を求める純粋な関数（設計書 5.2）。
   - `System.Text.Json` の多態性の属性（`[JsonPolymorphic]`、`[JsonDerivedType]`）は I-4 で付ける（シリアライズのテストと一緒に行う）。
 - **前提**：I-2。
 - **成果物**：`Models\*.cs`、`Models\Geometry\ShapeHitTester.cs`、`Models\Geometry\ExportFrame.cs`、対応するテスト。
-- **完了条件**：共通の完了条件に加えて、T-SHP、T-ATT、T-HIT、T-DRW、T-EXP の全ケースが成功する。特に、「`PreviewReplace` → `RestoreOriginal` → `Replace` の 1 回が、Undo 1 回で元に戻る」（R-7）ことを確認する。
+- **完了条件**：共通の完了条件に加えて、T-SHP、T-ATT、T-HIT、T-DRW、T-EXP の全ケースが成功する。特に、「`PreviewReplace` → `CommitPreview` の 1 回が、Undo 1 回で元に戻る」（R-7）ことを確認する。
 - **対応する要件**：F-04、F-07、F-08、F-10、F-12（AC-05〜AC-09、AC-28、AC-32 の出力範囲と縮尺、AC-35 の座標範囲の検証）。
 
 ### I-4 保存・設定
@@ -171,6 +171,7 @@ flowchart LR
   - `Paste(shape, repeat)`：(X + 10·`repeat`, Y − 10·`repeat`) のずらしと再検証。違反なら追加せず `false` を返す。`repeat` の決定（累積と Copy によるリセット）は I-6 の `MainViewModel` で実装する（設計書 5.3、5.4）。
   - `Drawing.Committed` を購読し、選択の `ShapeId` による維持・解除（仕様 5.5）の後に、自身の `Committed` を発生させる（`ViewModels` はこちらだけを購読する。設計書 5.3）。
   - `Reset()`：入力中の図形とドラッグの取り消しと、選択の解除（Open・New の後。設計書 5.3）。
+  - `SelectedShape`：選択中の図形（`ShapeId` から添字への変換を `EditorController` の 1 か所に置く。`ViewModels` はこれを使う。設計書 5.3、5.4）。ドラッグと属性の編集の確定は、`Drawing.CommitPreview` で行う（設計書 5.1）。
 - **前提**：I-3（`Viewport` は I-2）。
 - **成果物**：`Controllers\*.cs`、対応するテスト。
 - **完了条件**：共通の完了条件に加えて、T-EDC の全ケースが成功する。
@@ -342,3 +343,4 @@ Source\
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-07 | 設計書の変更（I-9 の開始時。カーソルの形。ユーザーの選択）に合わせ、I-9 の作業・成果物・テスト群に、`EditorController.IsOverHandle`、`DrawingViewModel.Cursor` と T-EDC-38、T-VM-29 を追加した。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが実装計画書・テスト計画書を、設計書とともに再承認（状態を `承認済み` に更新） |
+| 2026-11-08 | 設計書の変更（[ソースコード全体レビュー](../Reviews/20261107-source-code-review-2.md)の指摘 3、6）に合わせ、I-3 に `Drawing.CommitPreview`、I-5 に `EditorController.SelectedShape` を加えた。全段階の完了後の保守の変更として実施する（テストは T-DRW-05、T-DRW-07、T-EDC-39）。状態を `レビュー待ち` に戻した |

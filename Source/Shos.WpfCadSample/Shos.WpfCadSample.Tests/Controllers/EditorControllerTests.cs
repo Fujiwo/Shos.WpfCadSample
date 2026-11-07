@@ -729,6 +729,26 @@ public class EditorControllerTests
         Assert.False(editor.IsOverHandle(handle));               // 描画ツール（選択も解除される）
     }
 
+    // T-EDC-39：選択中の図形は、置き換えの後も同じ ShapeId の現在の図形を返し、図形がなくなれば null
+    [Fact]
+    public void SelectedShape_FollowsReplacementAndDisappearance()
+    {
+        var line = AddLine(100, 100, 300, 100);
+        Assert.Null(editor.SelectedShape);                      // 選択なし
+
+        Select(line);
+        Assert.Same(line, editor.SelectedShape);
+
+        Drag(200, 100, 230, 150);                               // 全体移動で置き換わる
+        var moved = Assert.IsType<LineShape>(editor.SelectedShape);
+        Assert.Equal(line.Id, moved.Id);
+        Assert.Equal(new Point2(130, 150), moved.Start);
+
+        editor.Undo();                                          // 移動の取り消し
+        editor.Undo();                                          // 追加の取り消し：図形がなくなる
+        Assert.Null(editor.SelectedShape);
+    }
+
     // ---- ツール・入力中の状態（仕様 5.10） ----
 
     // T-EDC-23

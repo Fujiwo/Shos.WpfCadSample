@@ -58,7 +58,7 @@ public sealed partial class MainViewModel : ObservableObject
         var viewport = new Viewport();
         editor = new EditorController(document, viewport);
         Drawing = new DrawingViewModel(document, editor, viewport);
-        Properties = new PropertiesViewModel(document, editor);
+        Properties = new PropertiesViewModel(editor);
         stateDependentCommands = [UndoCommand, RedoCommand, CopyCommand, PasteCommand, DeleteCommand, CopyMetafileCommand, CopyImageCommand];
 
         editor.StateChanged += (_, _) => RefreshCommands();
@@ -218,7 +218,7 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanCopy))]
     void Copy()
     {
-        if (SelectedShape() is not { } shape)
+        if (editor.SelectedShape is not { } shape)
             return;
         if (!TryClipboard("Copy", () => clipboard.SetShapesText(ClipboardShapes.ToText(shape))))
             return;
@@ -290,19 +290,13 @@ public sealed partial class MainViewModel : ObservableObject
     // 入力中・ドラッグ中のコマンドの制限（仕様 5.10）と、それぞれの前提（仕様 4.2）
     bool CanUndo() => !IsBusy && document.CanUndo;
     bool CanRedo() => !IsBusy && document.CanRedo;
-    bool CanDelete() => !IsBusy && SelectedShape() is not null;
-    bool CanCopy() => !editor.IsDragging && SelectedShape() is not null;
+    bool CanDelete() => !IsBusy && editor.SelectedShape is not null;
+    bool CanCopy() => !editor.IsDragging && editor.SelectedShape is not null;
     bool CanPaste() => !IsBusy && clipboardHasShapes;
     bool CanCopyPicture() => !editor.IsDragging && document.Shapes.Count > 0;
 
-    Shape? SelectedShape()
-    {
-        var index = editor.SelectedId is { } id ? document.IndexOf(id) : -1;
-        return index >= 0 ? document.Shapes[index] : null;
-    }
-
     // 選択があればその図形、なければドキュメント全体（入力中の図形は含まない。仕様 5.7、5.10）
-    IReadOnlyList<Shape> PictureTargets() => SelectedShape() is { } shape ? [shape] : [.. document.Shapes];
+    IReadOnlyList<Shape> PictureTargets() => editor.SelectedShape is { } shape ? [shape] : [.. document.Shapes];
 
     bool TryClipboard(string operation, Action action)
     {

@@ -196,10 +196,9 @@ public sealed partial class DrawingViewModel : ObservableObject
     void RefreshHandles()
     {
         Handles.Clear();
-        var index = editor.SelectedId is { } id ? drawing.IndexOf(id) : -1;
-        if (index < 0)
+        if (editor.SelectedShape is not { } shape)
             return;
-        foreach (var point in drawing.Shapes[index].HandlePoints.Select(viewport.Transform.ToScreen))
+        foreach (var point in shape.HandlePoints.Select(viewport.Transform.ToScreen))
             Handles.Add(new(point.X, point.Y));
     }
 

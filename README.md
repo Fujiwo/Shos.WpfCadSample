@@ -234,6 +234,12 @@ public void Replace(int index, Shape shape)
 public void PreviewReplace(int index, Shape shape) => ReplaceWithoutRecording(index, shape);
 public void RestoreOriginal(int index, Shape original) => ReplaceWithoutRecording(index, original);
 
+public void CommitPreview(int index, Shape original, Shape final)
+{
+    RestoreOriginal(index, original);   // 記録しない
+    Replace(index, final);              // 1 回だけ記録する
+}
+
 void ReplaceWithoutRecording(int index, Shape shape)
 {
     using (new UndoRedoList<Shape, ObservableCollection<Shape>>.DisabledUndoScope(shapes))
@@ -241,7 +247,7 @@ void ReplaceWithoutRecording(int index, Shape shape)
 }
 ```
 
-マウスを離したときは、**いったん元の図形に戻してから（記録しない）、最終の図形で 1 回だけ置き換えます（記録する）**。こうすると、履歴には「元の図形 → 最終の図形」の 1 操作だけが残ります。
+マウスを離したときは、**いったん元の図形に戻してから（記録しない）、最終の図形で 1 回だけ置き換えます（記録する）**。こうすると、履歴には「元の図形 → 最終の図形」の 1 操作だけが残ります。この順序を誤ると Undo の単位が壊れるため、`Drawing.CommitPreview` の 1 か所にまとめ、呼び出し側（ドラッグと属性の編集）は「確定する」とだけ書きます。
 
 ```csharp
 // Controllers/SelectInteraction.cs
@@ -249,10 +255,8 @@ void Finish()
 {
     var finished = drag;
     drag = null;
-    if (finished is { HasChanged: true }) {
-        drawing.RestoreOriginal(finished.Index, finished.Original);
-        drawing.Replace(finished.Index, finished.Current);
-    }
+    if (finished is { HasChanged: true })
+        drawing.CommitPreview(finished.Index, finished.Original, finished.Current);
 }
 ```
 

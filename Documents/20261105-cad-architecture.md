@@ -181,6 +181,7 @@ classDiagram
         +Replace(int, Shape)
         +PreviewReplace(int, Shape)
         +RestoreOriginal(int, Shape)
+        +CommitPreview(int, Shape original, Shape final)
         +Undo()
         +Redo()
         +Load(IEnumerable~Shape~)
@@ -226,7 +227,8 @@ classDiagram
 - `Drawing` の責務は、「図形の一覧と、その Undo / Redo、未保存状態を保つ」ことである。
   - 内部の一覧は、`UndoRedoObservableCollection<Shape>`（履歴の上限は 1,000。仮定 DA-1）。外部へは、読み取りと変更通知だけを持つ `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開し、変更は `Drawing` の操作だけで行う（`IsModified` と `Committed` を迂回させない）。View は、この一覧にバインドする。
   - `Add` / `RemoveAt` / `Replace`：記録される変更。実行後に `IsModified = true` とし、`Committed` を発生させる。`Committed` を購読するのは `EditorController` だけとする（5.3）。
-  - `PreviewReplace` / `RestoreOriginal`：`DisabledUndoScope` の内側での置き換え（記録されず、`Committed` も発生しない。DD-3）。`CollectionChanged` は発生するため、ドラッグ中の表示が更新される。
+  - `PreviewReplace` / `RestoreOriginal`：`DisabledUndoScope` の内側での置き換え（記録されず、`Committed` も発生しない。DD-3）。`CollectionChanged` は発生するため、ドラッグ中の表示が更新される。`RestoreOriginal` は、プレビューを取り消すとき（`Esc`、確定する変更がないときなど）に使う。
+  - `CommitPreview(index, original, final)`：プレビューの確定。元の図形へ戻して（記録しない）から、最終の図形で置き換えて 1 回だけ記録する（DD-3、R-7）。「戻してから記録する」順序はここ 1 か所に置き、呼び出し側（`SelectInteraction`、`AttributeEditor`）は確定の操作だけを書く。`Replace` と同じく、`IsModified = true` とし、`Committed` を発生させる。
   - `Undo` / `Redo`：実行後に `IsModified = true` とし、`Committed` を発生させる（仕様 A-11）。
   - `Load`：`DisabledUndoScope` の中で一覧を入れ替え、`ClearUndo()` で履歴を消去し、`IsModified = false` とする。New も空の一覧での `Load` とする。
   - `MarkSaved`：`IsModified = false` にする。
@@ -298,6 +300,7 @@ classDiagram
     class EditorController {
         +Tool Tool
         +ShapeId? SelectedId
+        +Shape? SelectedShape
         +Shape? InputShape
         +string StatusMessage
         +bool IsInputInProgress
@@ -332,6 +335,7 @@ classDiagram
 ```
 
 - `EditorController` の仕事は「現在のツールに応じて入力を解釈し、図形の編集を実行する」ことである。ツールの種類 `Tool` は `Models` の型を使う（5.1）。
+  - 選択は `SelectedId`（`ShapeId`）で持つ（DD-11）。選択中の図形は `SelectedShape`（選択がない、または図形がなければ `null`）として公開する。`ShapeId` から添字への変換は、この型の中の 1 か所で行い、`SelectInteraction` にもその結果を渡す。`ViewModels` は `SelectedShape` を使い、`Drawing.IndexOf` で選択中の図形を探さない。
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲（画面上の px ÷ `Scale`）を論理座標へ換算してから、`DrawInteraction` または `SelectInteraction` へ渡す。
   - `SetTool` は、入力中の図形を取り消し、描画ツールへの切り替えで選択を解除する（仕様 5.10）。
   - 入力中は `Undo` / `Redo` / `Paste` を、ドラッグ中は `Undo` / `Redo` / `Paste` / `DeleteSelected` と、`MainViewModel` の Copy / Copy as Metafile / Copy as Image を実行しない（無効）。入力中の Copy as Metafile / Copy as Image は実行でき、入力中の図形を含めない（仕様 5.10）。`IsInputInProgress` / `IsDragging` を `ViewModels` が `CanExecute` に使う。
@@ -347,10 +351,10 @@ classDiagram
 - `SelectInteraction`（Select ツール）：
   - `Down`：判定の順序は、選択中の図形のハンドル（`HitHandle`。最も近いもの）→ 図形の線（`HitShape`。上から順。選択中かどうかは問わない）とする（仕様 5.3、A-9）。ハンドル上 → そのハンドルのドラッグ、選択図形の線上 → 全体移動のドラッグ、未選択の図形の線上 → 選択して全体移動（仕様 A-4）、何もない場所 → 選択解除。
   - `Move`：3 px 以上動いたら、`Shape.MoveHandle` / `Translate` を適用した候補を作る。候補が `IsValid()` を満たさない場合は、直前の有効な状態を保つ（仕様 A-23）。有効なら `Drawing.PreviewReplace`（DD-3）。
-  - `Up`：移動量が閾値未満ならクリックとして扱い、何も記録しない。それ以外は、`Drawing.RestoreOriginal` で元に戻してから、`Drawing.Replace` で最終の図形を 1 回だけ記録する。
+  - `Up`：移動量が閾値未満ならクリックとして扱い、何も記録しない。それ以外は、`Drawing.CommitPreview` で、元の図形へ戻してから最終の図形を 1 回だけ記録する。
   - `Cancel`（`Esc`）と `CaptureLost`（他のウィンドウへの切り替えなどによるマウスキャプチャの喪失）：ドラッグ中なら `Drawing.RestoreOriginal` で元に戻す（仕様 5.3、A-26）。ウィンドウの外でボタンを離した場合は、キャプチャ中のため通常の `Up` として確定する。
 - `DrawInteraction` は `CaptureLost` を無視する（入力中の点は保つ）。
-- `AttributeEditor`：選択図形の属性の編集（プレビューと確定）。スライダーなどの連続的な編集は、`Drawing.PreviewReplace` で表示し、操作の完了時に `CommitAttributes` が `RestoreOriginal` → `Replace` で 1 回だけ記録する（仕様 5.4）。
+- `AttributeEditor`：選択図形の属性の編集（プレビューと確定）。スライダーなどの連続的な編集は、`Drawing.PreviewReplace` で表示し、操作の完了時に `CommitAttributes` が `Drawing.CommitPreview` で 1 回だけ記録する。属性が変わっていなければ、`RestoreOriginal` で戻すだけで記録しない（仕様 5.4）。
 
 ### 5.4 ViewModels
 
@@ -401,6 +405,7 @@ classDiagram
     class AttributeEditModel { +byte Red +byte Green +byte Blue +string Hex +double Thickness +LineStyle LineStyle }
     MainViewModel --> DrawingViewModel
     MainViewModel --> PropertiesViewModel
+    MainViewModel --> EditorController
     MainViewModel --> Drawing
     MainViewModel --> IDialogService
     MainViewModel --> IClipboardService
@@ -414,7 +419,8 @@ classDiagram
 ```
 
 - `MainViewModel`：アプリケーション全体の状態とコマンド。ファイル操作の流れ（保存確認、Open / Save / New / Exit、エラー表示）、タイトル（`<名前>[*] - WPF CAD Sample`）、属性ウィンドウの表示状態、ウィンドウの配置、クリップボード関連のコマンドの有効状態を扱う。
-  - `Drawing` は、`Load`（Open・New）、`MarkSaved`、`IsModified` と、保存する図形の一覧のために保持する。表示とコントローラーの状態（入力、選択、拡大縮小）には、`DrawingViewModel` の操作を通してだけ触れる。
+  - `Drawing` は、`Load`（Open・New）、`MarkSaved`、`IsModified`、`CanUndo` / `CanRedo` と、保存・出力する図形の一覧のために保持する。
+  - `EditorController` は、Undo / Redo / Delete / Paste の実行、コマンドの有効状態の判定（`IsInputInProgress`、`IsDragging`、`SelectedShape`）、`StateChanged` / `Committed` の購読、既定属性（`SaveSettings`）のために直接使う。入力中の図形の取り消しと、Open・New の後の表示の初期化（選択の解除と拡大縮小を含む）は、`DrawingViewModel` の操作（`CancelInput()`、`ResetForNewDocument()`）を通して行う。
   - Open / Paste の入力が不正なときは、`DocumentFormatException`（5.6）を受け取り、`IDialogService` でエラーを表示する。I/O の例外（`IOException`、`UnauthorizedAccessException`）とクリップボードの例外（`ClipboardOperationException`）も、ここで受けて表示する（仕様 7 章、8.2）。
   - ペーストのずらし量：最後に貼った独自形式のテキストと回数を持つ。貼るときにクリップボードのテキストが前回と同じなら回数を 1 増やし、異なれば 1 に戻して、`EditorController.Paste(shape, 回数)` を呼ぶ。`Paste` が `false` を返したら（オフセット適用後に制約または座標の範囲に違反）、`IDialogService.ShowError` でエラーを表示し、ドキュメントは変更しない（仕様 7 章）。`CopyCommand` の実行で回数を 0 に戻す（仕様 5.7）。判定に必要なクリップボードの内容を扱う `MainViewModel` に置く。
   - `RefreshClipboardStateCommand`：Paste・コピー系コマンドの有効状態を、クリップボードの内容に合わせて更新する。`Views` が、ウィンドウの再アクティブ化と Edit メニューを開いたときに呼ぶ（WPF にはクリップボードの変更通知がないため。リスク R-5）。
@@ -423,13 +429,13 @@ classDiagram
   - New / Open / Exit は、保存確認の前に `DrawingViewModel.CancelInput()` で入力中の図形を取り消す（仕様 5.10。`TryClose` と同じ順序）。New・Open が成功したら、`Drawing.Load` の後に `DrawingViewModel.ResetForNewDocument()` を呼ぶ（仕様 5.8 の全体図表示と選択の解除）。
   - New / Open / Exit の保存確認で Yes が選ばれた場合、保存が成功したときだけ保留中の操作を続ける。保存失敗または Save As の保存先選択キャンセルは操作全体を中止し、ドキュメントと変更あり状態を維持する（仕様 5.8、AC-34）。
   - `SaveSettings()`：`MainPlacement`、`PropertiesPlacement`、`IsPropertiesWindowVisible`、`EditorController.DefaultAttributes` から `AppSettings` を組み立てて `SettingsStorage.Save` を呼ぶ。失敗はエラーを表示するが、終了を妨げない（仕様 7 章）。設定の組み立てと保存は、ここ 1 か所で行う。
-- `DrawingViewModel`：描画領域の状態。`EditorController` と `Viewport` を保持し、バインドする `Transform`、`Handles`（画面座標のハンドル位置。選択と `Transform` の変化で再計算する）、`InputShapes`（入力中の図形。0 または 1 個）、ステータスの文言を公開する。
+- `DrawingViewModel`：描画領域の状態。`EditorController` と `Viewport` を保持し、バインドする `Transform`、`Handles`（画面座標のハンドル位置。`EditorController.SelectedShape` から作り、選択と `Transform` の変化で再計算する）、`InputShapes`（入力中の図形。0 または 1 個）、ステータスの文言を公開する。
   - `EditorController.Committed` とウィンドウサイズの変更で、`Viewport.UpdateOverview` を呼び、`Handles` を更新する。入力中・ドラッグ中は呼ばない（仕様 5.6）。
   - `CancelInput()`：`EditorController.Cancel()` で入力中の図形を取り消す。
   - `ResetForNewDocument()`：`EditorController.Reset()`（入力の取り消しと選択の解除）の後、新しい図形の外接矩形で `Viewport.UpdateOverview` を呼んでから `Viewport.Reset()` で全体図の表示にし、`Handles` を更新する（仕様 5.8。拡大中でも全体図に戻す点が、`Committed` での補正と異なる）。
   - ホイール・キー（`Ctrl+矢印`）・`Esc` は、コマンドで受ける。
   - `Cursor`：描画領域のカーソルの種類（仕様 4.3）。描画ツールでは `Cross`、Select ツールでは、ドラッグ中、または `EditorController.IsOverHandle` が真（ハンドルの上）のとき `Move`、それ以外は `Arrow`。ツールの変更とマウスの操作で更新する。WPF の `Cursor` への変換は `Views` のコンバーターが行う。
-- `PropertiesViewModel`：属性ウィンドウの状態。選択図形の属性（選択がなければ空欄・無効）と、新規図形の既定属性を、それぞれ `AttributeEditModel`（RGB のスライダー、16 進、太さ、線種。いずれかを編集すると他も連動する）で扱う。不正な入力は、直前の有効値へ戻す（仕様 5.4）。既定属性は `EditorController.DefaultAttributes` に反映し、設定に保存する対象にする。
+- `PropertiesViewModel`：属性ウィンドウの状態。選択図形の属性（選択がなければ空欄・無効）と、新規図形の既定属性を、それぞれ `AttributeEditModel`（RGB のスライダー、16 進、太さ、線種。いずれかを編集すると他も連動する）で扱う。不正な入力は、直前の有効値へ戻す（仕様 5.4）。選択図形は `EditorController.SelectedShape` から得る（`Drawing` は保持しない）。既定属性は `EditorController.DefaultAttributes` に反映し、設定に保存する対象にする。
 
 ### 5.5 Services（UI に依存する機能の契約）
 
@@ -561,8 +567,9 @@ sequenceDiagram
     end
     User->>EC: Up
     EC->>SI: Handle(Up)
-    SI->>D: RestoreOriginal(index, 元の図形) ※記録しない
-    SI->>D: Replace(index, 最終の図形) ※1 回の Undo 単位として記録
+    SI->>D: CommitPreview(index, 元の図形, 最終の図形)
+    D->>D: 元の図形へ戻す ※記録しない
+    D->>D: 最終の図形へ置き換える ※1 回の Undo 単位として記録
     D-->>EC: Committed
 ```
 
@@ -652,7 +659,7 @@ sequenceDiagram
 | F-05 | プレビュー、`Esc`、ダブルクリック確定、点数不足 | `DrawInteraction`、`InputShapes`（5.3、6.1） |
 | F-06 | 自由線（3 次スプライン、ベジェ、周期） | `SplineBezier`（DD-7、5.2） |
 | F-07 | 属性、既定属性 | `ShapeAttributes`、`PropertiesViewModel`、`AppSettings.DefaultAttributes`（5.1、5.4、5.6） |
-| F-08 | 選択、ハンドル、ドラッグ、`Delete`、1 回 = 1 Undo | `SelectInteraction`、`ShapeHitTester`、`Drawing.PreviewReplace` / `Replace`（DD-3、5.3、6.2） |
+| F-08 | 選択、ハンドル、ドラッグ、`Delete`、1 回 = 1 Undo | `SelectInteraction`、`ShapeHitTester`、`Drawing.PreviewReplace` / `CommitPreview`（DD-3、5.3、6.2） |
 | F-09 | モードレスな属性ウィンドウ、リアルタイム編集、状態の保存 | `PropertiesWindow`、`PropertiesViewModel`、`AttributeEditor`、`WindowPlacementBehavior`（5.3、5.4、5.7） |
 | F-10 | Undo / Redo、選択状態との整合 | `UndoRedoObservableCollection<Shape>`、`Drawing`、`ShapeId`（DD-2、DD-11、5.1、5.3） |
 | F-11 | 拡大縮小、全体図より縮小不可、スクロール | `Viewport`（5.2）、`DrawingSurface` のホイールとキーのコマンド |
@@ -713,7 +720,7 @@ sequenceDiagram
 | R-4 | 最大化したウィンドウの復元用の位置を、WPF の `Left` / `Top` から正しく得られない | `RestoreBounds` を使う（`WindowPlacementBehavior`） |
 | R-5 | クリップボードの変更の通知が WPF にない | ウィンドウの再アクティブ化と Edit メニューを開いたときに、有効状態を更新する（5.4） |
 | R-6 | `CommunityToolkit.Mvvm` のソースジェネレーターと C# 14 の組み合わせで、部分プロパティの扱いに制約がある | 導入時に確認し、問題があれば手書きのプロパティに切り替える |
-| R-7 | `UndoRedoObservableCollection<T>` の `DisabledUndoScope` の内側で置き換えた要素が、履歴の添字と矛盾する | 置き換えは、同じ添字の同じ位置の要素に限る（元の図形へ戻してから記録する）。単体テストで Undo / Redo の整合を検証する |
+| R-7 | `UndoRedoObservableCollection<T>` の `DisabledUndoScope` の内側で置き換えた要素が、履歴の添字と矛盾する | 置き換えは、同じ添字の同じ位置の要素に限る（元の図形へ戻してから記録する。この順序は `Drawing.CommitPreview` の 1 か所に置く）。単体テストで Undo / Redo の整合を検証する |
 
 ### 9.3 トレードオフ
 
@@ -754,3 +761,4 @@ sequenceDiagram
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-07 | I-9 の開始時に、仕様 4.3 の「ハンドル上ではカーソルを移動の形にする」の実現方法が未定義と分かったため、ユーザーの選択（「Core に追加し、文書を再承認」）により、`EditorController.IsOverHandle`（5.3）、`DrawingViewModel.Cursor` と `PointerCursor`（5.4）、`DrawingSurface` の `Cursor` のバインドと `PointerCursorToCursorConverter`（5.7）を追加した。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-08 | [ソースコード全体レビュー](../Reviews/20261107-source-code-review-2.md)の指摘 3、6、8 に対応：選択中の図形を `EditorController.SelectedShape` として公開し、`ShapeId` から添字への変換を `EditorController` の 1 か所にした（5.3、5.4。指摘 3）。プレビューの確定（元へ戻してから 1 回だけ記録する）を `Drawing.CommitPreview` の 1 か所にした（5.1、5.3、6.2、7 章、R-7。指摘 6）。5.4 のクラス図に `MainViewModel --> EditorController` を加え、`MainViewModel` が `Drawing` と `EditorController` を直接使う範囲を実装に合わせて書き直した（指摘 8）。状態を `レビュー待ち` に戻した |

@@ -22,7 +22,7 @@ public sealed class EditorController
     {
         this.drawing = drawing;
         this.viewport = viewport;
-        selectInteraction = new(drawing, () => SelectedId, Select);
+        selectInteraction = new(drawing, SelectedIndex, Select);
         attributeEditor = new(drawing);
         drawing.Committed += OnDrawingCommitted;   // Drawing.Committed を購読するのは、このクラスだけ（設計書 5.3）
         StatusMessage = StatusMessages.Guidance(Tool);
@@ -34,6 +34,11 @@ public sealed class EditorController
     /// 選択中の図形の識別子。選択がなければ null。選択は高々 1 個（仕様 5.3）。
     /// </summary>
     public ShapeId? SelectedId { get; private set; }
+
+    /// <summary>
+    /// 選択中の図形（置き換えの後の現在の図形）。選択がない、または図形がなければ null。
+    /// </summary>
+    public Shape? SelectedShape => SelectedIndex() is var index and >= 0 ? drawing.Shapes[index] : null;
 
     /// <summary>
     /// 入力中の図形（プレビュー）。入力中でなければ null。
@@ -223,6 +228,7 @@ public sealed class EditorController
         SelectedId = id;
     }
 
+    // 選択は ShapeId で持ち、添字はその都度探す（設計書 DD-11）。ShapeId から添字への変換は、ここ 1 か所で行う
     int SelectedIndex() => SelectedId is { } id ? drawing.IndexOf(id) : -1;
 
     void Report(string message) => StatusMessage = message;

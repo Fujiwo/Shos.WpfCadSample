@@ -19,7 +19,7 @@ public class PropertiesViewModelTests
         var viewport = new Viewport();
         viewport.SetViewSize(1000, 700);
         editor = new EditorController(drawing, viewport);
-        properties = new PropertiesViewModel(drawing, editor);
+        properties = new PropertiesViewModel(editor);
     }
 
     static readonly ShapeAttributes red = new(new RgbColor(255, 0, 0), 2.5, LineStyle.Dash);

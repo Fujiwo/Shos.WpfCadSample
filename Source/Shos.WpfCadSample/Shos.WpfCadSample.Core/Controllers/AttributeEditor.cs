@@ -24,7 +24,7 @@ sealed class AttributeEditor(Drawing drawing)
     }
 
     /// <summary>
-    /// 元の図形へ戻してから、属性を変えた図形を 1 回だけ記録する。属性が変わっていなければ記録しない。
+    /// 属性を変えた図形を 1 回だけ記録する。属性が変わっていなければ、元へ戻すだけで記録しない。
     /// </summary>
     public void Commit()
     {
@@ -32,10 +32,10 @@ sealed class AttributeEditor(Drawing drawing)
             return;
         var edited = drawing.Shapes[current.Index];
         editing = null;
-        // 元へ戻してから記録すると、Undo で編集前の属性へ戻る（設計書 R-7）
-        drawing.RestoreOriginal(current.Index, current.Original);
-        if (edited.Attributes != current.Original.Attributes)
-            drawing.Replace(current.Index, edited);
+        if (edited.Attributes == current.Original.Attributes)
+            drawing.RestoreOriginal(current.Index, current.Original);
+        else
+            drawing.CommitPreview(current.Index, current.Original, edited);
     }
 
     /// <summary>

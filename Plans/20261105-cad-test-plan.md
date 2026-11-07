@@ -183,9 +183,9 @@
 | T-DRW-02 | `RemoveAt` → `Undo` | 図形が元の位置に復元される | AC-09 |
 | T-DRW-03 | `Replace` → `Undo` / `Redo` | 置き換え・取り消し・やり直しができる | AC-09 |
 | T-DRW-04 | `PreviewReplace` を複数回行う | 履歴に記録されない（`CanUndo` が変わらない）。`CollectionChanged` は発生する | AC-08 |
-| T-DRW-05 | `PreviewReplace`（複数回）→ `RestoreOriginal` → `Replace` | `Undo` 1 回で、`PreviewReplace` 前の図形に戻り、`Redo` で最終の図形になる。履歴が 1 つだけ増える | AC-08、R-7 |
+| T-DRW-05 | `PreviewReplace`（複数回）→ `CommitPreview` | `Undo` 1 回で、`PreviewReplace` 前の図形に戻り、`Redo` で最終の図形になる。履歴が 1 つだけ増える | AC-08、R-7 |
 | T-DRW-06 | `PreviewReplace` → `RestoreOriginal`（`Replace` なし） | 図形が元に戻り、履歴は増えず、既存の Redo 履歴は保たれる | AC-26 |
-| T-DRW-07 | `Committed` の発生：`Add`、`RemoveAt`、`Replace`、`Undo`、`Redo` で発生し、`PreviewReplace`、`RestoreOriginal` では発生しない | 期待どおり | AC-30 |
+| T-DRW-07 | `Committed` の発生：`Add`、`RemoveAt`、`Replace`、`CommitPreview`（1 回だけ）、`Undo`、`Redo` で発生し、`PreviewReplace`、`RestoreOriginal` では発生しない | 期待どおり | AC-30 |
 | T-DRW-08 | `Load`：図形が入れ替わり、`CanUndo` / `CanRedo` が `false`、`IsModified` が `false` | 履歴が消去される | AC-18、仕様 5.8 |
 | T-DRW-09 | `IsModified`：`Add` で `true`、`MarkSaved` で `false`、保存済みの状態へ `Undo` で戻っても `true`（仮定 A-11） | 期待どおり | AC-27 |
 | T-DRW-10 | `IndexOf(ShapeId)`：`Replace` の後も、同じ `ShapeId` で検索できる。削除後は −1 | 期待どおり | AC-09 |
@@ -282,6 +282,7 @@
 | T-EDC-36 | `Paste(shape, repeat)`：オフセット適用後に座標上限を超える | `false` を返し、図形は追加されず、履歴とツール・選択は変わらない | AC-35、仕様 5.7 |
 | T-EDC-37 | `Reset()`：入力中、または図形を選択している状態で呼ぶ | 入力中の図形が取り消され、選択が解除される（`StateChanged` が発生する） | 仕様 5.8 |
 | T-EDC-38 | `IsOverHandle(screenPoint)`：選択中の図形のハンドルの上（許容範囲の内と外の境界）、線の上、選択なし、描画ツール、拡大率を変えた状態 | Select ツールで選択中の図形のハンドルの許容範囲（画面上 6 px）内だけ真。拡大率に左右されない。選択がない、または描画ツールでは偽 | 仕様 4.3 |
+| T-EDC-39 | `SelectedShape`：選択なし、選択中の図形をドラッグで移動した後、選択中の図形の追加を `Undo` した後 | 選択なしは `null`。移動の後は置き換えた後の図形（同じ `ShapeId`）を返す。図形がなくなれば `null` | 仕様 5.5、設計 5.3 |
 
 **ツール・入力中の状態（仕様 5.10）**
 
@@ -481,6 +482,7 @@
 | T-EDC-28 | 仕様 5.4（確定されない属性の編集の取り消し） |
 | T-EDC-37 | 仕様 5.8、設計 5.3（Open・New の後の入力の取り消しと選択の解除） |
 | T-EDC-38、T-VM-29 | 仕様 4.3、設計 5.3、5.4（カーソルの形とハンドルの判定） |
+| T-EDC-39 | 設計 5.3（選択中の図形の公開。DD-11） |
 | T-SER-02 | 仕様 6.4、設計 5.6（保存する JSON の構造） |
 | T-STO-04、T-STO-05 | 仕様 7 章（保存先・読み込み元の I/O エラー） |
 | T-VPT-13〜15 | 仕様 4.4、5.6、5.8（ウィンドウサイズの変更、拡大率の表示、全体図への復帰） |
@@ -562,3 +564,4 @@ $shapes = foreach ($i in 0..999) {
 | 2026-11-06 | ユーザーが実装計画書とテスト計画書を一組で承認（状態を `承認済み` に更新） |
 | 2026-11-07 | 設計書の変更（I-9 の開始時。カーソルの形のための `EditorController.IsOverHandle` と `DrawingViewModel.Cursor`。ユーザーの選択）に合わせ、T-EDC-38、T-VM-29 を追加し、M-06 にカーソルの形の確認を加えた。I-9 の自動テストを更新した。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが実装計画書・テスト計画書を、設計書とともに再承認（状態を `承認済み` に更新） |
+| 2026-11-08 | 設計書の変更（[ソースコード全体レビュー](../Reviews/20261107-source-code-review-2.md)の指摘 3、6）に合わせ、T-DRW-05 を `CommitPreview` に、T-DRW-07 に `CommitPreview` を加え、T-EDC-39（`EditorController.SelectedShape`）を追加した。状態を `レビュー待ち` に戻した |

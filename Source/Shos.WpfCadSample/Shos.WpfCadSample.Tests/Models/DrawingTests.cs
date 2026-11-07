@@ -103,17 +103,16 @@ public class DrawingTests
 
     // T-DRW-05（R-7：ドラッグ 1 回が Undo 1 回になる）
     [Fact]
-    public void PreviewsThenRestoreThenReplace_IsUndoneByOneUndo()
+    public void PreviewsThenCommitPreview_IsUndoneByOneUndo()
     {
         var original = NewLine(1);
         var drawing = DrawingWith(original);
         var final = original.Translate(new Vector2(30, 0));
 
-        // ドラッグと同じ手順：表示だけを更新し、確定の前に元へ戻してから、元 → 最終の置き換えを 1 回だけ記録する
+        // ドラッグと同じ手順：表示だけを更新し、確定で、元 → 最終の置き換えを 1 回だけ記録する
         foreach (var step in Enumerable.Range(1, 3))
             drawing.PreviewReplace(0, original.Translate(new Vector2(step * 10, 0)));
-        drawing.RestoreOriginal(0, original);
-        drawing.Replace(0, final);
+        drawing.CommitPreview(0, original, final);
 
         drawing.Undo();
         Assert.Equal([original], drawing.Shapes);
@@ -159,6 +158,17 @@ public class DrawingTests
         Assert.Equal(1, CountCommitted(drawing, drawing.Undo));
         Assert.Equal(1, CountCommitted(drawing, drawing.Redo));
         Assert.Equal(1, CountCommitted(drawing, () => drawing.RemoveAt(0)));
+    }
+
+    // T-DRW-07：確定は、元へ戻す置き換えを含めても 1 回だけ通知する
+    [Fact]
+    public void Committed_IsRaisedOnceByCommitPreview()
+    {
+        var shape = NewLine(1);
+        var drawing = DrawingWith(shape);
+        drawing.PreviewReplace(0, NewLine(2));
+
+        Assert.Equal(1, CountCommitted(drawing, () => drawing.CommitPreview(0, shape, NewLine(3))));
     }
 
     // T-DRW-07
