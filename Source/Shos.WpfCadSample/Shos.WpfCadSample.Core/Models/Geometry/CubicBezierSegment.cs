@@ -9,6 +9,8 @@ public sealed record CubicBezierSegment(Point2 Control1, Point2 Control2, Point2
     // 1 段ごとに誤差は約 1/4 になり、16 段（1 区間あたり最大 65,536 本）で打ち切っても、画面上の誤差は 0.001 px 未満になる
     const int maxSubdivisionDepth = 16;
 
+    internal override bool IsFinite => Control1.IsFinite && Control2.IsFinite && End.IsFinite;
+
     /// <summary>
     /// 端点と、X・Y それぞれが極値をとる曲線上の点（1 階微分が 0 になる点）。
     /// </summary>

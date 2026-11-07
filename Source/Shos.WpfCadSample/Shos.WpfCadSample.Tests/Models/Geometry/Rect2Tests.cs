@@ -57,6 +57,10 @@ public class Rect2Tests
     }
 
     [Fact]
+    public void Inflate_MovesEveryEdgeOutward()
+        => Assert.Equal(new Rect2(-2, 8, 102, 62), new Rect2(0, 10, 100, 60).Inflate(2));
+
+    [Fact]
     public void Bounding_OfNoPoints_IsRejected()
         => Assert.Throws<ArgumentException>(() => Rect2.Bounding([]));
 }

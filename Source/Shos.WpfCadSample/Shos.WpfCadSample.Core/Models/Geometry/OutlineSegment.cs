@@ -6,6 +6,11 @@
 public abstract record OutlineSegment(Point2 End)
 {
     /// <summary>
+    /// 区間を定める点（終点、ベジェの制御点）がすべて有限か。
+    /// </summary>
+    internal virtual bool IsFinite => End.IsFinite;
+
+    /// <summary>
     /// 区間の外接矩形を決める点（始点を除く）。
     /// </summary>
     internal abstract IEnumerable<Point2> ExtremePoints(Point2 start);

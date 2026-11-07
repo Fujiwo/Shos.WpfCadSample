@@ -69,14 +69,12 @@ public class OutlineTests
         var sampled = Rect2.Bounding(DenseSamples(figure));
 
         // 標本は曲線の内側にあるため、外接矩形は標本を含み、標本の極値との差は標本の間隔による誤差だけになる
-        Assert.All(DenseSamples(figure), point => Assert.True(Inflate(bounds, tolerance).Contains(point)));
+        Assert.All(DenseSamples(figure), point => Assert.True(bounds.Inflate(tolerance).Contains(point)));
         Assert.Equal(sampled.Left, bounds.Left, 1e-3);
         Assert.Equal(sampled.Bottom, bounds.Bottom, 1e-3);
         Assert.Equal(sampled.Right, bounds.Right, 1e-3);
         Assert.Equal(sampled.Top, bounds.Top, 1e-3);
     }
-
-    static Rect2 Inflate(Rect2 rect, double amount) => new(rect.Left - amount, rect.Bottom - amount, rect.Right + amount, rect.Top + amount);
 
     // T-OUT-01
     [Fact]

@@ -28,6 +28,12 @@ public sealed record Outline(IReadOnlyList<OutlineFigure> Figures)
     public double DistanceTo(Point2 point, double tolerance)
         => Flatten(tolerance).Min(segment => segment.DistanceTo(point));
 
+    /// <summary>
+    /// すべての点（始点、区間の終点、ベジェの制御点）が有限か。
+    /// </summary>
+    internal bool IsFinite()
+        => Figures.All(figure => figure.Start.IsFinite && figure.Segments.All(segment => segment.IsFinite));
+
     static void ThrowIfNotPositiveFinite(double tolerance)
     {
         if (!double.IsFinite(tolerance))

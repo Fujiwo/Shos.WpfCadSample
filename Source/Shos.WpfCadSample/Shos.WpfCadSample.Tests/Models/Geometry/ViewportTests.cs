@@ -67,10 +67,8 @@ public class ViewportTests
         Assert.Equal(expectedFitScale, viewport.Scale, tolerance);
         AssertEqual(new Point2(viewWidth / 2, viewHeight / 2), viewport.Transform.ToScreen(viewport.Overview.Center));
         var visible = VisibleRange(viewport, viewWidth, viewHeight);
-        Assert.True(Inflate(visible, tolerance).Contains(new Point2(0, 0)) && Inflate(visible, tolerance).Contains(new Point2(1000, 700)));
+        Assert.True(visible.Inflate(tolerance).Contains(new Point2(0, 0)) && visible.Inflate(tolerance).Contains(new Point2(1000, 700)));
     }
-
-    static Rect2 Inflate(Rect2 rect, double amount) => new(rect.Left - amount, rect.Bottom - amount, rect.Right + amount, rect.Top + amount);
 
     // T-VPT-03
     [Theory]

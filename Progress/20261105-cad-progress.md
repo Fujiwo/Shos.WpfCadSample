@@ -1,30 +1,30 @@
 # CAD 開発 進捗記録
 
-- 最終更新：2026-11-07（I-2 を完了。次は I-3）
+- 最終更新：2026-11-07（I-3 を完了。次は I-4）
 - 対象：簡易 WPF CAD（要件は[仕様書](../Documents/20261105-cad-specification.md)。2026-11-06 に唯一の要件の文書とした）
 - 更新ルール：文書の作成・承認、実装段階の開始・完了、方針の変更があるたびに、このファイルを更新する。承認状態の正本は各文書の先頭の状態行であり、この表はその写しである。
 
 ## 1. 現在の状況
 
-2026-11-06 に、[変更計画](../Plans/20261106-requirements-consolidation-plan.md)に沿って、`create-wpf-cad.prompt.md` の要件を仕様書に取り込み、仕様書を唯一の要件の文書にした。同プロンプトと `create-cad-plan.prompt.md` は削除した。その後、[要件一本化後の仕様書レビュー](../Reviews/20261106-cad-specification-review-post-consolidation.md)の指摘 1〜3 を仕様書、アーキテクチャー／クラス設計書、実装計画書、テスト計画書へ反映した。その後、ユーザーが仕様書を再承認した。続いて設計書をレビューして指摘を反映し、ユーザーが設計書を再承認した。さらに実装計画書をレビューして指摘を反映し、ユーザーが実装計画書を再承認した。その後、テスト計画書のレビュー指摘を反映した際に実装計画書の I-3 も補完したため、その後、ユーザーが実装計画書とテスト計画書を承認し、4 文書がすべて承認済みになった。2026-11-06 に I-1（骨組みと試作）を完了した。プロジェクト、`Directory.Build.props`、T-ARC、README（付随パッケージの理由を含む）、パッケージの版の確認（P-1、P-2）、試作 R-1・R-2・R-6・R-8 がすべて済んだ。2026-11-07 に I-2（幾何とスプライン）を完了した。次は I-3（図形・属性・Drawing）である。
+2026-11-06 に、[変更計画](../Plans/20261106-requirements-consolidation-plan.md)に沿って、`create-wpf-cad.prompt.md` の要件を仕様書に取り込み、仕様書を唯一の要件の文書にした。同プロンプトと `create-cad-plan.prompt.md` は削除した。その後、[要件一本化後の仕様書レビュー](../Reviews/20261106-cad-specification-review-post-consolidation.md)の指摘 1〜3 を仕様書、アーキテクチャー／クラス設計書、実装計画書、テスト計画書へ反映した。その後、ユーザーが仕様書を再承認した。続いて設計書をレビューして指摘を反映し、ユーザーが設計書を再承認した。さらに実装計画書をレビューして指摘を反映し、ユーザーが実装計画書を再承認した。その後、テスト計画書のレビュー指摘を反映した際に実装計画書の I-3 も補完したため、その後、ユーザーが実装計画書とテスト計画書を承認し、4 文書がすべて承認済みになった。2026-11-06 に I-1（骨組みと試作）を完了した。プロジェクト、`Directory.Build.props`、T-ARC、README（付随パッケージの理由を含む）、パッケージの版の確認（P-1、P-2）、試作 R-1・R-2・R-6・R-8 がすべて済んだ。2026-11-07 に I-2（幾何とスプライン）を完了した。同日、I-3 の開始時に見つかった設計の矛盾（`Tool` の置き場所）を解消して設計書・実装計画書を再承認し、I-3（図形・属性・Drawing）を完了した。次は I-4（保存・設定）である。
 
 ## 2. 計画文書の進捗
 
 | 段階 | 文書 | 保存先 | 状態 | 備考 |
 |---|---|---|---|---|
 | 1 | 仕様書 | [Documents\20261105-cad-specification.md](../Documents/20261105-cad-specification.md) | 承認済み | 2026-11-05 に承認。2026-11-06 に再レビュー指摘 1〜12 を反映して変更し、同日ユーザーが再承認。要件の一本化で変更後、レビュー待ちに戻した。要件一本化後のレビュー指摘 1〜3 と、その確認の指摘を反映（保存確認の失敗時動作、出力画素数上限、座標範囲）。2026-11-06 にユーザーが再承認 |
-| 2 | アーキテクチャー／クラス設計書（UML を含む） | [Documents\20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md) | 承認済み | 2026-11-05 に承認。2026-11-06 に仕様書の改訂とレビュー指摘 1〜11 を反映し再承認。図形の `DataTemplate` を追記して再承認。要件の一本化で変更後、レビュー待ちに戻した。今回の仕様変更（座標検証、Paste の再検証、出力上限）を反映。再承認待ち。設計書のレビュー（要件一本化・仕様変更の反映後）の指摘 1〜8 を反映し、2026-11-06 にユーザーが再承認 |
-| 3 | 実装計画書 | [Plans\20261105-cad-implementation-plan.md](../Plans/20261105-cad-implementation-plan.md) | 承認済み | 2026-11-05 に承認。レビュー指摘への修正と仕様・設計更新のたびに再承認・レビュー待ちを経た。要件の一本化で変更後、今回 AC-35 までを実装対象に反映。実装計画書のレビュー（要件一本化・仕様と設計の再承認後）の指摘 1〜7 を反映し、2026-11-06 にユーザーが再承認。テスト計画書のレビュー指摘 2 で I-3 のテスト群に T-EXP を加え、レビュー待ちに戻した。2026-11-06 にユーザーが実装計画書と一組で承認 |
+| 2 | アーキテクチャー／クラス設計書（UML を含む） | [Documents\20261105-cad-architecture.md](../Documents/20261105-cad-architecture.md) | 承認済み | 2026-11-05 に承認。2026-11-06 に仕様書の改訂とレビュー指摘 1〜11 を反映し再承認。図形の `DataTemplate` を追記して再承認。要件の一本化で変更後、レビュー待ちに戻した。今回の仕様変更（座標検証、Paste の再検証、出力上限）を反映。再承認待ち。設計書のレビュー（要件一本化・仕様変更の反映後）の指摘 1〜8 を反映し、2026-11-06 にユーザーが再承認。2026-11-07、`Tool` を `Models` へ移す変更（I-3 の開始時に見つかった依存の矛盾。ユーザーの選択）で、レビュー待ちに戻した。同日ユーザーが再承認 |
+| 3 | 実装計画書 | [Plans\20261105-cad-implementation-plan.md](../Plans/20261105-cad-implementation-plan.md) | 承認済み | 2026-11-05 に承認。レビュー指摘への修正と仕様・設計更新のたびに再承認・レビュー待ちを経た。要件の一本化で変更後、今回 AC-35 までを実装対象に反映。実装計画書のレビュー（要件一本化・仕様と設計の再承認後）の指摘 1〜7 を反映し、2026-11-06 にユーザーが再承認。テスト計画書のレビュー指摘 2 で I-3 のテスト群に T-EXP を加え、レビュー待ちに戻した。2026-11-06 にユーザーが実装計画書と一組で承認。2026-11-07、`Tool` の実装を I-5 から I-3 へ移し、レビュー待ちに戻した。同日ユーザーが再承認 |
 | 3 | テスト計画書 | [Plans\20261105-cad-test-plan.md](../Plans/20261105-cad-test-plan.md) | 承認済み | 2026-11-05 に承認。テスト計画レビュー・初期プロジェクト確認で修正後、要件一本化で変更しレビュー待ち。今回、保存失敗時動作、座標上限、出力画素数のテストと AC 対応を追加。2026-11-06 にユーザーが実装計画書と一組で承認 |
 
 ## 3. 実装の進捗
 
 | 項目 | 状況 |
 |---|---|
-| 段階 | I-1（骨組みと試作）を 2026-11-06 に完了。I-2（幾何とスプライン）を 2026-11-07 に完了。次は I-3（図形・属性・Drawing） |
+| 段階 | I-1（骨組みと試作）を 2026-11-06 に完了。I-2（幾何とスプライン）を 2026-11-07 に完了。I-3（図形・属性・Drawing）を 2026-11-07 に完了。次は I-4（保存・設定） |
 | ソリューション | `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` に 3 プロジェクトを登録済み（ユーザーが追加。2026-11-06） |
 | アプリ／テストプロジェクト | 初期プロジェクトを、[確認結果](../Reviews/20261106-initial-projects-review.md)に沿って修正済み（`Directory.Build.props`、`MainWindow` の namespace、`CommunityToolkit.Mvvm` の参照先、フォルダー、仮のクラス・テストの削除、`coverlet.collector` の削除）。`Source\README.md` の骨子を作成 |
-| ビルド・テスト | 2026-11-07、I-2 の完了時にエージェントが WSL から Windows の `dotnet.exe`（SDK 10.0.403）で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は 163 件すべて成功（失敗 0、スキップ 0）。以前の記録：2026-11-06、ユーザーが Windows で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告・エラーなし）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は、T-ARC-04 の修正後の再実行で 3 件すべて成功（失敗 0、スキップ 0） |
+| ビルド・テスト | 2026-11-07、I-3 の完了時にエージェントが Windows の `dotnet.exe` で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は 387 件すべて成功（失敗 0、スキップ 0）。以前の記録：2026-11-07、I-2 の完了時にエージェントが WSL から Windows の `dotnet.exe`（SDK 10.0.403）で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は 163 件すべて成功（失敗 0、スキップ 0）。以前の記録：2026-11-06、ユーザーが Windows で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告・エラーなし）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は、T-ARC-04 の修正後の再実行で 3 件すべて成功（失敗 0、スキップ 0） |
 | パッケージの版（P-1） | 2026-11-06 に NuGet で確認。Shos.UndoRedoList 1.0.8、CommunityToolkit.Mvvm 8.4.2、MaterialDesignThemes 5.4.0、xunit 2.9.3（v2 系の最新）は最新の安定版。xunit.runner.visualstudio（3.1.4 → 4.0.1）と Microsoft.NET.Test.Sdk（17.14.1 → 18.11.0）は、ユーザーの判断（「最新に更新」）で最新の安定版へ更新した。更新後、Windows でビルド・テストが成功した（R-8 を再確認。P-2 はこの組み合わせで確定）。`System.Drawing.Common` はパッケージ不要（R-2） |
 | 試作（R-1、R-2、R-6、R-8） | 試作のコードは成果物に残さず、セッションのスクラッチパッドに置いた。**R-2 成立**：`net10.0-windows`・`UseWPF` のプロジェクトで、パッケージ参照なし（`project.assets.json` のライブラリが空）に `System.Drawing.Imaging.Metafile` などを使うコードが、警告・エラーなしでビルドできた。`System.Drawing.Common` は `Microsoft.WindowsDesktop.App.WPF` の参照（10.0.14）に含まれる（Linux の .NET SDK 10.0.114 と `EnableWindowsTargeting` でのビルドで確認。実行時の動作は R-1 で確認する）。**R-6 成立**：`CommunityToolkit.Mvvm` 8.4.2 の部分プロパティ形式の `[ObservableProperty]`、`[NotifyPropertyChangedFor]`、`[NotifyCanExecuteChangedFor]`、`[RelayCommand(CanExecute = ...)]` と、手書きのプロパティの `field` キーワードが、C# 14 / .NET 10（`net10.0`、`Nullable`、`TreatWarningsAsErrors`）で警告なしにビルドでき、実行して通知とコマンドの 5 項目がすべて期待どおりだった（.NET SDK 10.0.114）。**R-1 成立**（2026-11-06、ユーザーが Windows で確認）：試作（`Metafile`（`EmfPlusDual`）に Y 反転の変換をかけて破線の直線とベジェを描き、`GetHenhmetafile()` のハンドルを、所有者ウィンドウを付けた `OpenClipboard` → `EmptyClipboard` → `SetClipboardData(CF_ENHMETAFILE)` で渡す）を Windows で実行し、Word への貼り付けで直線とベジェが表示された。**R-8 成立**：3.1.4 / 17.14.1 に続き、更新後の xunit.runner.visualstudio 4.0.1 / Microsoft.NET.Test.Sdk 18.11.0 でも、`slnx` 全体の `dotnet test` で xunit 2.9.3 のテスト 3 件が実行・成功した（2026-11-06、Windows） |
 
@@ -34,7 +34,7 @@
 |---|---|---|---|
 | T-ARC | I-1、I-10 | T-ARC-01、02、04 を実装（`Tests\Architecture\ArchitectureTests.cs`）。T-ARC-03 は `dotnet test` の実行そのもので確認する。2026-11-07、T-ARC-04 の除外の判定を修正（下の履歴） | 3 件成功（2026-11-07、Windows の `dotnet.exe`）。T-ARC-03 も確認済み |
 | T-GEO、T-SPL、T-OUT、T-VPT | I-2 | 全ケースを実装（`Tests\Models\Geometry\*Tests.cs`。T-GEO-01〜05、T-SPL-01〜10、T-OUT-01〜04、T-VPT-01〜15 の 34 ケースを、境界値などを含む 160 件のテストで確認） | 160 件成功（2026-11-07、Windows の `dotnet.exe`）。T-SPL-10 の 10,000 点の変換（開いた曲線と閉じた曲線）は 21.5 ms |
-| T-SHP、T-ATT、T-HIT、T-DRW、T-EXP | I-3 | 未着手 | — |
+| T-SHP、T-ATT、T-HIT、T-DRW、T-EXP | I-3 | 全ケースを実装（`Tests\Models\*Tests.cs`、`Tests\Models\Geometry\ShapeHitTesterTests.cs`、`ExportFrameTests.cs`。T-SHP-01〜18、T-ATT-01〜05、T-HIT-01〜07、T-DRW-01〜12、T-EXP-01〜04 の 46 ケース） | 成功（2026-11-07、Windows の `dotnet.exe`。全体 387 件）。R-7（`PreviewReplace` → `RestoreOriginal` → `Replace` が Undo 1 回で戻る）を T-DRW-05 で確認 |
 | T-SER、T-STO、T-SET | I-4 | 未着手 | — |
 | T-EDC | I-5 | 未着手 | — |
 | T-VM | I-6 | 未着手 | — |
@@ -120,10 +120,15 @@
 | 2026-11-07 | I-2 の実装（テストファースト。型ごとに Red（コンパイルエラー）を確認してから実装）：`Models\Geometry` に `Point2`（`IsWithinLimits()`、`IsFinite`、`DistanceTo`）、`Vector2`、`Rect2`（`Union`、`Contains`、`Bounding`）、`ViewTransform`、`Outline`・`OutlineFigure`（`Circle` を含む）・`OutlineSegment`・`LineSegment`・`CubicBezierSegment`、`Segment2`、`SplineBezier`（`Open`、`Closed`。出典をコメントと README に記載）、`Viewport` を追加。文書で決まっていない実装の詳細（`OutlineFigure.Circle` の置き場所、`UpdateOverview` の `null`、大きさ 0 のビューの扱い、全体図の判定の許容差、折れ線化の分割の上限、`DistanceTo` の名前）は、実装計画書 9 章に従い、`Source\README.md` の「設計判断」節に理由を記録した |
 | 2026-11-07 | T-ARC-04 の失敗と修正：`SplineBezierTests` でコレクション式を使ったところ、コンパイラーが生成した型の入れ子の型（`<>z__ReadOnlySingleElementList`1+Enumerator`、`<PrivateImplementationDetails>+__StaticArrayInitTypeSize=…`）を、T-ARC-04 がグローバル名前空間の型として検出した。入れ子の型は、外側の型が持つ生成コードの属性を持たないため。テストの判定を、外側の型が生成された型なら除くように修正した（製品コードの変更なし） |
 | 2026-11-07 | I-2 を完了。C-1：`dotnet build` 成功（警告 0、エラー 0）。C-2：`dotnet test` 163 件成功（失敗 0、スキップ 0）。C-3：T-GEO、T-SPL、T-OUT、T-VPT の全ケースを実装し成功。C-4：セルフチェック（下記）。C-5：要件にない機能は追加していない（使っていなかった `Vector2` の単項マイナスは削除した）。C-6：本記録。セルフチェック：各型の仕事はひとことで言える（点・変位・矩形・ビュー変換・中間表現・スプライン変換・拡大縮小の規則）。座標の範囲の判定は `Point2.IsWithinLimits()` だけ、ビュー変換は `ViewTransform` だけに置いた。区間ごとの違い（外接矩形の点、折れ線化）は `OutlineSegment` の多態で表した。範囲外の気づき：`Source\Shos.WpfCadSample\Shos.WpfCadSample.Core\Geometry\` に、I-1 のフォルダーの移動（`Models\Geometry` へ）の後に残った空のフォルダーがある（git の管理外。未変更）。WSL の git では、作業ツリーの 25 ファイルが改行コードの違いだけで変更扱いになっている（内容の差なし。未変更） |
+| 2026-11-07 | I-3 の開始時の確認で、設計書の矛盾を発見：`ShapeKindInfo.FromTool`（`Models`）が `Controllers` の `Tool` を引数に取るが、設計書 3.3 は `Models` が他に依存しないとしている。実装計画書 9 章に従い実装を止め、ユーザーに案を示した。ユーザーの選択（「Tool を Models へ移す」）により、設計書（3.2、5.1、5.3）と実装計画書（I-3、I-5）を更新し、両文書をレビュー待ちに戻した。テスト計画書は変更不要のため承認を維持。再承認の後に I-3 の実装を始める |
+| 2026-11-07 | git リポジトリの修復（ユーザーの指示「修復する」）：`git fsck` で、`.git\objects` の 150 個のオブジェクトファイルが全て 0 のバイトで壊れていることが分かった（更新日時は主に 2026-11-05〜06。原因は不明。Dropbox による `.git` の同期の可能性がある）。現在のコミットのファイルで影響があったのは空のファイルのオブジェクトだけで、他は過去の版。壊れたファイルをセッションのスクラッチパッドへ移し、空のファイルのオブジェクトを書き直し、`git fetch --refetch origin` で GitHub から全オブジェクトを取得し直した。HEAD と `origin/main` から到達できる全オブジェクトが読めることを確認した。別の PC のパス（`C:/Users/G_KOJIMA_FUJIO/...`）を指す作業ツリー `i1-project-bootstrap` の index が壊れているが、他の PC で使っている可能性があるため変更していない |
+| 2026-11-07 | ユーザーが設計書と実装計画書を再承認（「両方承認」）。両文書の状態を `承認済み` に更新。4 文書がすべて承認済み。I-3 を開始：`.github\skills\` と `.claude\skills\` の複製は差なし |
+| 2026-11-07 | I-3 の実装（テストファースト。型の群ごとに Red を確認してから実装）：`Models` に `RgbColor`、`LineStyle`・`LineStyleExtensions.DashPattern`、`ShapeAttributes`、`ShapeId`、`ShapeKind`、`Tool`、`Shape` と 7 種の図形（`PointListShape` を含む）、`ShapeKindInfo`、`Drawing` を、`Models.Geometry` に `ShapeHitTester`、`ExportFrame`、`Rect2.Inflate`、`Outline.IsFinite`（内部）を追加。I-2 の申し送り（閉じた自由線の 2 点の候補）は、スプラインを作れない点数の曲線を折れ線で表すことで解消した。文書で決まっていない実装の詳細は、`Source\README.md` の「設計判断」に理由を記録した |
+| 2026-11-07 | I-3 を完了。C-1：`dotnet build` 成功（警告 0、エラー 0）。C-2：`dotnet test` 387 件成功（失敗 0、スキップ 0）。C-3：T-SHP、T-ATT、T-HIT、T-DRW、T-EXP の全ケースを実装し成功。R-7 を確認。C-4：セルフチェック：図形の種類ごとの違い（アウトライン、ハンドル、ハンドル移動、平行移動、種類ごとの制約）は `Shape` の多態に置き、制約の判定の入口は `Shape.SatisfiesConstraints()` だけ、座標の範囲は `Point2.IsWithinLimits()` だけ、`Tool` と種類の対応は `ShapeKindInfo.FromTool` だけに置いた。矩形を外側へ広げる処理が 3 か所（`ExportFrame` とテスト 2 つ）に重複していたため、`Rect2.Inflate` にまとめた。C-5：要件にない機能は追加していない（`System.Text.Json` の属性は計画どおり I-4 で付ける）。C-6：本記録。範囲外の気づき：`Core\Geometry\` の空のフォルダー（I-2 の記録のとおり、未変更） |
 
 ## 7. 次の作業
 
 1. 4 文書は 2026-11-06 にすべて承認済み（実装の前提を満たす）。
-2. I-1 は 2026-11-06、I-2 は 2026-11-07 に完了。次は I-3（図形・属性・Drawing：T-SHP、T-ATT、T-HIT、T-DRW、T-EXP をテストファーストで実装）。以降は、実装計画書の段階（I-4〜I-10）を 1 段階ずつ実行する。
-   - I-3 での注意：`SplineBezier.Closed` は通過点が 3 つ未満だと `ArgumentException` を投げる。設計書 5.1 の `ShapeKindInfo.CanAppend` は、2 点目の候補を `Create` で作って `SatisfiesConstraints()`（防御として `CreateOutline()` の有限性を確かめる）で判定するため、閉じた自由線の 2 点の候補で `CreateOutline()` を呼ばない、または 2 点の扱いを決める必要がある。
+2. I-1 は 2026-11-06、I-2・I-3 は 2026-11-07 に完了。次は I-4（保存・設定：T-SER、T-STO、T-SET をテストファーストで実装。図形の `[JsonPolymorphic]` / `[JsonDerivedType]` もここで付ける）。以降は、実装計画書の段階（I-5〜I-10）を 1 段階ずつ実行する。
+   - I-4 での注意：点列の図形（`PointListShape`）は `ImmutableArray<Point2>` を持つ。読み込みで `points` が欠けている・空のファイルでも、`IsValid()` が例外を投げずに `false` を返すことを確かめる。
 3. 各段階の開始時と完了時に、この記録を更新する（ビルド・テストのコマンドと結果、未解決の課題を含む）。

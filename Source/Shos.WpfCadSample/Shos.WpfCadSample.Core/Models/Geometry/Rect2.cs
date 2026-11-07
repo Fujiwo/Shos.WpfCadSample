@@ -13,6 +13,11 @@ public readonly record struct Rect2(double Left, double Bottom, double Right, do
         => new(Math.Min(Left, other.Left), Math.Min(Bottom, other.Bottom),
                Math.Max(Right, other.Right), Math.Max(Top, other.Top));
 
+    /// <summary>
+    /// 各辺を <paramref name="amount"/> だけ外側へ広げた矩形。
+    /// </summary>
+    public Rect2 Inflate(double amount) => new(Left - amount, Bottom - amount, Right + amount, Top + amount);
+
     public bool Contains(Point2 point)
         => Left <= point.X && point.X <= Right && Bottom <= point.Y && point.Y <= Top;
 

@@ -139,7 +139,7 @@ flowchart LR
 
 ### I-3 図形・属性・Drawing
 
-- **作業**：`Models` に、`ShapeId`、`RgbColor`、`LineStyle`、`ShapeAttributes`、`ShapeKind`、`Shape`（抽象）と 7 種の図形（`LineShape`、`CircleShape`、`RectangleShape`、`PolylineShape`、`PolygonShape`、`OpenCurveShape`、`ClosedCurveShape`）、`ShapeKindInfo`、`Drawing` を実装し、`Models.Geometry` に `ShapeHitTester` を実装する（設計書 5.1、5.2）。
+- **作業**：`Models` に、`ShapeId`、`RgbColor`、`LineStyle`、`ShapeAttributes`、`ShapeKind`、`Tool`（設計書 5.1。`ShapeKindInfo.FromTool` が使う）、`Shape`（抽象）と 7 種の図形（`LineShape`、`CircleShape`、`RectangleShape`、`PolylineShape`、`PolygonShape`、`OpenCurveShape`、`ClosedCurveShape`）、`ShapeKindInfo`、`Drawing` を実装し、`Models.Geometry` に `ShapeHitTester` を実装する（設計書 5.1、5.2）。
   - 図形は不変な `record`。`CreateOutline`、`HandlePoints`、`MoveHandle`、`Translate`、`SatisfiesConstraints`、`IsValid`、`Bounds` を `Shape` の多態で実装する（DD-12）。制約の判定（点の完全一致を含む。仕様 A-27）は `SatisfiesConstraints()` の 1 か所に置き、`IsValid()` は最小点数・`SatisfiesConstraints()`・`ShapeAttributes.IsValid()` を組み合わせる（設計書 5.1）。
   - `ShapeKindInfo` は、入力の規則（`FromTool`、`MinPoints`、`IsFixedTwoPoint`、`Create`）と、候補の図形を作って `SatisfiesConstraints()` で判定する `CanAppend` を持つ。制約の知識は持たない。
   - `Drawing` は、内部に `UndoRedoObservableCollection<Shape>` を持ち（履歴の上限 1,000。DA-1）、外部へは `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開する。`Add` / `RemoveAt` / `Replace`（記録）、`PreviewReplace` / `RestoreOriginal`（`DisabledUndoScope`、記録なし）、`Undo` / `Redo`（実行後に `IsModified = true` と `Committed`。仕様 A-11）、`CanUndo` / `CanRedo`、`Committed`、`IsModified`、`Load`、`MarkSaved`、`IndexOf` を実装する。
@@ -164,7 +164,7 @@ flowchart LR
 
 ### I-5 Controllers
 
-- **作業**：`Controllers` に、`PointerEvent`（`PointerAction`：`Down`、`Move`、`Up`、`CaptureLost`。修飾キーは WPF に依存しない `PointerModifiers`）、`Tool`、`IInteraction`、`DrawInteraction`、`SelectInteraction`、`AttributeEditor`、`EditorController` を実装する（設計書 5.3、6.1〜6.3）。
+- **作業**：`Controllers` に、`PointerEvent`（`PointerAction`：`Down`、`Move`、`Up`、`CaptureLost`。修飾キーは WPF に依存しない `PointerModifiers`）、`IInteraction`、`DrawInteraction`、`SelectInteraction`、`AttributeEditor`、`EditorController` を実装する（設計書 5.3、6.1〜6.3）。
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲を（画面上の px ÷ `Scale`）で換算する。
   - 仕様 5.10 の、入力中・ドラッグ中のコマンドの無効化（ドラッグ中の Copy 系を含む。入力中の Copy as Metafile / Image は可）、ツール切り替え時の取り消しと選択解除、貼り付け後のツール切り替えと選択を実装する。
   - `SelectInteraction`：判定の順序（選択中の図形のハンドル → 図形の線）、`Esc` と `CaptureLost` によるドラッグの取り消し（仕様 5.3、A-26）。`DrawInteraction` は `CaptureLost` を無視する。
@@ -337,3 +337,5 @@ Source\
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-06 | [テスト計画書のレビュー（要件一本化・仕様／設計／実装計画の再承認後）](../Reviews/20261106-cad-test-plan-review-2.md)の指摘 2 に対応：I-3 のテスト群（2 章の表、完了条件）に、テスト計画書と同じく T-EXP を加えた。状態を `レビュー待ち` に戻した |
 | 2026-11-06 | ユーザーが実装計画書とテスト計画書を一組で承認（状態を `承認済み` に更新） |
+| 2026-11-07 | 設計書の変更（`Tool` を `Controllers` から `Models` へ移す。ユーザーの選択）に合わせ、`Tool` の実装を I-5 から I-3 へ移した。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |

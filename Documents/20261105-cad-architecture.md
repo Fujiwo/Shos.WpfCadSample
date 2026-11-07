@@ -66,7 +66,7 @@ Source\Shos.WpfCadSample\
 
 | namespace | アセンブリ | 役割 |
 |---|---|---|
-| `Shos.WpfCadSample.Models` | Core | 図形・属性・ドキュメント（`Drawing`）・ID など、UI に依存しないデータとルール |
+| `Shos.WpfCadSample.Models` | Core | 図形・属性・ドキュメント（`Drawing`）・ID・ツールの種類（`Tool`）など、UI に依存しないデータとルール |
 | `Shos.WpfCadSample.Models.Geometry` | Core | 論理座標の点・矩形、`Outline`（描画の中間表現）、スプライン変換、ヒットテスト、`ViewTransform`、`Viewport` |
 | `Shos.WpfCadSample.Controllers` | Core | 入力（`PointerEvent`）を解釈し、図形の編集を実行する（描画・選択・ドラッグ・削除・属性編集・貼り付け・Undo / Redo） |
 | `Shos.WpfCadSample.ViewModels` | Core | View にバインドする状態とコマンド |
@@ -185,6 +185,7 @@ classDiagram
         +MarkSaved()
         +IndexOf(ShapeId) int
     }
+    class Tool { <<enum>> Select Line Circle Rectangle Polyline Polygon OpenCurve ClosedCurve }
     class ShapeKindInfo { <<static>> +FromTool(tool) ShapeKind +MinPoints(kind) +IsFixedTwoPoint(kind) +Create(kind, points, attributes) +CanAppend(kind, points, point) }
     Shape <|-- LineShape
     Shape <|-- CircleShape
@@ -200,6 +201,7 @@ classDiagram
     ShapeAttributes --> LineStyle
     Drawing o-- Shape
     ShapeKindInfo ..> Shape : creates
+    ShapeKindInfo ..> Tool
 ```
 
 - `Shape` の抽象メソッドの責務（DD-12）：
@@ -217,6 +219,7 @@ classDiagram
 - `LineStyle` の破線のパターン（太さに対する倍率）：Dash `[4, 2]`、Dot `[1, 2]`、DashDot `[4, 2, 1, 2]`、Solid は実線（仮定 DA-5）。画面（WPF の `StrokeDashArray`）と出力（GDI+ の `DashPattern`）で、同じ倍率を使う。
 - `ShapeKindInfo`：図形の種類ごとの入力規則（`Tool` から `ShapeKind` への対応、最小点数、2 点で確定する種類か）だけを持つ。制約の知識は持たない。
   - `FromTool`：`Tool` と `ShapeKind` の対応をこの 1 か所に置く。
+  - `Tool`（ツールの種類）は、`ShapeKindInfo.FromTool` が引数に取るため、`Models` に置く（`Models` は `Controllers` に依存しない。3.3）。`EditorController` などの `Controllers` は、これを使う。
   - `CanAppend(kind, points, point)`：1 点目は `Point2.IsWithinLimits()`（座標が有限で、範囲内）だけを確かめる。2 点目以降は、点を加えた候補を `Create` で作り、`SatisfiesConstraints()` で判定する（直前の点と同じ、矩形の幅・高さが 0、閉じる図形で最後と最初が同じ位置になる点、座標の範囲外の点を拒否する。仕様 5.2）。入力時と読み込み時で、同じ判定を使う。
 - `Drawing` の責務は、「図形の一覧と、その Undo / Redo、未保存状態を保つ」ことである。
   - 内部の一覧は、`UndoRedoObservableCollection<Shape>`（履歴の上限は 1,000。仮定 DA-1）。外部へは、読み取りと変更通知だけを持つ `ReadOnlyObservableCollection<Shape>` の `Shapes` として公開し、変更は `Drawing` の操作だけで行う（`IsModified` と `Committed` を迂回させない）。View は、この一覧にバインドする。
@@ -290,7 +293,6 @@ classDiagram
     class PointerEvent { <<record>> +PointerAction Action +Point2 ScreenPoint +int ClickCount +PointerModifiers Modifiers }
     class PointerAction { <<enum>> Down Move Up CaptureLost }
     class PointerModifiers { <<flags enum>> None Control Shift Alt }
-    class Tool { <<enum>> Select Line Circle Rectangle Polyline Polygon OpenCurve ClosedCurve }
     class EditorController {
         +Tool Tool
         +ShapeId? SelectedId
@@ -326,7 +328,7 @@ classDiagram
     SelectInteraction ..> ShapeHitTester
 ```
 
-- `EditorController` の仕事は「現在のツールに応じて入力を解釈し、図形の編集を実行する」ことである。
+- `EditorController` の仕事は「現在のツールに応じて入力を解釈し、図形の編集を実行する」ことである。ツールの種類 `Tool` は `Models` の型を使う（5.1）。
   - 画面座標の入力を `Viewport.Transform` で論理座標へ変換し、許容範囲（画面上の px ÷ `Scale`）を論理座標へ換算してから、`DrawInteraction` または `SelectInteraction` へ渡す。
   - `SetTool` は、入力中の図形を取り消し、描画ツールへの切り替えで選択を解除する（仕様 5.10）。
   - 入力中は `Undo` / `Redo` / `Paste` を、ドラッグ中は `Undo` / `Redo` / `Paste` / `DeleteSelected` と、`MainViewModel` の Copy / Copy as Metafile / Copy as Image を実行しない（無効）。入力中の Copy as Metafile / Copy as Image は実行でき、入力中の図形を含めない（仕様 5.10）。`IsInputInProgress` / `IsDragging` を `ViewModels` が `CanExecute` に使う。
@@ -737,3 +739,5 @@ sequenceDiagram
 | 2026-11-06 | 要件一本化後の仕様書レビュー指摘 1〜3 に伴い、座標上限・導出値の検証（5.1）、Paste オフセット後の再検証（5.3）、画像換算画素数と寸法の上限（DD-6、`ExportFrame`）を反映。状態は `レビュー待ち` のまま |
 | 2026-11-06 | [設計書のレビュー（要件一本化・仕様変更の反映後）](../Reviews/20261106-cad-architecture-review-2.md)の指摘 1〜8 に対応：座標の範囲の判定を `Point2.IsWithinLimits()` に一本化し、`CanAppend` の 1 点目にも適用（5.1）、導出値の有限性を仕様 A-29 に合わせて防御の検査と明記（5.1）、Open・New の後の表示の初期化を `DrawingViewModel.ResetForNewDocument()` と `EditorController.Reset()` に置き、入力の取り消しを `DrawingViewModel.CancelInput()` 経由に（5.3、5.4、6.4）、`EditorController.Paste` が成否を `bool` で返し `MainViewModel` がエラーを表示（5.3、5.4、8.2）、6.4・6.5 に AC-34 の中止の分岐、7 章に A-29、5.6 の検証⑥に座標の範囲、3.3 の依存関係図に WPF プロジェクトから `Core` への依存、9.4 の古い記述の修正。指摘 9 は記録のみ（実装中に判断）。状態は `レビュー待ち` のまま |
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-07 | I-3 の開始時に、`ShapeKindInfo.FromTool`（`Models`）が `Controllers` の `Tool` を引数に取り、`Models` は他に依存しないという 3.3 の規則と矛盾することが分かった。ユーザーの選択（「Tool を Models へ移す」）により、`Tool` を `Models` に移した（3.2、5.1、5.3）。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
