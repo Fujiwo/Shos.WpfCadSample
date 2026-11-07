@@ -1,12 +1,12 @@
 # CAD 開発 進捗記録
 
-- 最終更新：2026-11-06（I-1 を完了。次は I-2）
+- 最終更新：2026-11-07（I-2 を完了。次は I-3）
 - 対象：簡易 WPF CAD（要件は[仕様書](../Documents/20261105-cad-specification.md)。2026-11-06 に唯一の要件の文書とした）
 - 更新ルール：文書の作成・承認、実装段階の開始・完了、方針の変更があるたびに、このファイルを更新する。承認状態の正本は各文書の先頭の状態行であり、この表はその写しである。
 
 ## 1. 現在の状況
 
-2026-11-06 に、[変更計画](../Plans/20261106-requirements-consolidation-plan.md)に沿って、`create-wpf-cad.prompt.md` の要件を仕様書に取り込み、仕様書を唯一の要件の文書にした。同プロンプトと `create-cad-plan.prompt.md` は削除した。その後、[要件一本化後の仕様書レビュー](../Reviews/20261106-cad-specification-review-post-consolidation.md)の指摘 1〜3 を仕様書、アーキテクチャー／クラス設計書、実装計画書、テスト計画書へ反映した。その後、ユーザーが仕様書を再承認した。続いて設計書をレビューして指摘を反映し、ユーザーが設計書を再承認した。さらに実装計画書をレビューして指摘を反映し、ユーザーが実装計画書を再承認した。その後、テスト計画書のレビュー指摘を反映した際に実装計画書の I-3 も補完したため、その後、ユーザーが実装計画書とテスト計画書を承認し、4 文書がすべて承認済みになった。2026-11-06 に I-1（骨組みと試作）を完了した。プロジェクト、`Directory.Build.props`、T-ARC、README（付随パッケージの理由を含む）、パッケージの版の確認（P-1、P-2）、試作 R-1・R-2・R-6・R-8 がすべて済んだ。次は I-2（幾何とスプライン）である。
+2026-11-06 に、[変更計画](../Plans/20261106-requirements-consolidation-plan.md)に沿って、`create-wpf-cad.prompt.md` の要件を仕様書に取り込み、仕様書を唯一の要件の文書にした。同プロンプトと `create-cad-plan.prompt.md` は削除した。その後、[要件一本化後の仕様書レビュー](../Reviews/20261106-cad-specification-review-post-consolidation.md)の指摘 1〜3 を仕様書、アーキテクチャー／クラス設計書、実装計画書、テスト計画書へ反映した。その後、ユーザーが仕様書を再承認した。続いて設計書をレビューして指摘を反映し、ユーザーが設計書を再承認した。さらに実装計画書をレビューして指摘を反映し、ユーザーが実装計画書を再承認した。その後、テスト計画書のレビュー指摘を反映した際に実装計画書の I-3 も補完したため、その後、ユーザーが実装計画書とテスト計画書を承認し、4 文書がすべて承認済みになった。2026-11-06 に I-1（骨組みと試作）を完了した。プロジェクト、`Directory.Build.props`、T-ARC、README（付随パッケージの理由を含む）、パッケージの版の確認（P-1、P-2）、試作 R-1・R-2・R-6・R-8 がすべて済んだ。2026-11-07 に I-2（幾何とスプライン）を完了した。次は I-3（図形・属性・Drawing）である。
 
 ## 2. 計画文書の進捗
 
@@ -21,10 +21,10 @@
 
 | 項目 | 状況 |
 |---|---|
-| 段階 | I-1（骨組みと試作）を 2026-11-06 に完了。次は I-2（幾何とスプライン） |
+| 段階 | I-1（骨組みと試作）を 2026-11-06 に完了。I-2（幾何とスプライン）を 2026-11-07 に完了。次は I-3（図形・属性・Drawing） |
 | ソリューション | `Source\Shos.WpfCadSample\Shos.WpfCadSample.slnx` に 3 プロジェクトを登録済み（ユーザーが追加。2026-11-06） |
 | アプリ／テストプロジェクト | 初期プロジェクトを、[確認結果](../Reviews/20261106-initial-projects-review.md)に沿って修正済み（`Directory.Build.props`、`MainWindow` の namespace、`CommunityToolkit.Mvvm` の参照先、フォルダー、仮のクラス・テストの削除、`coverlet.collector` の削除）。`Source\README.md` の骨子を作成 |
-| ビルド・テスト | 2026-11-06、ユーザーが Windows で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告・エラーなし）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は、T-ARC-04 の修正後の再実行で 3 件すべて成功（失敗 0、スキップ 0） |
+| ビルド・テスト | 2026-11-07、I-2 の完了時にエージェントが WSL から Windows の `dotnet.exe`（SDK 10.0.403）で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は 163 件すべて成功（失敗 0、スキップ 0）。以前の記録：2026-11-06、ユーザーが Windows で実行：`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は成功（警告・エラーなし）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は、T-ARC-04 の修正後の再実行で 3 件すべて成功（失敗 0、スキップ 0） |
 | パッケージの版（P-1） | 2026-11-06 に NuGet で確認。Shos.UndoRedoList 1.0.8、CommunityToolkit.Mvvm 8.4.2、MaterialDesignThemes 5.4.0、xunit 2.9.3（v2 系の最新）は最新の安定版。xunit.runner.visualstudio（3.1.4 → 4.0.1）と Microsoft.NET.Test.Sdk（17.14.1 → 18.11.0）は、ユーザーの判断（「最新に更新」）で最新の安定版へ更新した。更新後、Windows でビルド・テストが成功した（R-8 を再確認。P-2 はこの組み合わせで確定）。`System.Drawing.Common` はパッケージ不要（R-2） |
 | 試作（R-1、R-2、R-6、R-8） | 試作のコードは成果物に残さず、セッションのスクラッチパッドに置いた。**R-2 成立**：`net10.0-windows`・`UseWPF` のプロジェクトで、パッケージ参照なし（`project.assets.json` のライブラリが空）に `System.Drawing.Imaging.Metafile` などを使うコードが、警告・エラーなしでビルドできた。`System.Drawing.Common` は `Microsoft.WindowsDesktop.App.WPF` の参照（10.0.14）に含まれる（Linux の .NET SDK 10.0.114 と `EnableWindowsTargeting` でのビルドで確認。実行時の動作は R-1 で確認する）。**R-6 成立**：`CommunityToolkit.Mvvm` 8.4.2 の部分プロパティ形式の `[ObservableProperty]`、`[NotifyPropertyChangedFor]`、`[NotifyCanExecuteChangedFor]`、`[RelayCommand(CanExecute = ...)]` と、手書きのプロパティの `field` キーワードが、C# 14 / .NET 10（`net10.0`、`Nullable`、`TreatWarningsAsErrors`）で警告なしにビルドでき、実行して通知とコマンドの 5 項目がすべて期待どおりだった（.NET SDK 10.0.114）。**R-1 成立**（2026-11-06、ユーザーが Windows で確認）：試作（`Metafile`（`EmfPlusDual`）に Y 反転の変換をかけて破線の直線とベジェを描き、`GetHenhmetafile()` のハンドルを、所有者ウィンドウを付けた `OpenClipboard` → `EmptyClipboard` → `SetClipboardData(CF_ENHMETAFILE)` で渡す）を Windows で実行し、Word への貼り付けで直線とベジェが表示された。**R-8 成立**：3.1.4 / 17.14.1 に続き、更新後の xunit.runner.visualstudio 4.0.1 / Microsoft.NET.Test.Sdk 18.11.0 でも、`slnx` 全体の `dotnet test` で xunit 2.9.3 のテスト 3 件が実行・成功した（2026-11-06、Windows） |
 
@@ -32,8 +32,8 @@
 
 | テスト群 | 段階 | 実装 | 実行結果 |
 |---|---|---|---|
-| T-ARC | I-1、I-10 | T-ARC-01、02、04 を実装（`Tests\Architecture\ArchitectureTests.cs`）。T-ARC-03 は `dotnet test` の実行そのもので確認する | 3 件成功（2026-11-06、Windows。テスト用パッケージの更新後に再確認）。T-ARC-03 も確認済み |
-| T-GEO、T-SPL、T-OUT、T-VPT | I-2 | 未着手 | — |
+| T-ARC | I-1、I-10 | T-ARC-01、02、04 を実装（`Tests\Architecture\ArchitectureTests.cs`）。T-ARC-03 は `dotnet test` の実行そのもので確認する。2026-11-07、T-ARC-04 の除外の判定を修正（下の履歴） | 3 件成功（2026-11-07、Windows の `dotnet.exe`）。T-ARC-03 も確認済み |
+| T-GEO、T-SPL、T-OUT、T-VPT | I-2 | 全ケースを実装（`Tests\Models\Geometry\*Tests.cs`。T-GEO-01〜05、T-SPL-01〜10、T-OUT-01〜04、T-VPT-01〜15 の 34 ケースを、境界値などを含む 160 件のテストで確認） | 160 件成功（2026-11-07、Windows の `dotnet.exe`）。T-SPL-10 の 10,000 点の変換（開いた曲線と閉じた曲線）は 21.5 ms |
 | T-SHP、T-ATT、T-HIT、T-DRW、T-EXP | I-3 | 未着手 | — |
 | T-SER、T-STO、T-SET | I-4 | 未着手 | — |
 | T-EDC | I-5 | 未着手 | — |
@@ -116,9 +116,14 @@
 | 2026-11-06 | I-1 の残りを再開（ユーザーの指示「I-1 の残りを進めよ」）。P-1：NuGet で版を確認し、ユーザーの判断でテスト用の付随パッケージ 2 つを最新の安定版へ更新（xunit.runner.visualstudio 4.0.1、Microsoft.NET.Test.Sdk 18.11.0）。README に付随パッケージの理由、xunit v2 を使う理由、`System.Drawing` がパッケージ不要であることを追記。試作：R-2・R-6 は成立（3 章）。R-1 は試作を作成し、Windows での実行と Word への貼り付けの確認をユーザーに依頼。Windows の `dotnet.exe` はエージェントの環境から起動できず、リポジトリのビルド・テストは未実施 |
 | 2026-11-06 | ユーザーが Windows で確認：R-1 の試作は成功（Word への EMF の貼り付けを確認）。`dotnet build` は成功。`dotnet test` は、Tests のビルド中に `Microsoft.CodeCoverage` 18.11.0 の targets が `bin\Debug\net10.0\.msCoverageSourceRootsMapping_Shos.WpfCadSample.Tests` へ書き込めず（MSB3491、Access to the path is denied）失敗。ファイルは直前の `dotnet build` で書かれており、Dropbox の同期などによる一時的なロックを疑い、再実行を依頼 |
 | 2026-11-06 | ユーザーが Windows で `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` を再実行：合計 3、成功 3、失敗 0、スキップ 0。前回の MSB3491 は再発せず、一時的なロックだったと判断。R-8 を更新後の版で再確認し、I-1 の完了条件（C-1、C-2、C-6、R-1・R-2・R-6・R-8 の記録）を満たしたため、I-1 を完了とした |
+| 2026-11-07 | I-2 を開始（ユーザーの指示「I-2 を開始」）。前提の確認：仕様書・設計書・実装計画書・テスト計画書の先頭行がすべて `状態：承認済み`。`.github\skills\` と `.claude\skills\` の `genshijin`、`sustainable-code-jp` を比較し、差なし（改行コードを除き一致）。エージェントの環境から Windows の `dotnet.exe`（SDK 10.0.403）を実行できるようになり、開始時の `dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` は 3 件成功 |
+| 2026-11-07 | I-2 の実装（テストファースト。型ごとに Red（コンパイルエラー）を確認してから実装）：`Models\Geometry` に `Point2`（`IsWithinLimits()`、`IsFinite`、`DistanceTo`）、`Vector2`、`Rect2`（`Union`、`Contains`、`Bounding`）、`ViewTransform`、`Outline`・`OutlineFigure`（`Circle` を含む）・`OutlineSegment`・`LineSegment`・`CubicBezierSegment`、`Segment2`、`SplineBezier`（`Open`、`Closed`。出典をコメントと README に記載）、`Viewport` を追加。文書で決まっていない実装の詳細（`OutlineFigure.Circle` の置き場所、`UpdateOverview` の `null`、大きさ 0 のビューの扱い、全体図の判定の許容差、折れ線化の分割の上限、`DistanceTo` の名前）は、実装計画書 9 章に従い、`Source\README.md` の「設計判断」節に理由を記録した |
+| 2026-11-07 | T-ARC-04 の失敗と修正：`SplineBezierTests` でコレクション式を使ったところ、コンパイラーが生成した型の入れ子の型（`<>z__ReadOnlySingleElementList`1+Enumerator`、`<PrivateImplementationDetails>+__StaticArrayInitTypeSize=…`）を、T-ARC-04 がグローバル名前空間の型として検出した。入れ子の型は、外側の型が持つ生成コードの属性を持たないため。テストの判定を、外側の型が生成された型なら除くように修正した（製品コードの変更なし） |
+| 2026-11-07 | I-2 を完了。C-1：`dotnet build` 成功（警告 0、エラー 0）。C-2：`dotnet test` 163 件成功（失敗 0、スキップ 0）。C-3：T-GEO、T-SPL、T-OUT、T-VPT の全ケースを実装し成功。C-4：セルフチェック（下記）。C-5：要件にない機能は追加していない（使っていなかった `Vector2` の単項マイナスは削除した）。C-6：本記録。セルフチェック：各型の仕事はひとことで言える（点・変位・矩形・ビュー変換・中間表現・スプライン変換・拡大縮小の規則）。座標の範囲の判定は `Point2.IsWithinLimits()` だけ、ビュー変換は `ViewTransform` だけに置いた。区間ごとの違い（外接矩形の点、折れ線化）は `OutlineSegment` の多態で表した。範囲外の気づき：`Source\Shos.WpfCadSample\Shos.WpfCadSample.Core\Geometry\` に、I-1 のフォルダーの移動（`Models\Geometry` へ）の後に残った空のフォルダーがある（git の管理外。未変更）。WSL の git では、作業ツリーの 25 ファイルが改行コードの違いだけで変更扱いになっている（内容の差なし。未変更） |
 
 ## 7. 次の作業
 
 1. 4 文書は 2026-11-06 にすべて承認済み（実装の前提を満たす）。
-2. I-1 は 2026-11-06 に完了。次は I-2（幾何とスプライン：T-GEO、T-SPL、T-OUT、T-VPT をテストファーストで実装）。以降は、実装計画書の段階（I-3〜I-10）を 1 段階ずつ実行する。
+2. I-1 は 2026-11-06、I-2 は 2026-11-07 に完了。次は I-3（図形・属性・Drawing：T-SHP、T-ATT、T-HIT、T-DRW、T-EXP をテストファーストで実装）。以降は、実装計画書の段階（I-4〜I-10）を 1 段階ずつ実行する。
+   - I-3 での注意：`SplineBezier.Closed` は通過点が 3 つ未満だと `ArgumentException` を投げる。設計書 5.1 の `ShapeKindInfo.CanAppend` は、2 点目の候補を `Create` で作って `SatisfiesConstraints()`（防御として `CreateOutline()` の有限性を確かめる）で判定するため、閉じた自由線の 2 点の候補で `CreateOutline()` を呼ばない、または 2 点の扱いを決める必要がある。
 3. 各段階の開始時と完了時に、この記録を更新する（ビルド・テストのコマンドと結果、未解決の課題を含む）。

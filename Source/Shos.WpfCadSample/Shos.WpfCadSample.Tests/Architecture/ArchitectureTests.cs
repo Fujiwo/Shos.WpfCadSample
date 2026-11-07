@@ -66,7 +66,9 @@ public class ArchitectureTests
     static IEnumerable<Type> WrittenTypes(Assembly assembly)
         => assembly.GetTypes().Where(type => !IsGenerated(type));
 
+    // 生成された型の入れ子の型（例：<PrivateImplementationDetails> の中の型）は、自身には属性を持たないため、外側の型でも判定する
     static bool IsGenerated(Type type)
         => type.FullName == testSdkEntryPointName ||
-           type.CustomAttributes.Any(attribute => generatedCodeAttributeNames.Contains(attribute.AttributeType.Name));
+           type.CustomAttributes.Any(attribute => generatedCodeAttributeNames.Contains(attribute.AttributeType.Name)) ||
+           (type.DeclaringType is { } declaringType && IsGenerated(declaringType));
 }
