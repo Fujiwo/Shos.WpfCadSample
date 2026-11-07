@@ -3,7 +3,7 @@
 namespace Shos.WpfCadSample;
 
 /// <summary>
-/// Interaction logic for App.xaml
+/// アプリケーション（起動は App.xaml の StartupUri。ルート namespace 直下に置く唯一の型。設計書 DD-14）。
 /// </summary>
 public partial class App : Application
 {

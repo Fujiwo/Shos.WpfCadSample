@@ -3,7 +3,7 @@
 namespace Shos.WpfCadSample.Views;
 
 /// <summary>
-/// Interaction logic for MainWindow.xaml
+/// メインウィンドウ（メニュー、ツールバー、描画領域、ステータスバー。設計書 5.7）。
 /// </summary>
 public partial class MainWindow : Window
 {
