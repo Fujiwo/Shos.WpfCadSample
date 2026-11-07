@@ -103,3 +103,7 @@ Source\Shos.WpfCadSample\
 | I-6 | `DrawingViewModel` のコマンドの引数 | `SetViewSizeCommand` は `ViewSize`、`ZoomCommand` は `ZoomRequest`（カーソル位置とノッチ数）、`ScrollCommand` は `ScrollDirection` を受け取る。描画領域の外へ出たことを伝える `PointerLeaveCommand` を加えた | Core が WPF の型（`Size` など）に依存しないため。カーソル位置の表示を、描画領域の外で空欄にするため（仕様 4.4） |
 | I-6 | 貼り付けの回数 | 貼り付けに成功したときだけ、回数と前回のテキストを更新する | 失敗した貼り付けを回数に含めると、次の貼り付けのずらし量が、実際に貼った回数とずれるため |
 | I-6 | エラー・警告の文言 | 仕様 7 章の文言に、原因と対象のファイルを続ける（例：`The file is not a valid CAD document.` の後に理由と `File: <パス>`） | 仕様 4.6「操作名、原因、対象ファイルを示す英語の文」のため。タイトルは操作名（`Open`、`Save`、`Paste` など） |
+| I-7 | 独自形式のクリップボードのデータ | 書式名 `Shos.WpfCadSample.Shapes` に、JSON テキストを UTF-8 のバイト列（`MemoryStream`）として置く | 文字列を独自の書式で渡すときの、型の直列化に頼らないため |
+| I-7 | EMF・画像の座標の変換 | 論理座標から出力のピクセル座標への変換（Y の反転、範囲への平行移動、縮尺）を倍精度で計算してから GDI+ に渡し、GDI+ の変換行列は使わない。線の太さも同じ縮尺にする | 座標が大きいとき（±1,000,000）に、GDI+ の単精度の変換行列で生じる誤差を避けるため |
+| I-7 | Win32 の呼び出し | `NativeClipboard` は `DllImport` を使う | `LibraryImport` は unsafe のコンパイル（`AllowUnsafeBlocks`）を要するため、プロジェクトの設定を変えずに済む方を選んだ |
+| I-7 | ダイアログの親 | アクティブなウィンドウ（属性ウィンドウを含む）を親にし、なければメインウィンドウ。エラーのタイトルは `<操作名> - WPF CAD Sample` | 属性ウィンドウのショートカットから実行した操作でも、ダイアログがそのウィンドウの前に出るようにするため |
