@@ -82,6 +82,7 @@ public class ClipboardShapesTests
     [Theory]
     [InlineData("")]
     [InlineData(validLine + ", " + validLine)]
+    [InlineData("null")]                        // 図形が null（1 個だが、図形ではない）
     public void FromText_RejectsOtherThanExactlyOneShape(string shapes) => AssertInvalid(Clipboard(shapes));
 
     // T-SER-18

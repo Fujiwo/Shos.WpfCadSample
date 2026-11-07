@@ -22,7 +22,12 @@ sealed class FakeClipboardService : IClipboardService
     public List<IReadOnlyList<Shape>> Metafiles { get; } = [];
     public List<IReadOnlyList<Shape>> Images { get; } = [];
 
-    public bool ContainsShapes => ShapesText is not null;
+    public bool ContainsShapes {
+        get {
+            ThrowIfFails();
+            return ShapesText is not null;
+        }
+    }
 
     public void SetShapesText(string text)
     {

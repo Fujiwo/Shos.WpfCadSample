@@ -170,7 +170,9 @@ public class DocumentSerializerTests
         Document("""{ "type": "polyline", "points": null, "attributes": """ + validAttributes + " }"),
         Document("""{ "type": "circle", "center": { "x": 0, "y": 0 }, "attributes": """ + validAttributes + " }"),
         Document(Line("""{ "x": 0 }""", """{ "x": 1, "y": 1 }""")),                                                         // y の欠落
-        Document(Line("""{ "x": 0, "y": 0 }""", """{ "x": 1, "y": 1 }""", """{ "color": "#000000", "thickness": 1 }"""))   // lineStyle の欠落
+        Document(Line("""{ "x": 0, "y": 0 }""", """{ "x": 1, "y": 1 }""", """{ "color": "#000000", "thickness": 1 }""")),  // lineStyle の欠落
+        Document("null"),                                                                                                   // 図形が null（配列の要素は、null 非許容の注釈で検査されない）
+        Document(validLine + ", null")
     ];
 
     // T-SER-08

@@ -270,7 +270,12 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     void RefreshClipboardState()
     {
-        clipboardHasShapes = clipboard.ContainsShapes;
+        try {
+            clipboardHasShapes = clipboard.ContainsShapes;
+        } catch (ClipboardOperationException) {
+            // 調べられなければ、貼り付けられないものとして扱う。利用者の操作ではない（アクティブ化などの契機）ため、エラーは表示しない
+            clipboardHasShapes = false;
+        }
         PasteCommand.NotifyCanExecuteChanged();
     }
 

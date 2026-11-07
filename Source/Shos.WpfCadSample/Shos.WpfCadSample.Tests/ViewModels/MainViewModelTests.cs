@@ -341,6 +341,21 @@ public sealed class MainViewModelTests : IDisposable
         Assert.Empty(main.Drawing.Shapes);
     }
 
+    // T-VM-10（Paste の有効状態を調べるときに失敗：Reviews/20261107-source-code-review-2.md の指摘 2 の回帰テスト）。
+    // 調べるのはウィンドウのアクティブ化などの契機で、利用者の操作ではないため、エラーは表示せず、貼り付けられないものとして扱う
+    [Fact]
+    public void RefreshClipboardState_ClipboardFailure_DisablesPasteWithoutError()
+    {
+        clipboard.ShapesText = ClipboardShapes.ToText(new LineShape(ShapeId.New(), ShapeAttributes.Default, new(0, 0), new(1, 1)));
+        main.RefreshClipboardStateCommand.Execute(null);
+        clipboard.Fails = true;
+
+        main.RefreshClipboardStateCommand.Execute(null);
+
+        Assert.False(CanExecute(main.PasteCommand));
+        Assert.Empty(dialogs.Errors);
+    }
+
     // T-VM-11
     [Fact]
     public void ClipboardCommands_AreEnabledAccordingToState()

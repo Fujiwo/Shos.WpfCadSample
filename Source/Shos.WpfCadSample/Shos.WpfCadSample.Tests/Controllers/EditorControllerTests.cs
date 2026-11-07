@@ -132,6 +132,24 @@ public class EditorControllerTests
         Assert.Equal(guidance, editor.StatusMessage);
     }
 
+    // T-EDC-01〜03 の補足：ダブルクリックで確定した直後に素早くもう 1 回クリックすると、3 回目の Down（ClickCount = 3）が届く。
+    // 入力中の点はないので、確定として扱わず、点数不足の状態表示を出さない（Reviews/20261107-source-code-review-2.md の指摘 4 の回帰テスト）
+    [Theory]
+    [InlineData(Tool.Polyline)]
+    [InlineData(Tool.OpenCurve)]
+    public void ClickingRightAfterDoubleClickConfirm_DoesNotReportTooFewPoints(Tool tool)
+    {
+        editor.SetTool(tool);
+        var guidance = editor.StatusMessage;
+
+        Click(10, 20);
+        DoubleClick(110, 70);
+        Click(110, 70, clickCount: 3);
+
+        Assert.Single(drawing.Shapes);
+        Assert.Equal(guidance, editor.StatusMessage);
+    }
+
     // T-EDC-04、T-EDC-05
     [Theory]
     [InlineData(Tool.Polyline, typeof(PolylineShape))]

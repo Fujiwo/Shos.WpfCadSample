@@ -24,6 +24,10 @@ static class ShapesJson
     public static IReadOnlyList<Shape> Read(string format, string text)
     {
         var file = Parse(format, text);
+        // null 非許容の注釈（RespectNullableAnnotations）は配列の要素を検査しないため、"shapes": [null] はここで拒否する
+        var nullIndex = file.Shapes.ToList().FindIndex(shape => shape is null);
+        if (nullIndex >= 0)
+            throw Invalid($"Shape #{nullIndex + 1} is null.");
         var invalidIndex = file.Shapes.ToList().FindIndex(shape => !shape.IsValid());
         if (invalidIndex >= 0)
             throw Invalid($"Shape #{invalidIndex + 1} ({file.Shapes[invalidIndex].Kind}) violates the shape constraints.");
