@@ -10,7 +10,7 @@
   - 各指摘はコードで確かめた。指摘 1 と 4 は、一時的なテストを書いて Windows の `dotnet.exe test` で再現を確かめた。一時的なテストは削除済みで、リポジトリには残っていない。
   - 実機（Windows のクリップボード）でしか確かめられない点は、「要確認」と書いた。
 - 既知の指摘：[20261107-source-code-review.md](./20261107-source-code-review.md)（固定 2 点図形の終点のダブルクリック）は修正済みのため除いた。
-- 対応状況：指摘 1、2、4 を修正済み（2026-11-07）。それぞれ、再現するテストを先に足して失敗を確かめてから直した。`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（675 件）。ほかの指摘は未対応。
+- 対応状況：指摘 1、2、4 を修正済み（2026-11-07）。指摘 5 は、ユーザーの判断（保存の前に確定する）に沿って修正済み（同日。テストは 677 件成功）。それぞれ、再現するテストを先に足して失敗を確かめてから直した。`dotnet build Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（警告 0、エラー 0）。`dotnet test Source/Shos.WpfCadSample/Shos.WpfCadSample.slnx` 成功（675 件）。ほかの指摘は未対応。
 
 ## 指摘の一覧
 

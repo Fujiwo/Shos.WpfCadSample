@@ -187,10 +187,18 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    void Save() => SaveDocument();
+    void Save()
+    {
+        CommitPendingEdit();
+        SaveDocument();
+    }
 
     [RelayCommand]
-    void SaveAs() => SaveDocumentAs();
+    void SaveAs()
+    {
+        CommitPendingEdit();
+        SaveDocumentAs();
+    }
 
     [RelayCommand]
     void Exit() => CloseRequested?.Invoke(this, EventArgs.Empty);
@@ -321,6 +329,10 @@ public sealed partial class MainViewModel : ObservableObject
             _ => false
         };
     }
+
+    // 属性ウィンドウで確定していない編集（ショートカットで保存したとき）を、保存の前に確定する。
+    // 確定しないと、表示だけが変わった図形を保存し、その後の確定で、保存した内容なのに変更ありになる
+    void CommitPendingEdit() => Properties.CommitEditCommand.Execute(null);
 
     // 保存先が決まっていなければ Save As と同じ（仕様 4.2）。戻り値は、保存できたか
     bool SaveDocument() => documentPath is { } path ? SaveDocumentTo(path) : SaveDocumentAs();

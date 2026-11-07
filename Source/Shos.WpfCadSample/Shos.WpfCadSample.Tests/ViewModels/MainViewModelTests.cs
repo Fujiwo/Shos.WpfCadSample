@@ -250,6 +250,27 @@ public sealed class MainViewModelTests : IDisposable
         Assert.Equal("second.json - WPF CAD Sample", main.Title);
     }
 
+    // T-VM-06 の補足：属性ウィンドウで確定していない編集（16 進の欄に入力しただけ）があるまま、ショートカットで保存する。
+    // 保存の前に確定し、保存した内容と「変更なし」の状態を一致させる（Reviews/20261107-source-code-review-2.md の指摘 5 の回帰テスト）
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Save_CommitsPendingAttributeEditBeforeSaving(bool saveAs)
+    {
+        DrawLine(100, 100, 200, 200);
+        Click(150, 150);
+        main.Properties.SelectedAttributes.Hex = "#FF0000";     // 有効な値で、記録せずに表示だけ変わる
+        dialogs.SavePath = folder.Combine("drawing.json");
+
+        (saveAs ? main.SaveAsCommand : main.SaveCommand).Execute(null);
+        main.Properties.CommitEditCommand.Execute(null);        // その後の Enter やフォーカスの移動
+
+        Assert.Equal(new RgbColor(255, 0, 0), Assert.Single(new DocumentStorage().Load(folder.Combine("drawing.json"))).Attributes.Color);
+        Assert.Equal("drawing.json - WPF CAD Sample", main.Title);   // 保存後に変更ありにならない
+        main.UndoCommand.Execute(null);                              // 確定した編集は 1 回の Undo 単位
+        Assert.Equal(ShapeAttributes.Default.Color, main.Drawing.Shapes[0].Attributes.Color);
+    }
+
     // T-VM-07
     [Fact]
     public void Save_FailureOnLockedFile_ShowsErrorAndKeepsModified()
