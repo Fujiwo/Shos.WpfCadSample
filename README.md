@@ -1,5 +1,7 @@
 # Shos.WpfCadSample
 
+**日本語** | [English](README.en.md)
+
 **C# 14 / .NET 10 / WPF で作った、MVC + MVVM 構成の簡易 2D CAD のサンプル**です。
 
 図形を描いて、選んで、動かして、保存する。CAD としては小さなアプリケーションですが、WPF のデスクトップアプリで実際にぶつかる課題（UI とロジックの分離、Undo / Redo、座標変換、マウス操作の状態遷移、クリップボード、ファイルの保存、テスト）を、一通り本気で解いています。
@@ -373,6 +375,7 @@ flowchart LR
 ```text
 .
 ├─ README.md                 … このファイル（学習者向けの入口）
+├─ README.en.md              … 英語版の README
 ├─ Source/
 │   ├─ README.md             … 操作方法、パッケージと版、実装の細かな判断の一覧
 │   └─ Shos.WpfCadSample/    … ソリューションと 3 つのプロジェクト
