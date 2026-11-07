@@ -1,12 +1,22 @@
-﻿using Shos.WpfCadSample.Models.Geometry;
+﻿using System.Text.Json.Serialization;
+using Shos.WpfCadSample.Models.Geometry;
 
 namespace Shos.WpfCadSample.Models;
 
 /// <summary>
 /// 図形（不変）。変更は、新しい図形への置き換えで表す（設計書 DD-2）。種類ごとの違いは、派生の多態で表す（DD-12）。
 /// コンストラクターは例外を投げず、正しさは <see cref="IsValid"/> で判定する（読み込み・貼り付け・編集で共通）。
+/// 保存形式の判別子は <c>type</c>（設計書 5.6）。<see cref="Id"/> は保存しない（DD-11）。
 /// </summary>
-public abstract record Shape(ShapeId Id, ShapeAttributes Attributes)
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(LineShape), "line")]
+[JsonDerivedType(typeof(CircleShape), "circle")]
+[JsonDerivedType(typeof(RectangleShape), "rectangle")]
+[JsonDerivedType(typeof(PolylineShape), "polyline")]
+[JsonDerivedType(typeof(PolygonShape), "polygon")]
+[JsonDerivedType(typeof(OpenCurveShape), "openCurve")]
+[JsonDerivedType(typeof(ClosedCurveShape), "closedCurve")]
+public abstract record Shape([property: JsonIgnore] ShapeId Id, ShapeAttributes Attributes)
 {
     public abstract ShapeKind Kind { get; }
 

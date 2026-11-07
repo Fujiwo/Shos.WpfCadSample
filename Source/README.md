@@ -33,8 +33,11 @@ Source\Shos.WpfCadSample\
 │   └─ Infrastructure\          … Shos.WpfCadSample.Infrastructure
 └─ Shos.WpfCadSample.Tests\     … net10.0。xUnit。Core を参照
     ├─ Architecture\            … Shos.WpfCadSample.Tests.Architecture
-    └─ Models\
-        └─ Geometry\            … Shos.WpfCadSample.Tests.Models.Geometry
+    ├─ Models\                  … Shos.WpfCadSample.Tests.Models
+    │   └─ Geometry\            … Shos.WpfCadSample.Tests.Models.Geometry
+    ├─ Serialization\           … Shos.WpfCadSample.Tests.Serialization
+    ├─ Settings\                … Shos.WpfCadSample.Tests.Settings
+    └─ Support\                 … Shos.WpfCadSample.Tests.Support（一時フォルダーなどのテストの補助）
 ```
 
 ## 使用するパッケージと版
@@ -82,3 +85,9 @@ Source\Shos.WpfCadSample\
 | I-3 | `ShapeHitTester` の曲線の近似 | 許容範囲の 1/20（約 5 px に対して 0.25 px）で折れ線に近似して距離を測る | 設計書 DA-2 の許容誤差（画面上 0.25 px 相当）を、許容範囲から求めるため |
 | I-3 | `ExportFrame` の画素数の上限 | 切り上げで各辺が 1 px 未満増えることを見込み、(幅·縮尺 + 1)(高さ·縮尺 + 1) ≤ 4,000,000 から縮尺を求める | 切り上げ後も必ず上限を満たすため。上限から決まる縮尺との差は 1 px 程度で、テストで 99% 以上を確認した |
 | I-3 | `RgbColor.ToHex()` | 16 進は大文字（`#1A2B3C`） | 読み込み（`TryParse`）は大文字・小文字を問わないため、出力は 1 つの形にそろえる |
+| I-4 | JSON の必須項目と導出値 | 各型に `[JsonRequired]` を付ける代わりに、`Serialization` の `JsonRules`（ドキュメント・独自形式・設定に共通の規則）で、読み込む項目（設定できるプロパティ）をすべて必須にし、導出値（`HandlePoints`、`Bounds` など設定できないプロパティ）を読み書きの対象から除く | 「すべての項目が必須」「導出値は保存しない」という規則を 1 か所に置くため。`IgnoreReadOnlyProperties` は、コレクション型の読み取り専用プロパティ（`HandlePoints`）を除かない |
+| I-4 | 図形の判別子の位置 | `type` が図形の最初の項目でなくても読み込む（`AllowOutOfOrderMetadataProperties`） | 手で編集したファイルの項目の順序で、読み込みの成否が変わらないようにするため |
+| I-4 | 線種の数値 | 線種は名前の文字列だけを受け付け、数値（`1` など）は不正とする | 仕様 6.4 の形式（文字列）以外の表記を受け付けないため |
+| I-4 | 設定の既定値 | メインウィンドウは (80, 60) に 1000 × 700、属性ウィンドウは表示し (760, 120) に 300 × 520 | 仕様に具体値がない。1366 × 768 の画面にも収まる大きさにした |
+| I-4 | `WindowPlacement.IsWithin` | ウィンドウ全体が仮想スクリーンに含まれるときだけ `true`（一部がはみ出すと `false`） | 仕様 5.9 の「含まれる」を、ウィンドウ全体が含まれることと解釈した。仮想スクリーンの矩形は、画面座標（Y 下向き）の `Rect2` で、`Bottom` が上端、`Top` が下端 |
+| I-4 | 設定の退避 | 不正な設定ファイルは `settings.json.bak` へ移動する（既存の退避ファイルは置き換える） | 仕様 7 章。移動に失敗したときは、元のファイルを残し、終了時の保存で置き換わる（仮定 A-22） |

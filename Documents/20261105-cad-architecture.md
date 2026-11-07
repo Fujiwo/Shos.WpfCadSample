@@ -110,10 +110,12 @@ flowchart TB
     Controllers --> Models
     Serialization --> Models
     Settings --> Models
+    Settings -->|"安全な保存・JSON の規則"| Serialization
     Tests --> CoreProject
 ```
 
 - 依存は一方向である：`Views` → `ViewModels` → `Controllers` → `Models`。`Models` は他のどれにも依存しない。WPF プロジェクト（`Views`、`Infrastructure`）から `Core` への依存は、表示（`DataTemplate`、コンバーター）と起動時の組み立て（`CompositionRoot`）のためで、`Core` から WPF への依存はない。
+- `Settings` は、`Serialization` の内部の補助のうち、ファイルを安全に保存する補助（一時ファイルへ書いてから置き換える）と、JSON の規則（項目名、色の `#RRGGBB`、線種の文字列、必須項目、null の拒否）だけを使う（5.6）。同じ保存の仕組みと規則を 2 か所に持たないため。
 - `Controllers` は `ViewModels` に依存しない。`Controllers` が状態の変化をイベントで通知し、`ViewModels` がそれを購読して、バインド可能な状態に写す。
 - `Core` は WPF のアセンブリ（`PresentationCore`、`PresentationFramework`、`WindowsBase`）を参照できない（アセンブリが `net10.0` のため、コンパイル時に強制される）。`ICommand` などの .NET 標準の型は、名前空間が `System.Windows.Input` でも使える。WPF の型（`ModifierKeys`、`Point` など）が必要な箇所は、`Core` に独自の型を定義し、`Views` で変換する。
 - Material Design の型とスタイルは、`App.xaml` と `Views` の XAML／カスタムコントロールにとどめる（`Core` は参照できない）。
@@ -479,10 +481,10 @@ classDiagram
   `type` の値：`line`、`circle`、`rectangle`、`polyline`、`polygon`、`openCurve`、`closedCurve`。
 - `DocumentSerializer.Deserialize` の検証（仕様 7 章「不正とみなす条件」）：①JSON の解析（`JsonException`）、②形式の識別子とバージョン（現行より新しい場合は `DocumentFormatError.NewerVersion` を先に判定。1 未満は不正）、③未知の図形の種類・線種（判別子や列挙値の不一致は `JsonException`）、④必須項目（`required` と `[JsonRequired]`）、⑤色の形式（`RgbColor` の `JsonConverter`）、⑥各図形の `IsValid()`（座標の有限性と範囲、制約、点数、太さの範囲）。1 つでも不正なら全体を拒否し、`DocumentFormatException`（`Error`、理由）にまとめる。
 - `ClipboardShapes`：独自形式のクリップボード用。同じ検証を使い、形式の識別子は `Shos.WpfCadSample.Clipboard`。図形はちょうど 1 個とし、0 個または 2 個以上は不正とする（仕様 6.6、7 章）。
-- `DocumentStorage.Save`：同じフォルダーの一時ファイルへ書いてから `File.Replace`（新規は `File.Move`）で置き換える。失敗しても元のファイルを壊さない（仕様 7 章）。I/O の例外は呼び出し側（`MainViewModel`）へ伝える。
+- `DocumentStorage.Save`：同じフォルダーの一時ファイルへ書いてから `File.Replace`（新規は `File.Move`）で置き換える。失敗しても元のファイルを壊さない（仕様 7 章）。I/O の例外は呼び出し側（`MainViewModel`）へ伝える。この保存の仕組みは `Serialization` の内部の補助に置き、`SettingsStorage.Save` も使う（3.3）。
 - `SettingsStorage`（`%APPDATA%\Shos.WpfCadSample\settings.json`。パスはコンストラクターで受け取る）：
   - `Load`：ファイルがなければ既定値（エラーではない）。仕様 7 章の「設定で不正とみなす条件」（JSON の解析、必須項目、バージョンが整数でない・1 未満・現行より新しい、`AppSettings.IsValid()`：既定属性が `ShapeAttributes.IsValid()` を満たし、各 `WindowPlacement.IsValid()`（位置・サイズが有限、幅・高さ > 0）を満たす）に 1 つでも該当すれば（仕様 A-28）、`settings.json.bak` へ退避（既存の退避ファイルは置き換える）して既定値を返し、`Warning` に文言を入れる。退避に失敗した場合も、その旨を `Warning` に入れて既定値を返す（仕様 7 章、A-22）。
-  - `Save`：終了時に `MainViewModel.SaveSettings()` からだけ呼ぶ（A-22）。失敗（`IOException`、`UnauthorizedAccessException`）は呼び出し側で表示するが、終了を妨げない。
+  - `Save`：終了時に `MainViewModel.SaveSettings()` からだけ呼ぶ（A-22）。フォルダーがなければ作成し、`DocumentStorage.Save` と同じ補助で、一時ファイルへ書いてから置き換える。読み書きには、ドキュメントと同じ JSON の規則を使う（3.3）。失敗（`IOException`、`UnauthorizedAccessException`）は呼び出し側で表示するが、終了を妨げない。
 - `WindowPlacement.IsWithin(virtualScreen)`：保存した位置が現在のモニターに含まれるかを判定する純粋なメソッド。範囲外なら、既定の位置へ戻す（仕様 5.9）。仮想スクリーンの矩形は `Views` が渡す。
 
 ### 5.7 Views と Infrastructure
@@ -740,4 +742,8 @@ sequenceDiagram
 | 2026-11-06 | [設計書のレビュー（要件一本化・仕様変更の反映後）](../Reviews/20261106-cad-architecture-review-2.md)の指摘 1〜8 に対応：座標の範囲の判定を `Point2.IsWithinLimits()` に一本化し、`CanAppend` の 1 点目にも適用（5.1）、導出値の有限性を仕様 A-29 に合わせて防御の検査と明記（5.1）、Open・New の後の表示の初期化を `DrawingViewModel.ResetForNewDocument()` と `EditorController.Reset()` に置き、入力の取り消しを `DrawingViewModel.CancelInput()` 経由に（5.3、5.4、6.4）、`EditorController.Paste` が成否を `bool` で返し `MainViewModel` がエラーを表示（5.3、5.4、8.2）、6.4・6.5 に AC-34 の中止の分岐、7 章に A-29、5.6 の検証⑥に座標の範囲、3.3 の依存関係図に WPF プロジェクトから `Core` への依存、9.4 の古い記述の修正。指摘 9 は記録のみ（実装中に判断）。状態は `レビュー待ち` のまま |
 | 2026-11-06 | ユーザーが再承認（状態を `承認済み` に更新） |
 | 2026-11-07 | I-3 の開始時に、`ShapeKindInfo.FromTool`（`Models`）が `Controllers` の `Tool` を引数に取り、`Models` は他に依存しないという 3.3 の規則と矛盾することが分かった。ユーザーの選択（「Tool を Models へ移す」）により、`Tool` を `Models` に移した（3.2、5.1、5.3）。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-07 | I-4 の開始時に、ドキュメントと設定の保存が同じ「一時ファイルへ書いてから置き換える」仕組みを要することから、ユーザーの選択（「共有し、依存を加える」）により、`Settings` → `Serialization`（安全な保存の補助だけ）の依存を加えた（3.3、5.6）。状態を `レビュー待ち` に戻した |
+| 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
+| 2026-11-07 | 設定にも既定属性（色・線種）があり、ドキュメントと同じ JSON の規則を要するため、ユーザーの選択（「依存を広げる」）により、`Settings` が `Serialization` から使うものに JSON の規則を加えた（3.3、5.6）。状態を `レビュー待ち` に戻した |
 | 2026-11-07 | ユーザーが再承認（状態を `承認済み` に更新） |
